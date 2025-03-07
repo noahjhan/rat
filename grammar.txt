@@ -1,0 +1,10 @@
+i think it will be c style because 
+that is what I am familiar with
+
+I really like static type declaration
+
+int
+float
+double
+long
+bool
