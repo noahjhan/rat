@@ -3,6 +3,12 @@ CXX = g++
 CXXFLAGS = -Wall -std=c++17 -I./includes
 LDFLAGS = 
 
+# Colors
+BLUE = \033[1;34m
+GREEN = \033[1;32m
+RESET = \033[0m
+PURPLE = \033[1;35m
+
 # Directories
 SRC_DIR = src
 INC_DIR = includes
@@ -23,18 +29,28 @@ all: $(EXEC)
 # Rule to build the final executable
 $(EXEC): $(OBJECTS)
 	@mkdir -p $(BIN_DIR)  # Create the exec directory if it doesn't exist
-	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
+	@echo "$(PURPLE)$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)$(RESET)"
+	@ $(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
+	@echo "$(GREEN)Linking complete$(RESET)"
 
 # Rule to compile source files into object files
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS) | $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo "$(GREEN)Compiling $<$(RESET)"
+	@echo "$(PURPLE)$(CXX) $(CXXFLAGS) -c $< -o $@$(RESET)"
+	@ $(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Clean up build files
 clean:
-	rm -rf $(BIN_DIR) $(EXEC)
+	@echo "$(GREEN)Cleaning up...$(RESET)"
+	@ rm -rf $(BIN_DIR) $(EXEC)
+	@echo "$(PURPLE)rm -rf $(BIN_DIR) $(EXEC)$(RESET)"
 
 # Rule to create the bin directory if it doesn't exist
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
+run: $(EXEC)
+	@echo "$(BLUE)Running executable...$(RESET)"
+	@ ./$(EXEC)
+	
 .PHONY: all clean
