@@ -1,0 +1,4 @@
+f_ main() {
+    let x = 10
+    print("Hello, World!")
+}

@@ -1,31 +1,40 @@
-# Compiler
+# Compiler and linker
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++11
+CXXFLAGS = -Wall -std=c++17 -I./includes
+LDFLAGS = 
 
 # Directories
 SRC_DIR = src
-OBJ_DIR = obj
+INC_DIR = includes
 BIN_DIR = bin
+EXEC_DIR = $(BIN_DIR)/exec
 
-# Source and Object files
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
-OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
+# Files
+SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/debug_main.cpp
+HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 
-# Output binary
-TARGET = $(BIN_DIR)/main
+# Output
+EXEC = $(BIN_DIR)/exec  # Specify the name of the output executable
 
-# Rules
-all: $(TARGET)
+# Default target to build the executable
+all: $(EXEC)
 
-$(TARGET): $(OBJS)
-	@mkdir -p $(BIN_DIR)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+# Rule to build the final executable
+$(EXEC): $(OBJECTS)
+	@mkdir -p $(BIN_DIR)  # Create the exec directory if it doesn't exist
+	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(SRC_DIR)/rat.hpp
-	@mkdir -p $(OBJ_DIR)
+# Rule to compile source files into object files
+$(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Clean up build files
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf $(BIN_DIR) $(EXEC)
+
+# Rule to create the bin directory if it doesn't exist
+$(BIN_DIR):
+	mkdir -p $(BIN_DIR)
 
 .PHONY: all clean

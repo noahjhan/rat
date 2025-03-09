@@ -12,6 +12,7 @@ public:
     RatSource(const RatSource &other);
     RatSource &operator=(const RatSource &other);
     void destructor();
+    void debugPrinter();
 
 private:
     std::string filename_;
