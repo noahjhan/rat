@@ -4,7 +4,43 @@ that is what I am familiar with
 I really like static type declaration
 
 int
+long
+short
+unsigned int
+unsigned long
+unsigned short
+
 float
 double
 long
 bool
+char
+void
+any
+
+pointer
+
+function
+
+in cpp
+
+#include <iostream>
+
+int main(int argc, char** argv) {
+    std::cout << "Hello, World!" << std::endl;
+    return 0;
+}
+
+in rat
+
+f_ main() int {
+    print("Hello, World\n")
+}
+
+f_ -> non_first class function, can only be called once
+f -> basic first class function
+f! -> void function
+f+ -> anonymous lamba function 
+
+rev return void 
+ret return value
