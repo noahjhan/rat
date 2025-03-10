@@ -15,15 +15,17 @@ public:
     RatSource &operator=(const RatSource &other);
     void destructor();
 
-    void debugPrinter();
+    void seek_reset(); // points to 0th byte in file stream
     std::string readLine();
-    std::string readWord();
+    std::string readWord(); // tokens are not always seperated by whitespace -> use for debugging
     char advanceChar();
     char peekChar();
     void reverse();
     void advanceWhitespace();
     void selectLine(const unsigned &i);
     void selectCol(const unsigned &i);
+
+    void debugPrinter();
 
 private:
     std::string filename_;

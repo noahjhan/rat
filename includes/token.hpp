@@ -62,6 +62,9 @@ enum class TokenType
     BRACE_CLOSE,
     PARENTHESES_OPEN,
     PARENTHESES_CLOSE,
+    COMMENT_LINE,
+    COMMENT_BLOCK_OPEN,
+    COMMENT_BLOCK_CLOSE,
 
     // operators
     ARITHMETHIC_ADD,

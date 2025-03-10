@@ -38,20 +38,9 @@ void RatSource::destructor()
     fs_.close();
 }
 
-void RatSource::debugPrinter()
+void RatSource::seek_reset()
 {
-    if (!fs_.is_open())
-    {
-        throw std::invalid_argument("error opening file");
-    }
-
-    std::string line;
-
-    while (std::getline(fs_, line))
-    {
-        std::cout << line << std::endl;
-    }
-    fs_.close();
+    fs_.seekg(0, std::ios::beg);
 }
 
 std::string RatSource::readLine()
@@ -100,13 +89,13 @@ char RatSource::peekChar()
 }
 void RatSource::reverse()
 {
-    if (last_ == NULL)
+    if (last_ == '\0')
     {
-        std::cerr << "error: cannot reverse" << std::endl;
+        std::cerr << "error cannot reverse" << std::endl;
         return;
     }
     fs_.putback(last_);
-    last_ = NULL;
+    last_ = '\0';
 }
 void RatSource::advanceWhitespace()
 {
@@ -124,8 +113,28 @@ void RatSource::advanceWhitespace()
 void RatSource::selectLine(const unsigned &i)
 {
     // @todo
+
+    // seekg
 }
 void RatSource::selectCol(const unsigned &i)
 {
     // @todo
+
+    // seekg
+}
+
+void RatSource::debugPrinter()
+{
+    if (!fs_.is_open())
+    {
+        throw std::invalid_argument("error opening file");
+    }
+
+    std::string line;
+
+    while (std::getline(fs_, line))
+    {
+        std::cout << line << std::endl;
+    }
+    fs_.close();
 }
