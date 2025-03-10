@@ -210,6 +210,26 @@ void Lexer::expectVariableAssignment()
   source_file_.advanceWhitespace();
   partial = source_file_.readWord();
 
+  tokenPush(stringToToken(partial), partial, source_file_.getLineNum(),
+            source_file_.getColNum());
+  partial.clear();
+  source_file_.advanceWhitespace();
+  curr = source_file_.advanceChar();
+  partial.push_back(curr);
+
+  if (curr != '=')
+  {
+    std::cerr << "in expectVariableAssignment: found character '" << curr
+              << '\'' << std::endl;
+    throw std::invalid_argument("error: expected '='");
+  }
+
+  tokenPush(stringToToken(partial), partial, source_file_.getLineNum(),
+            source_file_.getColNum());
+  partial.clear();
+  source_file_.advanceWhitespace();
+  partial = source_file_.readWord();
+
   tokenPush(TokenType::LITERAL, partial, source_file_.getLineNum(),
             source_file_.getColNum());
   return;
@@ -224,7 +244,7 @@ void Lexer::expectStringLiteral()
 
   if (curr != '"')
   {
-    std::cerr << "in expectStringLiteral: excpected '\"', recieved '" << curr
+    std::cerr << "in expectStringLiteral: expected '\"', recieved '" << curr
               << '\'' << std::endl;
     throw std::invalid_argument("error unexpected char");
   }
@@ -245,6 +265,12 @@ void Lexer::expectStringLiteral()
     }
 
     curr = source_file_.advanceChar();
+  }
+  if (curr == '\0' || curr == EOF)
+  {
+    std::cerr << "in expectStringLiteral: expected closing quotation"
+              << std::endl;
+              throw std::invalid_argument("invalid syntax");
   }
 }
 
