@@ -30,6 +30,5 @@ public:
 private:
     std::string filename_;
     std::fstream fs_;
-    char last_;
 };
 #endif // RAT_SOURCE_HPP

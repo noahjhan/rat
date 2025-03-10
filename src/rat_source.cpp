@@ -23,6 +23,7 @@ RatSource::RatSource(const RatSource &other)
         this->fs_.open(this->filename_);
     }
 }
+
 RatSource &RatSource::operator=(const RatSource &other)
 {
     if (this != &other)
@@ -33,6 +34,7 @@ RatSource &RatSource::operator=(const RatSource &other)
     }
     return *this;
 }
+
 void RatSource::destructor()
 {
     fs_.close();
@@ -46,9 +48,13 @@ void RatSource::seek_reset()
 std::string RatSource::readLine()
 {
     std::string line;
-    last_ = std::getline(fs_, line) ? '\n' : '\0';
-    return line;
+    if (std::getline(fs_, line))
+    {
+        return line;
+    }
+    return "";
 }
+
 std::string RatSource::readWord()
 {
     std::string word;
@@ -56,7 +62,6 @@ std::string RatSource::readWord()
 
     while (fs_.get(ch) && std::isspace(ch))
     {
-        last_ = ch;
     }
 
     if (!fs_.good())
@@ -67,60 +72,59 @@ std::string RatSource::readWord()
     do
     {
         word.push_back(ch);
-        last_ = ch;
     } while (fs_.get(ch) && !std::isspace(ch));
 
     return word;
 }
+
 char RatSource::advanceChar()
 {
     char ch;
     if (fs_.get(ch))
     {
-        last_ = ch;
         return ch;
     }
-    last_ = '\0';
     return EOF;
 }
+
 char RatSource::peekChar()
 {
     return fs_.peek();
 }
+
 void RatSource::reverse()
 {
-    if (last_ == '\0')
+    if (!fs_.good())
     {
-        std::cerr << "error cannot reverse" << std::endl;
+        std::cerr << "error cannot reverse: EOF" << std::endl;
         return;
     }
-    fs_.putback(last_);
-    last_ = '\0';
+    fs_.unget();
 }
+
 void RatSource::advanceWhitespace()
 {
     char ch;
     while (fs_.get(ch))
     {
-        last_ = ch;
         if (!std::isspace(ch))
         {
-            reverse();
+            fs_.unget();
             return;
         }
     }
 }
+
 void RatSource::selectLine(const unsigned &i)
 {
-    // @todo
-
-    // seekg
+    // @todo implement seeking to the specific line
+    // use seekg with proper offset
 }
+
 void RatSource::selectCol(const unsigned &i)
 {
-    // @todo
-
-    // seekg
+    // @todo implement seeking to the specific col
+    // modify the file pointer
 }
 
 void RatSource::debugPrinter()
