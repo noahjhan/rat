@@ -1,4 +1,11 @@
+f foo() {
+    print("Goodbye!")
+    ret
+}
+
 f_ main() {
     let x = 10
     print("Hello, World!")
+    foo()
+    rev
 }

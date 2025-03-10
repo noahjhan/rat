@@ -22,8 +22,7 @@ public:
   void expectStringLiteral();
   TokenType stringToToken(const std::string &str);
 
-  void tokenPush(TokenType t, std::string v, unsigned int line,
-                 unsigned int col);
+  void tokenPush(TokenType t, std::string v);
 
   void debugPrinter();
 

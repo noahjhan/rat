@@ -133,6 +133,12 @@ bool Lexer::extractTokenLiteral()
                 << "' invalid character" << std::endl;
       return false;
     }
+    if (curr == '\"')
+    {
+      source_file_.reverse();
+      expectStringLiteral();
+      return true;
+    }
     else if (punctuators_.find(curr) != punctuators_.end() && partial.empty())
     {
       partial.push_back(curr);
@@ -145,10 +151,7 @@ bool Lexer::extractTokenLiteral()
     }
     partial.push_back(curr);
   }
-  TokenType token_type = stringToToken(partial);
-  auto t = Token(token_type, partial, source_file_.getLineNum(),
-                 source_file_.getColNum());
-  tokens_.push_back(t);
+  tokenPush(stringToToken(partial), partial);
   return true;
 }
 
@@ -168,8 +171,7 @@ void Lexer::expectVariableAssignment()
     throw std::invalid_argument("error: unexpected keyword");
   }
 
-  tokenPush(stringToToken(partial), partial, source_file_.getLineNum(),
-            source_file_.getColNum());
+  tokenPush(stringToToken(partial), partial);
 
   partial.clear();
 
@@ -190,8 +192,7 @@ void Lexer::expectVariableAssignment()
     curr = source_file_.peekChar(); // can def be optimized
   }
 
-  tokenPush(TokenType::VARIABLE_ID, partial, source_file_.getLineNum(),
-            source_file_.getColNum());
+  tokenPush(TokenType::VARIABLE_ID, partial);
   partial.clear();
   source_file_.advanceWhitespace();
   curr = source_file_.advanceChar();
@@ -204,14 +205,12 @@ void Lexer::expectVariableAssignment()
     throw std::invalid_argument("error: expected ':'");
   }
 
-  tokenPush(stringToToken(partial), partial, source_file_.getLineNum(),
-            source_file_.getColNum());
+  tokenPush(stringToToken(partial), partial);
   partial.clear();
   source_file_.advanceWhitespace();
   partial = source_file_.readWord();
 
-  tokenPush(stringToToken(partial), partial, source_file_.getLineNum(),
-            source_file_.getColNum());
+  tokenPush(stringToToken(partial), partial);
   partial.clear();
   source_file_.advanceWhitespace();
   curr = source_file_.advanceChar();
@@ -224,14 +223,12 @@ void Lexer::expectVariableAssignment()
     throw std::invalid_argument("error: expected '='");
   }
 
-  tokenPush(stringToToken(partial), partial, source_file_.getLineNum(),
-            source_file_.getColNum());
+  tokenPush(stringToToken(partial), partial);
   partial.clear();
   source_file_.advanceWhitespace();
   partial = source_file_.readWord();
 
-  tokenPush(TokenType::LITERAL, partial, source_file_.getLineNum(),
-            source_file_.getColNum());
+  tokenPush(TokenType::LITERAL, partial);
   return;
 }
 
@@ -255,8 +252,7 @@ void Lexer::expectStringLiteral()
 
     if (curr == '\"' && exit_flag)
     {
-      tokenPush(TokenType::LITERAL, partial, source_file_.getLineNum(),
-                source_file_.getColNum());
+      tokenPush(TokenType::LITERAL, partial);
       return;
     }
     else if (curr == '\"')
@@ -270,7 +266,7 @@ void Lexer::expectStringLiteral()
   {
     std::cerr << "in expectStringLiteral: expected closing quotation"
               << std::endl;
-              throw std::invalid_argument("invalid syntax");
+    throw std::invalid_argument("invalid syntax");
   }
 }
 
@@ -289,10 +285,9 @@ TokenType Lexer::stringToToken(const std::string &str)
             << std::endl;
 }
 
-void Lexer::tokenPush(TokenType t, std::string v, unsigned int line,
-                      unsigned int col)
+void Lexer::tokenPush(TokenType t, std::string v)
 {
-  auto token = Token(t, v, line, col);
+  auto token = Token(t, v, source_file_.getLineNum(), source_file_.getColNum());
   tokens_.push_back(token);
 }
 
