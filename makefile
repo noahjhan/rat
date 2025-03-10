@@ -31,7 +31,7 @@ $(EXEC): $(OBJECTS)
 	@mkdir -p $(BIN_DIR)  # Create the exec directory if it doesn't exist
 	@echo "$(PURPLE)$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)$(RESET)"
 	@ $(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
-	@echo "$(GREEN)Linking complete$(RESET)"
+	@echo "$(GREEN)Linking...$(RESET)"
 
 # Rule to compile source files into object files
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS) | $(BIN_DIR)
@@ -41,7 +41,7 @@ $(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS) | $(BIN_DIR)
 
 # Clean up build files
 clean:
-	@echo "$(GREEN)Cleaning up...$(RESET)"
+	@echo "$(GREEN)Cleaning bin and exec directory...$(RESET)"
 	@ rm -rf $(BIN_DIR) $(EXEC)
 	@echo "$(PURPLE)rm -rf $(BIN_DIR) $(EXEC)$(RESET)"
 
@@ -50,7 +50,7 @@ $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
 run: $(EXEC)
-	@echo "$(BLUE)Running executable...$(RESET)"
+	@echo "$(BLUE)Running exec...$(RESET)"
 	@ ./$(EXEC)
 	
 .PHONY: all clean

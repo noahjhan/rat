@@ -1,4 +1,6 @@
-enum class TokenType
+#include <string>
+
+enum class TokenGeneric
 {
     IDENTIFIER,
     KEYWORD,
@@ -8,8 +10,9 @@ enum class TokenType
 };
 
 // not required, identifiers are user inputted
-enum class IndentiferToken
+enum class TokenType
 {
+    // identifier
     VARIABLE,
     FUNCTION,
     MODULE,
@@ -24,14 +27,11 @@ enum class IndentiferToken
     TYPE_ANY,
     TYPE_POINTER,
     TYPE_UINT,
-    TYPE_ULONH,
+    TYPE_ULONG,
     TYPE_USHORT,
-    TYPE_UCHAR
-};
+    TYPE_UCHAR,
 
-// PURPOSE_identifier
-enum class KeywordToken
-{
+    // keyword
     VARIABLE_DECLARATION_LET,
     VARIABLE_DECLARATION_OPLET,    // optional let
     FUNCTION_DECLARATION_F,        // f
@@ -42,29 +42,29 @@ enum class KeywordToken
     CONDITIONAL_IF,
     CONDITIONAL_ELSE_IF,
     CONDITIONAL_ELSE,
-    PATTERN_MATCH
-};
-// not required, strings are user inputted
-enum class LiteralToken
-{
+    PATTERN_MATCH,
+
+    // literals
     NUMERIC,
     STRING,
     BOOLEAN,
-    NULL
-};
-enum class PunctuatorToken
-{
+    NULL_LITERAL,
+
+    // punctuators
     SEMICOLON,
     COLON,
     EXCLAMATION,
     QUOTE,
-    DOUBLE_QUOTE,
-    BRACKET,
-    BRACE,
-    PARENTHESES
-};
-enum class OperatorToken
-{
+    DOUBLE_QUOTE_OPEN,
+    DOUBLE_QUOTE_CLOSE,
+    BRACKET_OPEN,
+    BRACKET_CLOSE,
+    BRACE_OPEN,
+    BRACE_CLOSE,
+    PARENTHESES_OPEN,
+    PARENTHESES_CLOSE,
+
+    // operators
     ARITHMETHIC_ADD,
     ARITHMETHIC_SUB,
     ARITHMETHIC_MUL,
@@ -94,4 +94,16 @@ enum class OperatorToken
     ARROW,
     INCREMENT,
     DECREMENT
+};
+
+struct Token
+{
+    TokenGeneric generic;
+    TokenType type;
+    std::string value;
+    unsigned int line_num;
+    unsigned int col_num;
+
+    Token(TokenGeneric g, TokenType t, std::string v, unsigned int line, unsigned int col)
+        : generic(g), type(t), value(std::move(v)), line_num(line), col_num(col) {}
 };
