@@ -53,3 +53,79 @@ void RatSource::debugPrinter()
     }
     fs_.close();
 }
+
+std::string RatSource::readLine()
+{
+    std::string line;
+    last_ = std::getline(fs_, line) ? '\n' : '\0';
+    return line;
+}
+std::string RatSource::readWord()
+{
+    std::string word;
+    char ch;
+
+    while (fs_.get(ch) && std::isspace(ch))
+    {
+        last_ = ch;
+    }
+
+    if (!fs_.good())
+    {
+        return "";
+    }
+
+    do
+    {
+        word.push_back(ch);
+        last_ = ch;
+    } while (fs_.get(ch) && !std::isspace(ch));
+
+    return word;
+}
+char RatSource::advanceChar()
+{
+    char ch;
+    if (fs_.get(ch))
+    {
+        last_ = ch;
+        return ch;
+    }
+    last_ = '\0';
+    return EOF;
+}
+char RatSource::peekChar()
+{
+    return fs_.peek();
+}
+void RatSource::reverse()
+{
+    if (last_ == NULL)
+    {
+        std::cerr << "error: cannot reverse" << std::endl;
+        return;
+    }
+    fs_.putback(last_);
+    last_ = NULL;
+}
+void RatSource::advanceWhitespace()
+{
+    char ch;
+    while (fs_.get(ch))
+    {
+        last_ = ch;
+        if (!std::isspace(ch))
+        {
+            reverse();
+            return;
+        }
+    }
+}
+void RatSource::selectLine(const unsigned &i)
+{
+    // @todo
+}
+void RatSource::selectCol(const unsigned &i)
+{
+    // @todo
+}

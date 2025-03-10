@@ -9,7 +9,6 @@ enum class TokenGeneric
     OPERATOR
 };
 
-// not required, identifiers are user inputted
 enum class TokenType
 {
     // identifier
