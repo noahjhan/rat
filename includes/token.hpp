@@ -1,111 +1,114 @@
+#ifndef TOKEN_HPP
+#define TOKEN_HPP
+
 #include <string>
-
-enum class TokenGeneric
-{
-    IDENTIFIER,
-    KEYWORD,
-    LITERAL,
-    PUNCTUATOR,
-    OPERATOR
-};
-
 enum class TokenType
 {
-    // identifier
-    VARIABLE,
-    FUNCTION,
-    MODULE,
-    TYPE_INT,
-    TYPE_FLOAT,
-    TYPE_DOUBLE,
-    TYPE_BOOL,
-    TYPE_CHAR,
-    TYPE_LONG,
-    TYPE_SHORT,
-    TYPE_VOID,
-    TYPE_ANY,
-    TYPE_POINTER,
-    TYPE_UINT,
-    TYPE_ULONG,
-    TYPE_USHORT,
-    TYPE_UCHAR,
+  /// generic
+  IDENTIFIER,
+  KEYWORD,
+  LITERAL,
+  PUNCTUATOR,
+  OPERATOR,
 
-    // keyword
-    VARIABLE_DECLARATION_LET,
-    VARIABLE_DECLARATION_OPLET,    // optional let
-    FUNCTION_DECLARATION_F,        // f
-    FUNCTION_DECLARATION_F_VOID,   // f_
-    FUNCTION_DECLARATION_F_PURE,   // f!
-    FUNCTION_DECLARATION_F_LAMBDA, // f/
-    FUNCTION_RETURN,
-    CONDITIONAL_IF,
-    CONDITIONAL_ELSE_IF,
-    CONDITIONAL_ELSE,
-    PATTERN_MATCH,
+  // identifier
+  VARIABLE_ID,
+  FUNCTION_ID,
+  // MODULE,
+  TYPE_INT,
+  TYPE_FLOAT,
+  TYPE_DOUBLE,
+  TYPE_BOOL,
+  TYPE_CHAR,
+  TYPE_LONG,
+  TYPE_SHORT,
+  TYPE_POINTER,
+  TYPE_UINT,
+  TYPE_ULONG,
+  TYPE_USHORT,
+  TYPE_UCHAR,
 
-    // literals
-    NUMERIC,
-    STRING,
-    BOOLEAN,
-    NULL_LITERAL,
+  TYPE_OP_INT,
+  TYPE_OP_FLOAT,
+  TYPE_OP_DOUBLE,
+  TYPE_OP_BOOL,
+  TYPE_OP_CHAR,
+  TYPE_OP_LONG,
+  TYPE_OP_SHORT,
+  TYPE_OP_UINT,
+  TYPE_OP_ULONG,
+  TYPE_OP_USHORT,
+  TYPE_OP_UCHAR,
 
-    // punctuators
-    SEMICOLON,
-    COLON,
-    EXCLAMATION,
-    QUOTE,
-    DOUBLE_QUOTE_OPEN,
-    DOUBLE_QUOTE_CLOSE,
-    BRACKET_OPEN,
-    BRACKET_CLOSE,
-    BRACE_OPEN,
-    BRACE_CLOSE,
-    PARENTHESES_OPEN,
-    PARENTHESES_CLOSE,
-    COMMENT_LINE,
-    COMMENT_BLOCK_OPEN,
-    COMMENT_BLOCK_CLOSE,
+  // keyword
+  VARIABLE_DECLARATION_LET,
+  VARIABLE_DECLARATION_OPLET,      // optional let
+  FUNCTION_DECLARATION_F,          // f
+  FUNCTION_DECLARATION_F_VOID,     // f_
+  FUNCTION_DECLARATION_F_OPTIONAL, // f?
+  FUNCTION_DECLARATION_F_LAMBDA,   // f/
+  FUNCTION_RETURN,
+  FUNCTION_RETURN_VOID,
+  CONDITIONAL_IF,
+  CONDITIONAL_ELSE,
+  CONDITIONAL_ELSE_IF,
+  PATTERN_MATCH,
 
-    // operators
-    ARITHMETHIC_ADD,
-    ARITHMETHIC_SUB,
-    ARITHMETHIC_MUL,
-    ARITHMETHIC_DIV,
-    ARITHMETHIC_MOD,
-    COMPARISON_EQ,
-    COMPARISON_NEQ,
-    COMPARISON_LT,
-    COMPARISON_GT,
-    COMPARISON_LTE,
-    COMPARISON_GTE,
-    LOGICAL_AND,
-    LOGICAL_OR,
-    LOGICAL_NOT,
-    ASSIGNMENT_EQUALS,
-    ASSIGNMENT_INCREMENT,
-    ASSIGNMENT_DECREMENT,
-    ASSIGNMENT_MUL,
-    ASSIGNMENT_DIV,
-    ASSIGNMENT_MOD,
-    BITWISE_AND,
-    BITWISE_OR,
-    BITWISE_XOR,
-    BITWISE_NEG,
-    BITWISE_SL,
-    BITWISE_SR,
-    ARROW,
-    INCREMENT,
-    DECREMENT
+  // literals
+  NUMERIC,
+  STRING,
+  BOOLEAN,
+  NULL_LITERAL,
+
+  // punctuators
+  SEMICOLON,
+  COLON,
+  SINGLE_QUOTE,
+  DOUBLE_QUOTE,
+  COMMA,
+  BRACKET_OPEN,
+  BRACKET_CLOSE,
+  BRACE_OPEN,
+  BRACE_CLOSE,
+  PARENTHESES_OPEN,
+  PARENTHESES_CLOSE,
+  COMMENT_LINE,
+  COMMENT_BLOCK_OPEN,
+  COMMENT_BLOCK_CLOSE,
+
+  // operators
+  ARITHMETHIC_ADD,
+  ARITHMETHIC_SUB,
+  ARITHMETHIC_MUL,
+  ARITHMETHIC_DIV,
+  ARITHMETHIC_MOD,
+  COMPARISON_EQ,
+  COMPARISON_NEQ,
+  COMPARISON_LT,
+  COMPARISON_GT,
+  COMPARISON_LTE,
+  COMPARISON_GTE,
+  LOGICAL_AND,
+  LOGICAL_OR,
+  LOGICAL_NOT,
+  BITWISE_AND,
+  BITWISE_OR,
+  BITWISE_XOR,
+  BITWISE_NEG,
+  BITWISE_SL,
+  BITWISE_SR,
+  ARROW
 };
-
 struct Token
 {
-    TokenGeneric generic;
-    TokenType type;
-    std::string value;
-    unsigned int line_num;
-    unsigned int col_num;
+  TokenType type;
+  std::string value;
+  unsigned int line_num;
+  unsigned int col_num;
 
-    Token(TokenGeneric g, TokenType t, std::string v, unsigned int line, unsigned int col)
-        : generic(g), type(t), value(std::move(v)), line_num(line), col_num(col) {}
+  Token(TokenType t, std::string v, unsigned int line, unsigned int col)
+      : type(t), value(std::move(v)), line_num(line), col_num(col)
+  {
+  }
 };
+#endif // TOKEN_HPP

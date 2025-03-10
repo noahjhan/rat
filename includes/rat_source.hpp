@@ -1,34 +1,41 @@
 #ifndef RAT_SOURCE_HPP
 #define RAT_SOURCE_HPP
 
-#include <string>
-#include <iostream>
-#include <fstream>
 #include <cctype>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <unordered_map>
 
 class RatSource
 {
 public:
-    RatSource(const std::string &filename);
-    ~RatSource();
-    RatSource(const RatSource &other);
-    RatSource &operator=(const RatSource &other);
-    void destructor();
+  RatSource(const std::string &filename);
+  ~RatSource();
+  RatSource(const RatSource &other);
+  RatSource &operator=(const RatSource &other);
+  void destructor();
 
-    void seek_reset(); // points to 0th byte in file stream
-    std::string readLine();
-    std::string readWord(); // tokens are not always seperated by whitespace -> use for debugging
-    char advanceChar();
-    char peekChar();
-    void reverse();
-    void advanceWhitespace();
-    void selectLine(const unsigned &i);
-    void selectCol(const unsigned &i);
+  void seek_reset(); // points to 0th byte in file stream
+  std::string readLine();
+  std::string readWord(); // tokens are not always seperated by whitespace ->
+                          // use for debugging
+  char advanceChar();
+  char peekChar();
+  void reverse();
+  void advanceWhitespace();
+  void selectLine(const unsigned &i);
+  void selectCol(const unsigned &i);
 
-    void debugPrinter();
+  unsigned int getLineNum();
+  unsigned int getColNum();
+
+  void debugPrinter();
 
 private:
-    std::string filename_;
-    std::fstream fs_;
+  std::string filename_;
+  std::fstream fs_;
+  unsigned int line_num;
+  unsigned int col_num;
 };
 #endif // RAT_SOURCE_HPP

@@ -1,6 +1,6 @@
 # Compiler and linker
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -I./includes
+CXXFLAGS = -Wall -std=c++17 -g -O0 -I./includes
 LDFLAGS = 
 
 # Colors

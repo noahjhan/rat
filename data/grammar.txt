@@ -1,3 +1,10 @@
+basic Syntax
+ignore comments for now
+
+FUNCTION_DECLARATION NAME OPEN_PAREN NAME COLON TYPE NAME COLON TYPE CLOSE_PAREN OPEN_BRACE code CLOSE_BRACE
+
+if a rat file does not start with this -> die
+
 i think it will be c style because 
 that is what I am familiar with
 

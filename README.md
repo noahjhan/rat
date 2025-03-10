@@ -16,11 +16,11 @@ Rat will be an attempt at writing simple compiler. Hopefully the lang will be tu
         rev
     }
 
-f specifies a regular function - first class function with return
+f specifies a regular function - first class function with static return type
 
-f_ specifies a void function - does not return a value
+f_ specifies a void function - no return 
 
-f! specifies a pure function - cannot modify external state
+f? specifies an optional function - can return NULL or object cast to optional type
 
 f/ specifies a lambda function - anonymous 
 
