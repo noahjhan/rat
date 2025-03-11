@@ -2,15 +2,26 @@
 #define TOKEN_HPP
 
 #include <string>
-enum class TokenType
+enum class GenericToken
 {
   /// generic
+  VARIABLE_ID, // user-input [a-zA-Z0-9_]
+  FUNCTION_ID, // user-input [a-zA-Z0-9_]
+  KEYWORD,
+  VALUE_LITERAL, // expect a lot of conversions
+  STRING_LITERAL,
+  CHAR_LITERAL,
+  PUNCTUATOR,
+  OPERATOR
+};
+
+enum class TokenType
+{
   IDENTIFIER,
   KEYWORD,
   LITERAL,
   PUNCTUATOR,
   OPERATOR,
-
   // identifier
   VARIABLE_ID,
   FUNCTION_ID,
@@ -97,17 +108,20 @@ enum class TokenType
   BITWISE_NEG,
   BITWISE_SL,
   BITWISE_SR,
-  ARROW
+  ARROW,
+  FAT_ARROW
 };
 struct Token
 {
-  TokenType type;
-  std::string value;
-  unsigned int line_num;
-  unsigned int col_num;
+  GenericToken type_;
+  std::string value_;
+  unsigned int line_num_;
+  unsigned int col_num_;
 
-  Token(TokenType t, std::string v, unsigned int line, unsigned int col)
-      : type(t), value(std::move(v)), line_num(line), col_num(col)
+  Token(GenericToken type, std::string value, unsigned int line_num,
+        unsigned int col_num)
+      : type_(type), value_(std::move(value)), line_num_(line_num),
+        col_num_(col_num)
   {
   }
 };

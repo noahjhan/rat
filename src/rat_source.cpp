@@ -7,6 +7,8 @@ RatSource::RatSource(const std::string &filename) : filename_(filename)
   {
     throw std::invalid_argument("invalid file");
   }
+  line_num = 1;
+  col_num = 1;
 }
 
 RatSource::~RatSource() { fs_.close(); }
@@ -18,6 +20,8 @@ RatSource::RatSource(const RatSource &other)
     fs_.close();
     this->filename_ = other.filename_;
     this->fs_.open(this->filename_);
+    this->line_num = other.line_num;
+    this->col_num = other.col_num;
   }
 }
 
@@ -28,6 +32,8 @@ RatSource &RatSource::operator=(const RatSource &other)
     fs_.close();
     this->filename_ = other.filename_;
     this->fs_.open(this->filename_);
+    this->line_num = other.line_num;
+    this->col_num = other.col_num;
   }
   return *this;
 }
@@ -41,6 +47,8 @@ std::string RatSource::readLine()
   std::string line;
   if (std::getline(fs_, line))
   {
+    line_num++;
+    col_num = 1;
     return line;
   }
   return "";
@@ -53,6 +61,12 @@ std::string RatSource::readWord()
 
   while (fs_.get(ch) && std::isspace(ch))
   {
+    col_num++;
+    if (ch == '\n')
+    {
+      col_num = 1;
+      line_num++;
+    }
   }
 
   if (!fs_.good())
@@ -63,6 +77,7 @@ std::string RatSource::readWord()
   do
   {
     word.push_back(ch);
+    col_num++;
   } while (fs_.get(ch) && !std::isspace(ch));
 
   return word;
@@ -73,6 +88,12 @@ char RatSource::advanceChar()
   char ch;
   if (fs_.get(ch))
   {
+    col_num++;
+    if (ch == '\n')
+    {
+      col_num = 1;
+      line_num++;
+    }
     return ch;
   }
   return EOF;
@@ -88,6 +109,11 @@ void RatSource::reverse()
     return;
   }
   fs_.unget();
+  if (fs_.peek() == '\n')
+  {
+    throw std::runtime_error("cannot reverse a newline character");
+  }
+  col_num--;
 }
 
 void RatSource::advanceWhitespace()
@@ -104,14 +130,21 @@ void RatSource::advanceWhitespace()
   char ch;
   while (fs_.get(ch))
   {
+    col_num++;
     if (ch == EOF || ch == '\0')
     {
       std::cerr << "in advance whitespace: '" << int(ch)
                 << "' invalid character" << std::endl;
     }
+    if (ch == '\n')
+    {
+      line_num++;
+      col_num = 1;
+    }
     if (!std::isspace(ch))
     {
       fs_.unget();
+      col_num--;
       return;
     }
   }
@@ -126,7 +159,7 @@ void RatSource::selectLine(const unsigned &ix)
 void RatSource::selectCol(const unsigned &i)
 {
   // @todo implement seeking to the specific col
-  // modify the file pointer
+  // modify the file pointer);
 }
 
 unsigned int RatSource::getLineNum() { return this->line_num; }

@@ -1,300 +1,121 @@
-
 #include "lexer.hpp"
 
-// helper function
+/*
+
+The lexer should really only convert words to genericToken enums
+
+it should be able to (either in ratSource or in lexer) figure out line numbers
+
+lexical errors will appear like invalid character for literal, unrecognized
+keyword etc...
+
+parser will handle syntax errors
+
+*/
 
 bool isAcceptableIdentifier(const char &ch)
 {
-  if (std::isalnum(ch) || ch == '_')
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-  // return (std::isalnum(ch) || ch == '_' || ch == '$');
+  return std::isalnum(ch) || ch == '_';
 }
 
 bool isAcceptableStringLiteral(const char &ch)
 {
-  if (ch == EOF || ch == '\0')
-  {
-    return false;
-  }
-
-  if (std::isprint(ch) || std::isalnum(ch) || std::isspace(ch) ||
-      std::ispunct(ch))
-  {
-    return true;
-  }
-  std::cerr << "in isAcceptableStringLiteral: '" << ch << "' " << std::endl;
-  throw std::invalid_argument("error: unexpected character");
+  // prob could have something more validating than this
+  return std::isprint(ch);
 }
 
-// lexer class
+bool isAcceptableNumericLiteral(const char &ch)
+{
+  // no support for char conversion or non-decimal base
+  return std::isdigit(ch) || ch == '.' || ch == 'u';
+
+  // @todo: support for float double short long etc ?
+}
 
 Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
-  tokens_.clear();
-  token_dict_ = {{"int", TokenType::TYPE_INT},
-                 {"float", TokenType::TYPE_FLOAT},
-                 {"double", TokenType::TYPE_DOUBLE},
-                 {"bool", TokenType::TYPE_BOOL},
-                 {"char", TokenType::TYPE_CHAR},
-                 {"long", TokenType::TYPE_LONG},
-                 {"short", TokenType::TYPE_SHORT},
-                 {"pointer", TokenType::TYPE_POINTER},
-                 {"uint", TokenType::TYPE_UINT},
-                 {"ulong", TokenType::TYPE_ULONG},
-                 {"ushort", TokenType::TYPE_USHORT},
-                 {"uchar", TokenType::TYPE_UCHAR},
-                 {"op_int", TokenType::TYPE_OP_INT},
-                 {"op_float", TokenType::TYPE_OP_FLOAT},
-                 {"op_double", TokenType::TYPE_OP_DOUBLE},
-                 {"op_bool", TokenType::TYPE_OP_BOOL},
-                 {"op_char", TokenType::TYPE_OP_CHAR},
-                 {"op_long", TokenType::TYPE_OP_LONG},
-                 {"op_short", TokenType::TYPE_OP_SHORT},
-                 {"op_uint", TokenType::TYPE_OP_UINT},
-                 {"op_ulong", TokenType::TYPE_OP_ULONG},
-                 {"op_ushort", TokenType::TYPE_OP_USHORT},
-                 {"op_uchar", TokenType::TYPE_OP_UCHAR},
-                 {"let", TokenType::VARIABLE_DECLARATION_LET},
-                 {"oplet", TokenType::VARIABLE_DECLARATION_OPLET},
-                 {"f", TokenType::FUNCTION_DECLARATION_F},
-                 {"f_", TokenType::FUNCTION_DECLARATION_F_VOID},
-                 {"f?", TokenType::FUNCTION_DECLARATION_F_OPTIONAL},
-                 {"f/", TokenType::FUNCTION_DECLARATION_F_LAMBDA},
-                 {"ret", TokenType::FUNCTION_RETURN},
-                 {"rev", TokenType::FUNCTION_DECLARATION_F_VOID},
-                 {"if", TokenType::CONDITIONAL_IF},
-                 {"else", TokenType::CONDITIONAL_ELSE},
-                 {"else if", TokenType::CONDITIONAL_ELSE_IF},
-                 {"match", TokenType::PATTERN_MATCH},
-                 {"null", TokenType::NULL_LITERAL},
-                 {";", TokenType::SEMICOLON},
-                 {":", TokenType::COLON},
-                 {"'", TokenType::SINGLE_QUOTE},
-                 {"\"", TokenType::DOUBLE_QUOTE},
-                 {",", TokenType::COMMA},
-                 {"[", TokenType::BRACKET_OPEN},
-                 {"]", TokenType::BRACKET_CLOSE},
-                 {"{", TokenType::BRACE_OPEN},
-                 {"}", TokenType::BRACE_CLOSE},
-                 {"(", TokenType::PARENTHESES_OPEN},
-                 {")", TokenType::PARENTHESES_CLOSE},
-                 {"//", TokenType::COMMENT_LINE},
-                 {"/*", TokenType::COMMENT_BLOCK_OPEN},
-                 {"*/", TokenType::COMMENT_BLOCK_CLOSE},
-                 {"+", TokenType::ARITHMETHIC_ADD},
-                 {"-", TokenType::ARITHMETHIC_MUL},
-                 {"*", TokenType::ARITHMETHIC_MUL},
-                 {"/", TokenType::ARITHMETHIC_DIV},
-                 {"%", TokenType::ARITHMETHIC_MOD},
-                 {"==", TokenType::COMPARISON_EQ},
-                 {"!=", TokenType::COMPARISON_NEQ},
-                 {"<", TokenType::COMPARISON_LT},
-                 {">", TokenType::COMPARISON_GT},
-                 {"<=", TokenType::COMPARISON_LTE},
-                 {">=", TokenType::COMPARISON_GTE},
-                 {"&&", TokenType::LOGICAL_AND},
-                 {"||", TokenType::LOGICAL_OR},
-                 {"!", TokenType::LOGICAL_NOT},
-                 {"&", TokenType::BITWISE_AND},
-                 {"|", TokenType::BITWISE_OR},
-                 {"^", TokenType::BITWISE_XOR},
-                 {"~", TokenType::BITWISE_NEG},
-                 {"<<", TokenType::BITWISE_SL},
-                 {">>", TokenType::BITWISE_SR},
-                 {"->", TokenType::ARROW}};
-  punctuators_ = {';', '\'', '\"', '[', ']', '{', '}', '(', ')'};
+  punctuators_ = {':', '\'', '\"', '[', ']',
+                  '{', '}',  '(',  ')'}; // subject to change
+
+  keywords_ = {"let", "if", "else", "elif", "fn", "fn_", "fn?", "fn/"};
+
+  operators_ = {"+",  "-",  "*", "/", "%", "==", "!=", "<",  ">",  "<=", ">=",
+                "&&", "||", "!", "&", "|", "^",  "~",  "<<", ">>", "->", "=>"};
 }
 
-bool Lexer::extractTokenLiteral()
+void Lexer::advanceToken()
 {
-  source_file_
-      .advanceWhitespace(); // for now ignore whitespace at start of file
-  std::string partial;
-
-  char curr = source_file_.peekChar();
-
-  if (curr == EOF)
-  {
-    return false;
-  }
-
-  while (!std::isspace(curr))
-  {
-    curr = source_file_.advanceChar();
-    if (curr == EOF || curr == '\0')
-    {
-      std::cerr << "in advance whitespace: '" << int(curr)
-                << "' invalid character" << std::endl;
-      return false;
-    }
-    if (curr == '\"')
-    {
-      source_file_.reverse();
-      expectStringLiteral();
-      return true;
-    }
-    else if (punctuators_.find(curr) != punctuators_.end() && partial.empty())
-    {
-      partial.push_back(curr);
-      break;
-    }
-    else if (punctuators_.find(curr) != punctuators_.end())
-    {
-      source_file_.reverse();
-      break;
-    }
-    partial.push_back(curr);
-  }
-  tokenPush(stringToToken(partial), partial);
-  return true;
-}
-
-void Lexer::expectVariableAssignment()
-{
-  std::vector<std::string> token_values; // ?? maybe
   source_file_.advanceWhitespace();
-  std::string partial;
-  // first step extract let as string
-
-  partial = source_file_.readWord();
-
-  if (partial != "let")
-  {
-    std::cerr << "in expectVariableAssignment: found keyword '" << partial
-              << "' expected 'let'" << std::endl;
-    throw std::invalid_argument("error: unexpected keyword");
-  }
-
-  tokenPush(stringToToken(partial), partial);
-
-  partial.clear();
-
-  source_file_.advanceWhitespace();
-  char curr = source_file_.peekChar();
-
-  if (std::isdigit(curr))
-  {
-    std::cerr << "in expectVariableAssignment: found character '" << curr
-              << '\'' << std::endl;
-    throw std::invalid_argument("identifier cannot start with a number");
-  }
-
-  while (isAcceptableIdentifier(curr))
-  {
-    curr = source_file_.advanceChar();
-    partial.push_back(curr);
-    curr = source_file_.peekChar(); // can def be optimized
-  }
-
-  tokenPush(TokenType::VARIABLE_ID, partial);
-  partial.clear();
-  source_file_.advanceWhitespace();
-  curr = source_file_.advanceChar();
-  partial.push_back(curr);
-
-  if (curr != ':')
-  {
-    std::cerr << "in expectVariableAssignment: found character '" << curr
-              << '\'' << std::endl;
-    throw std::invalid_argument("error: expected ':'");
-  }
-
-  tokenPush(stringToToken(partial), partial);
-  partial.clear();
-  source_file_.advanceWhitespace();
-  partial = source_file_.readWord();
-
-  tokenPush(stringToToken(partial), partial);
-  partial.clear();
-  source_file_.advanceWhitespace();
-  curr = source_file_.advanceChar();
-  partial.push_back(curr);
-
-  if (curr != '=')
-  {
-    std::cerr << "in expectVariableAssignment: found character '" << curr
-              << '\'' << std::endl;
-    throw std::invalid_argument("error: expected '='");
-  }
-
-  tokenPush(stringToToken(partial), partial);
-  partial.clear();
-  source_file_.advanceWhitespace();
-  partial = source_file_.readWord();
-
-  tokenPush(TokenType::LITERAL, partial);
-  return;
-}
-
-void Lexer::expectStringLiteral()
-{ // expect current char to be "
-
-  bool exit_flag = false;
   char curr = source_file_.advanceChar();
   std::string partial;
 
-  if (curr != '"')
+  if (curr == EOF || curr == '\0')
   {
-    std::cerr << "in expectStringLiteral: expected '\"', recieved '" << curr
-              << '\'' << std::endl;
-    throw std::invalid_argument("error unexpected char");
+    std::cout << "end of file reached" << std::endl;
+    return;
   }
 
-  while (isAcceptableStringLiteral(curr))
+  // check if punctuator
+  if (punctuators_.find(curr) != punctuators_.end())
+  {
+    // process punctuator
+    if (curr == '\"')
+    {
+      // processs string literal
+    }
+    else if (curr == '\'')
+    {
+      // process char literal
+    }
+  }
+
+  while (!std::isspace(curr) && curr != EOF && curr != '\0')
   {
     partial.push_back(curr);
 
-    if (curr == '\"' && exit_flag)
+    // check if keyword
+    if (keywords_.find(partial) != keywords_.end())
     {
-      tokenPush(TokenType::LITERAL, partial);
-      return;
+      char peek = source_file_.peekChar();
+      partial.push_back(peek);
+      if (keywords_.find(partial) != keywords_.end())
+      {
+        // process keyword with similar start
+      }
+      else
+      {
+        partial.pop_back();
+        // process keyword with distinct begin
+      }
     }
-    else if (curr == '\"')
+
+    if (operators_.find(partial) != operators_.end())
     {
-      exit_flag = !exit_flag;
+      char peek = source_file_.peekChar();
+      partial.push_back(peek);
+      if (operators_.find(partial) != operators_.end())
+      {
+        // process multi character operator
+      }
+      else
+      {
+        partial.pop_back();
+        // process single character operator
+      }
     }
+  }
 
-    curr = source_file_.advanceChar();
-  }
-  if (curr == '\0' || curr == EOF)
-  {
-    std::cerr << "in expectStringLiteral: expected closing quotation"
-              << std::endl;
-    throw std::invalid_argument("invalid syntax");
-  }
+  // check if operator
+
+  // check if string literal
+
+  // check if numeric literal
 }
 
-TokenType Lexer::stringToToken(const std::string &str)
+void Lexer::dequePush(GenericToken type, const std::string &value)
 {
-  auto it = token_dict_.find(str);
-  if (it != token_dict_.end())
-  {
-    return it->second;
-  }
-  return TokenType::LITERAL;
-
-  std::cerr << "Unrecognized token: '" << str
-            << "' at line: " << std::to_string(source_file_.getLineNum())
-            << " at col: " << std::to_string(source_file_.getColNum())
-            << std::endl;
-}
-
-void Lexer::tokenPush(TokenType t, std::string v)
-{
-  auto token = Token(t, v, source_file_.getLineNum(), source_file_.getColNum());
-  tokens_.push_back(token);
-}
-
-void Lexer::debugPrinter()
-{
-  for (const auto &elem : tokens_)
-  {
-    std::cout << elem.value << std::endl;
-  }
+  // will probably have to pass line and col number as param
+  auto t = Token(type, value, source_file_.getLineNum(),
+                          source_file_.getColNum());
+  tokens_.push_back(t);
 }

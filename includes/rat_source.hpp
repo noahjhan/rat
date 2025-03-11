@@ -1,9 +1,12 @@
+// file stream abstraction for rat files
+
 #ifndef RAT_SOURCE_HPP
 #define RAT_SOURCE_HPP
 
 #include <cctype>
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 

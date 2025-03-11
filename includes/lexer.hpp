@@ -16,26 +16,27 @@ class Lexer
 public:
   Lexer(const RatSource &source_file);
 
-  bool extractTokenLiteral();
-  std::string expectFunctionDeclaration();
-  void expectVariableAssignment();
-  void expectStringLiteral();
-  TokenType stringToToken(const std::string &str);
+  void advanceToken();
 
-  void tokenPush(TokenType t, std::string v);
+  void advanceStringLiteral();
+  void advanceCharLiteral();
+  void advanceNumericLiteral();
+  void advanceIdentifier();
 
+  void dequePush(GenericToken type, const std::string &value);
   void debugPrinter();
 
 private:
   RatSource source_file_;
-  std::deque<Token> tokens_;
-  std::unordered_map<std::string, TokenType> token_dict_;
+  std::deque<TokenGenerator> tokens_;
   std::unordered_set<char> punctuators_;
+  std::unordered_set<std::string> keywords_;
+  std::unordered_set<std::string> operators_;
 };
 
-// helper function
-
+// helper functions
 bool isAcceptableIdentifier(const char &ch);
 bool isAcceptableStringLiteral(const char &ch);
+bool isAcceptableNumericLiteral(const char &ch);
 
-#endif
+#endif `
