@@ -13,18 +13,22 @@ parser will handle syntax errors
 
 */
 
-bool isAcceptableIdentifier(const char &ch)
+bool Lexer::isAcceptableIdentifier(const char &ch)
 {
+  // if (punctuators_.find(ch) != punctuators_.end())
+  // {
+  //   return false;
+  // }
   return std::isalnum(ch) || ch == '_';
 }
 
-bool isAcceptableStringLiteral(const char &ch)
+bool Lexer::isAcceptableStringLiteral(const char &ch)
 {
   // prob could have something more validating than this
   return std::isprint(ch) || std::isspace(ch);
 }
 
-bool isAcceptableNumericLiteral(const char &ch)
+bool Lexer::isAcceptableNumericLiteral(const char &ch)
 {
   // no support for char conversion or non-decimal base
   return std::isdigit(ch) || ch == '.' || ch == 'u';
@@ -32,7 +36,7 @@ bool isAcceptableNumericLiteral(const char &ch)
   // @todo: support for float double short long etc ?
 }
 
-bool isAcceptableCharLiteral(const char &ch)
+bool Lexer::isAcceptableCharLiteral(const char &ch)
 {
   return true;
 
@@ -46,8 +50,9 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 
   keywords_ = {"let", "if", "else", "elif", "fn", "fn_", "fn?", "fn/"};
 
-  operators_ = {"+",  "-",  "*", "/", "%", "==", "!=", "<",  ">",  "<=", ">=",
-                "&&", "||", "!", "&", "|", "^",  "~",  "<<", ">>", "->", "=>"};
+  operators_ = {"=", "+", "-",  "*",  "/",  "%",  "==", "!=",
+                "<", ">", "<=", ">=", "&&", "||", "!",  "&",
+                "|", "^", "~",  "<<", ">>", "->", "=>"};
 }
 
 void Lexer::advanceStringLiteral()
@@ -138,10 +143,34 @@ bool Lexer::advanceToken()
       advanceCharLiteral();
       return true;
     }
+    else
+    {
+      if (!partial.empty())
+      {
+        std::cerr << "expected empty partial, recieved: " << partial
+                  << std::endl;
+        throw std::runtime_error(
+            "failed to correctly process token before punctuator");
+      }
+      partial.push_back(curr);
+      dequePush(GenericToken::PUNCTUATOR, partial);
+      return true;
+    }
   }
 
   while (!std::isspace(curr) && curr != EOF && curr != '\0')
   {
+    // std::cout << "DEBUG" << std::endl;
+    // std::cout << "CURR: " << curr << std::endl;
+    // std::cout << "PARTIAL: " << partial << std::endl;
+    // usleep(100000);
+
+    if (punctuators_.find(curr) != punctuators_.end())
+    {
+      std::cout << "wise" << std::endl;
+      source_file_.reverse();
+      break;
+    }
     partial.push_back(curr);
 
     // check if keyword
@@ -152,6 +181,10 @@ bool Lexer::advanceToken()
       if (keywords_.find(partial) == keywords_.end())
       {
         partial.pop_back();
+      }
+      else
+      {
+        curr = source_file_.advanceChar();
       }
       dequePush(GenericToken::KEYWORD, partial);
       return true;
@@ -167,13 +200,47 @@ bool Lexer::advanceToken()
       }
       else
       {
-        dequePush(GenericToken::OPERATOR, partial);
+        curr = source_file_.advanceChar();
       }
+      dequePush(GenericToken::OPERATOR, partial);
+      return true;
     }
+    curr = source_file_.advanceChar();
   }
   // handle numeric literals
-  // handle identifiers
-  // handle lexcial error
+  bool is_numeric = true;
+  bool is_identifier = (!std::isdigit(partial.front()));
+  for (const auto &ch : partial)
+  {
+    if (!isAcceptableNumericLiteral(ch))
+    {
+      is_numeric = false;
+    }
+    if (!isAcceptableIdentifier(ch))
+    {
+      is_identifier = false;
+    }
+  }
+
+  if (is_numeric == is_identifier)
+  {
+    std::cerr << "valid token expected, token recieved: '" << partial << '\''
+              << std::endl;
+    throw std::invalid_argument("ambiguous token");
+  }
+
+  if (is_identifier)
+  {
+    dequePush(GenericToken::IDENTIFIER, partial);
+    return true;
+  }
+
+  if (is_numeric)
+  {
+    dequePush(GenericToken::NUMERIC_LITERAL, partial);
+    return true;
+  }
+  throw std::runtime_error("unrecognized token");
 }
 
 void Lexer::dequePush(GenericToken type, const std::string &value)
@@ -182,4 +249,12 @@ void Lexer::dequePush(GenericToken type, const std::string &value)
   auto t =
       Token(type, value, source_file_.getLineNum(), source_file_.getColNum());
   tokens_.push_back(t);
+}
+
+void Lexer::debugPrinter()
+{
+  for (const auto &t : tokens_)
+  {
+    std::cout << '\'' << t.value_ << '\'' << std::endl;
+  }
 }

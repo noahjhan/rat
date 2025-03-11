@@ -1,9 +1,9 @@
-f foo() {
+fn foo() {
     print("Goodbye!")
     ret
 }
 
-f_ main() {
+fn_ main() {
     let x: int = 10
     print("Hello, World!")
     foo()

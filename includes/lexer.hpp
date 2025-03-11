@@ -1,11 +1,13 @@
 #ifndef LEXER_HPP
 #define LEXER_HPP
 
-#include "rat_source.hpp"
-#include "token.hpp"
 #include <deque>
+#include <unistd.h> // for sleep()
 #include <unordered_map>
 #include <unordered_set>
+
+#include "rat_source.hpp"
+#include "token.hpp"
 
 // for this file the main idea is this
 // be able to prcoess each word in a given file
@@ -16,12 +18,15 @@ class Lexer
 public:
   Lexer(const RatSource &source_file);
 
+  bool isAcceptableIdentifier(const char &ch);
+  bool isAcceptableStringLiteral(const char &ch);
+  bool isAcceptableNumericLiteral(const char &ch);
+  bool isAcceptableCharLiteral(const char &ch);
+
   bool advanceToken();
 
   void advanceStringLiteral();
   void advanceCharLiteral();
-  void advanceNumericLiteral();
-  void advanceIdentifier();
 
   void dequePush(GenericToken type, const std::string &value);
   void debugPrinter();
@@ -34,9 +39,4 @@ private:
   std::unordered_set<std::string> operators_;
 };
 
-// helper functions
-bool isAcceptableIdentifier(const char &ch);
-bool isAcceptableStringLiteral(const char &ch);
-bool isAcceptableNumericLiteral(const char &ch);
-
-#endif `
+#endif // LEXER_HPP

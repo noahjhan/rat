@@ -5,10 +5,9 @@
 enum class GenericToken
 {
   /// generic
-  VARIABLE_ID, // user-input [a-zA-Z0-9_]
-  FUNCTION_ID, // user-input [a-zA-Z0-9_]
+  IDENTIFIER, // user-input [a-zA-Z0-9_]
   KEYWORD,
-  VALUE_LITERAL, // expect a lot of conversions
+  NUMERIC_LITERAL, // expect a lot of conversions
   STRING_LITERAL,
   CHAR_LITERAL,
   PUNCTUATOR,
@@ -88,6 +87,7 @@ enum class TokenType
   COMMENT_BLOCK_CLOSE,
 
   // operators
+  ASSIGNMENT,
   ARITHMETHIC_ADD,
   ARITHMETHIC_SUB,
   ARITHMETHIC_MUL,
