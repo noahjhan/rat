@@ -167,7 +167,6 @@ bool Lexer::advanceToken()
 
     if (punctuators_.find(curr) != punctuators_.end())
     {
-      std::cout << "wise" << std::endl;
       source_file_.reverse();
       break;
     }

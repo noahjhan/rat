@@ -5,7 +5,7 @@ fn foo() {
 
 fn_ main() {
     let x: int = 10
-    print("Hello, World!")
+    print("Hello, World!)
     foo()
     rev
 }
