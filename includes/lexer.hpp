@@ -37,6 +37,7 @@ private:
   std::unordered_set<char> punctuators_;
   std::unordered_set<std::string> keywords_;
   std::unordered_set<std::string> operators_;
+  std::unordered_set<std::string> types_;
 };
 
 #endif // LEXER_HPP

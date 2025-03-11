@@ -11,6 +11,8 @@ keyword etc...
 
 parser will handle syntax errors
 
+@todo: implement line and col number
+
 */
 
 bool Lexer::isAcceptableIdentifier(const char &ch)
@@ -48,11 +50,14 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
   punctuators_ = {':', '\'', '\"', '[', ']',
                   '{', '}',  '(',  ')'}; // subject to change
 
-  keywords_ = {"let", "if", "else", "elif", "fn", "fn_", "fn?", "fn/"};
+  keywords_ = {"let", "oplet", "if", "else", "elif", "fn", "fn_", "fn?", "fn/"};
 
   operators_ = {"=", "+", "-",  "*",  "/",  "%",  "==", "!=",
                 "<", ">", "<=", ">=", "&&", "||", "!",  "&",
                 "|", "^", "~",  "<<", ">>", "->", "=>"};
+
+  types_ = {"int",   "float",   "double", "bool",  "char",   "long",
+            "short", "pointer", "uint",   "ulong", "ushort", "uchar"};
 }
 
 void Lexer::advanceStringLiteral()
@@ -123,7 +128,6 @@ bool Lexer::advanceToken()
 
   if (curr == EOF || curr == '\0')
   {
-    std::cout << "end of file reached" << std::endl;
     return false;
   }
 
@@ -185,6 +189,12 @@ bool Lexer::advanceToken()
       {
         curr = source_file_.advanceChar();
       }
+      dequePush(GenericToken::KEYWORD, partial);
+      return true;
+    }
+
+    if (types_.find(partial) != types_.end())
+    {
       dequePush(GenericToken::KEYWORD, partial);
       return true;
     }
@@ -252,8 +262,14 @@ void Lexer::dequePush(GenericToken type, const std::string &value)
 
 void Lexer::debugPrinter()
 {
+  std::cout << "DEBUG" << std::endl;
   for (const auto &t : tokens_)
   {
-    std::cout << '\'' << t.value_ << '\'' << std::endl;
+    // std::cout << '\'' << t.value_ << '\'' << std::endl;
+    usleep(100000);
+    std::cout << "value: " << t.value_ << std::endl;
+    std::cout << "line: " << t.line_num_ << std::endl;
+    std::cout << "col: " << t.col_num_ << std::endl;
+    std::cout << std::endl;
   }
 }
