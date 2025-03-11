@@ -33,7 +33,9 @@ bool Lexer::isAcceptableStringLiteral(const char &ch)
 bool Lexer::isAcceptableNumericLiteral(const char &ch)
 {
   // no support for char conversion or non-decimal base
-  return std::isdigit(ch) || ch == '.' || ch == 'u';
+  std::unordered_set<char> non_digits = {'u', 'i', 'f', 'd', 'l',
+                                         's', 'c', '.', '-'};
+  return std::isdigit(ch) || (non_digits.find(ch) != non_digits.end());
 
   // @todo: support for float double short long etc ?
 }
@@ -233,8 +235,7 @@ bool Lexer::advanceToken()
 
   if (is_numeric == is_identifier)
   {
-    std::cerr << "valid token expected, token recieved: '" << partial << '\''
-              << std::endl;
+    std::cerr << "recieved: '" << partial << '\'' << std::endl;
     throw std::invalid_argument("ambiguous token");
   }
 
@@ -249,6 +250,7 @@ bool Lexer::advanceToken()
     dequePush(GenericToken::NUMERIC_LITERAL, partial);
     return true;
   }
+  std::cerr << "recieved: '" << partial << '\'' << std::endl;
   throw std::runtime_error("unrecognized token");
 }
 

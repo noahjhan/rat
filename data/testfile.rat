@@ -1,5 +1,6 @@
 fn foo() {
     print("Goodbye!")
+    let y: uint = 128.98d
     ret
 }
 
