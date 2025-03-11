@@ -195,7 +195,7 @@ bool Lexer::advanceToken()
 
     if (types_.find(partial) != types_.end())
     {
-      dequePush(GenericToken::KEYWORD, partial);
+      dequePush(GenericToken::TYPE, partial);
       return true;
     }
 
@@ -260,16 +260,26 @@ void Lexer::dequePush(GenericToken type, const std::string &value)
   tokens_.push_back(t);
 }
 
-void Lexer::debugPrinter()
+std::deque<Token> &Lexer::getTokens() { return tokens_; }
+
+void Lexer::debugPrinter(bool verbose)
 {
-  std::cout << "DEBUG" << std::endl;
-  for (const auto &t : tokens_)
+  if (verbose)
   {
-    // std::cout << '\'' << t.value_ << '\'' << std::endl;
-    usleep(100000);
-    std::cout << "value: " << t.value_ << std::endl;
-    std::cout << "line: " << t.line_num_ << std::endl;
-    std::cout << "col: " << t.col_num_ << std::endl;
-    std::cout << std::endl;
+    std::cout << "DEBUG" << std::endl;
+    for (const auto &t : tokens_)
+    {
+      std::cout << "value: " << t.value_ << std::endl;
+      std::cout << "line: " << t.line_num_ << std::endl;
+      std::cout << "col: " << t.col_num_ << std::endl;
+      std::cout << std::endl;
+    }
+  }
+  else
+  {
+    for (const auto &t : tokens_)
+    {
+      std::cout << t.value_ << std::endl;
+    }
   }
 }

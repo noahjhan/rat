@@ -11,10 +11,11 @@ enum class GenericToken
   STRING_LITERAL,
   CHAR_LITERAL,
   PUNCTUATOR,
-  OPERATOR
+  OPERATOR,
+  TYPE
 };
 
-enum class TokenType
+enum class ConstituentToken
 {
   IDENTIFIER,
   KEYWORD,

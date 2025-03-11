@@ -1,6 +1,7 @@
 #include <unordered_map>
 
 #include "lexer.hpp"
+#include "parser.hpp"
 #include "rat_source.hpp"
 
 int main()
@@ -15,5 +16,7 @@ int main()
   {
   }
   lex.debugPrinter();
+  std::deque<Token> dq = lex.getTokens();
+  auto parse = Parser(dq);
   return 0;
 }

@@ -16,8 +16,8 @@ BIN_DIR = bin
 EXEC_DIR = $(BIN_DIR)/exec
 
 # Files
-SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/main.cpp $(SRC_DIR)/lexer.cpp
-HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/token.hpp
+SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/main.cpp $(SRC_DIR)/lexer.cpp $(SRC_DIR)/parser.cpp
+HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/token.hpp $(INC_DIR)/parser.hpp
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 
 # Output

@@ -29,7 +29,10 @@ public:
   void advanceCharLiteral();
 
   void dequePush(GenericToken type, const std::string &value);
-  void debugPrinter();
+
+  void debugPrinter(bool verbose = false);
+
+  std::deque<Token> &getTokens();
 
 private:
   RatSource source_file_;
