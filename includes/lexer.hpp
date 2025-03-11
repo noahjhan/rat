@@ -28,7 +28,7 @@ public:
 
 private:
   RatSource source_file_;
-  std::deque<TokenGenerator> tokens_;
+  std::deque<Token> tokens_;
   std::unordered_set<char> punctuators_;
   std::unordered_set<std::string> keywords_;
   std::unordered_set<std::string> operators_;

@@ -21,7 +21,7 @@ bool isAcceptableIdentifier(const char &ch)
 bool isAcceptableStringLiteral(const char &ch)
 {
   // prob could have something more validating than this
-  return std::isprint(ch);
+  return std::isprint(ch) || std::isspace(ch);
 }
 
 bool isAcceptableNumericLiteral(const char &ch)
@@ -43,6 +43,36 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
                 "&&", "||", "!", "&", "|", "^",  "~",  "<<", ">>", "->", "=>"};
 }
 
+void Lexer::advanceStringLiteral()
+{
+  char curr = source_file_.advanceChar();
+  std::string partial;
+  if (curr != '\"')
+  {
+    std::cerr << "advanceStringLiteral: expected: \", recieved: " << curr
+              << std::endl;
+    throw std::invalid_argument("error: caller function did not align stream");
+  }
+  while (isAcceptableStringLiteral(curr))
+  {
+    partial.push_back(curr);
+    curr = source_file_.advanceChar();
+    if (curr == '\"')
+    {
+      // end of literal reached
+      partial.push_back(curr);
+      dequePush(GenericToken::STRING_LITERAL, partial);
+      return;
+    }
+    if (curr == EOF || curr == '\0')
+    {
+      // end of file reached
+      throw std::invalid_argument(
+          "error: string literals must be surrounded by double-quotes");
+    }
+  }
+}
+
 void Lexer::advanceToken()
 {
   source_file_.advanceWhitespace();
@@ -61,7 +91,9 @@ void Lexer::advanceToken()
     // process punctuator
     if (curr == '\"')
     {
-      // processs string literal
+      source_file_.reverse();
+      advanceStringLiteral();
+      return;
     }
     else if (curr == '\'')
     {
@@ -115,7 +147,7 @@ void Lexer::advanceToken()
 void Lexer::dequePush(GenericToken type, const std::string &value)
 {
   // will probably have to pass line and col number as param
-  auto t = Token(type, value, source_file_.getLineNum(),
-                          source_file_.getColNum());
+  auto t =
+      Token(type, value, source_file_.getLineNum(), source_file_.getColNum());
   tokens_.push_back(t);
 }
