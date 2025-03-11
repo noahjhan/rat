@@ -32,6 +32,13 @@ bool isAcceptableNumericLiteral(const char &ch)
   // @todo: support for float double short long etc ?
 }
 
+bool isAcceptableCharLiteral(const char &ch)
+{
+  return true;
+
+  // @todo: support for chars
+}
+
 Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
   punctuators_ = {':', '\'', '\"', '[', ']',
@@ -73,7 +80,37 @@ void Lexer::advanceStringLiteral()
   }
 }
 
-void Lexer::advanceToken()
+void Lexer::advanceCharLiteral()
+{
+  char curr = source_file_.advanceChar();
+  std::string partial;
+  if (curr != '\'')
+  {
+    std::cerr << "advanceCharLiteral: expected: \', recieved: " << curr
+              << std::endl;
+    throw std::invalid_argument("error: caller function did not align stream");
+  }
+  while (isAcceptableCharLiteral(curr))
+  {
+    partial.push_back(curr);
+    curr = source_file_.advanceChar();
+    if (curr == '\'')
+    {
+      // end of literal reached
+      partial.push_back(curr);
+      dequePush(GenericToken::CHAR_LITERAL, partial);
+      return;
+    }
+    if (curr == EOF || curr == '\0')
+    {
+      // end of file reached
+      throw std::invalid_argument(
+          "error: character literals must be surrounded by single-quotes");
+    }
+  }
+}
+
+bool Lexer::advanceToken()
 {
   source_file_.advanceWhitespace();
   char curr = source_file_.advanceChar();
@@ -82,7 +119,7 @@ void Lexer::advanceToken()
   if (curr == EOF || curr == '\0')
   {
     std::cout << "end of file reached" << std::endl;
-    return;
+    return false;
   }
 
   // check if punctuator
@@ -93,11 +130,13 @@ void Lexer::advanceToken()
     {
       source_file_.reverse();
       advanceStringLiteral();
-      return;
+      return true;
     }
     else if (curr == '\'')
     {
-      // process char literal
+      source_file_.reverse();
+      advanceCharLiteral();
+      return true;
     }
   }
 
@@ -110,38 +149,31 @@ void Lexer::advanceToken()
     {
       char peek = source_file_.peekChar();
       partial.push_back(peek);
-      if (keywords_.find(partial) != keywords_.end())
-      {
-        // process keyword with similar start
-      }
-      else
+      if (keywords_.find(partial) == keywords_.end())
       {
         partial.pop_back();
-        // process keyword with distinct begin
       }
+      dequePush(GenericToken::KEYWORD, partial);
+      return true;
     }
 
     if (operators_.find(partial) != operators_.end())
     {
       char peek = source_file_.peekChar();
       partial.push_back(peek);
-      if (operators_.find(partial) != operators_.end())
+      if (operators_.find(partial) == operators_.end())
       {
-        // process multi character operator
+        partial.pop_back();
       }
       else
       {
-        partial.pop_back();
-        // process single character operator
+        dequePush(GenericToken::OPERATOR, partial);
       }
     }
   }
-
-  // check if operator
-
-  // check if string literal
-
-  // check if numeric literal
+  // handle numeric literals
+  // handle identifiers
+  // handle lexcial error
 }
 
 void Lexer::dequePush(GenericToken type, const std::string &value)

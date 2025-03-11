@@ -16,7 +16,7 @@ class Lexer
 public:
   Lexer(const RatSource &source_file);
 
-  void advanceToken();
+  bool advanceToken();
 
   void advanceStringLiteral();
   void advanceCharLiteral();
