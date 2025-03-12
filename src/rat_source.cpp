@@ -118,15 +118,6 @@ void RatSource::reverse()
 
 void RatSource::advanceWhitespace()
 {
-
-  // get character
-
-  // if whitespace -> continue
-
-  // if non whitespace -> return to stream
-
-  //
-
   char ch;
   while (fs_.get(ch))
   {

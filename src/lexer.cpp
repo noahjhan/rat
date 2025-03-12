@@ -2,55 +2,38 @@
 
 /*
 
-The lexer should really only convert words to genericToken enums
-
-it should be able to (either in ratSource or in lexer) figure out line numbers
-
-lexical errors will appear like invalid character for literal, unrecognized
-keyword etc...
-
-parser will handle syntax errors
-
 @todo: implement line and col number
+
+@todo: allow for spaces between keywords and types
 
 */
 
 bool Lexer::isAcceptableIdentifier(const char &ch)
 {
-  // if (punctuators_.find(ch) != punctuators_.end())
-  // {
-  //   return false;
-  // }
   return std::isalnum(ch) || ch == '_';
 }
 
+// @todo: stricter string literal evaluation
 bool Lexer::isAcceptableStringLiteral(const char &ch)
 {
-  // prob could have something more validating than this
   return std::isprint(ch) || std::isspace(ch);
 }
 
+// @todo: add support for non-decimal base
 bool Lexer::isAcceptableNumericLiteral(const char &ch)
 {
-  // no support for char conversion or non-decimal base
   std::unordered_set<char> non_digits = {'u', 'i', 'f', 'd', 'l',
                                          's', 'c', '.', '-'};
   return std::isdigit(ch) || (non_digits.find(ch) != non_digits.end());
-
-  // @todo: support for float double short long etc ?
 }
 
-bool Lexer::isAcceptableCharLiteral(const char &ch)
-{
-
-  return true;
-  // @todo: support for chars
-}
+// @todo: support for chars
+// this function may be redundant
+bool Lexer::isAcceptableCharLiteral(const char &ch) { return true; }
 
 Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
-  punctuators_ = {':', '\'', '\"', '[', ']',
-                  '{', '}',  '(',  ')'}; // subject to change
+  punctuators_ = {':', '\'', '\"', '[', ']', '{', '}', '(', ')'};
 
   keywords_ = {"let", "oplet", "if",  "else", "elif",
                "fn",  "fn_",   "fn?", "fn/",  "null"};
@@ -131,6 +114,8 @@ void Lexer::advanceCharLiteral()
   }
 }
 
+// @todo: access line and col num at the start of the token to include more
+// debug info
 bool Lexer::advanceToken()
 {
   source_file_.advanceWhitespace();
@@ -175,11 +160,6 @@ bool Lexer::advanceToken()
 
   while (!std::isspace(curr) && curr != EOF && curr != '\0')
   {
-    // std::cout << "DEBUG" << std::endl;
-    // std::cout << "CURR: " << curr << std::endl;
-    // std::cout << "PARTIAL: " << partial << std::endl;
-    // usleep(100000);
-
     if (punctuators_.find(curr) != punctuators_.end())
     {
       source_file_.reverse();
@@ -227,10 +207,7 @@ bool Lexer::advanceToken()
     }
     curr = source_file_.advanceChar();
   }
-  // generally identifiers cannot begin with numbers
-  // numbers can only end with alphabetic symbols
 
-  // handle numeric literals
   bool is_numeric = true;
   bool is_identifier = (!std::isdigit(partial.front()));
   for (const auto &ch : partial)
@@ -266,9 +243,9 @@ bool Lexer::advanceToken()
   throw std::runtime_error("unrecognized token");
 }
 
+// @todo: pass line and col num as param
 void Lexer::dequePush(GenericToken type, const std::string &value)
 {
-  // will probably have to pass line and col number as param
   auto t =
       Token(type, value, source_file_.getLineNum(), source_file_.getColNum());
   tokens_.push_back(t);

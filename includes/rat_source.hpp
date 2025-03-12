@@ -19,10 +19,10 @@ public:
   RatSource &operator=(const RatSource &other);
   void destructor();
 
-  void seek_reset(); // points to 0th byte in file stream
+  void seek_reset();
   std::string readLine();
-  std::string readWord(); // tokens are not always seperated by whitespace ->
-                          // use for debugging
+  std::string readWord();
+
   char advanceChar();
   char peekChar();
   void reverse();
