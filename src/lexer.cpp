@@ -78,7 +78,7 @@ void Lexer::advanceStringLiteral()
       dequePush(GenericToken::STRING_LITERAL, partial, line_num, col_num);
       return;
     }
-    if (curr == EOF || curr == '\0')
+    if (curr == EOF)
     {
       // end of file reached
       throw std::invalid_argument(
@@ -126,7 +126,7 @@ void Lexer::advanceCharLiteral()
       dequePush(GenericToken::CHAR_LITERAL, partial, line_num, col_num);
       return;
     }
-    if (curr == EOF || curr == '\0')
+    if (curr == EOF)
     {
       // end of file reached
       throw std::invalid_argument(
@@ -149,7 +149,7 @@ bool Lexer::advanceToken()
   char curr = source_file_.advanceChar();
   std::string partial;
 
-  if (curr == EOF || curr == '\0')
+  if (curr == EOF)
   {
     return false;
   }
@@ -185,7 +185,7 @@ bool Lexer::advanceToken()
     }
   }
 
-  while (!std::isspace(curr) && curr != EOF && curr != '\0')
+  while (!std::isspace(curr) && curr != EOF)
   {
     if (punctuators_.find(curr) != punctuators_.end())
     {

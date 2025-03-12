@@ -134,7 +134,7 @@ void RatSource::advanceWhitespace()
   while (fs_.get(ch))
   {
     NEXT_COL;
-    if (ch == EOF || ch == '\0')
+    if (ch == EOF)
     {
       std::cerr << "in advance whitespace: '" << int(ch)
                 << "' invalid character" << std::endl;

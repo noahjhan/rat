@@ -11,7 +11,6 @@ int main()
   std::string file_name = "data/testfile.rat";
   auto rat = RatSource(file_name);
   auto lex = Lexer(rat);
-
   while (lex.advanceToken())
   {
   }
