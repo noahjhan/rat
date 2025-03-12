@@ -28,7 +28,8 @@ public:
   void advanceStringLiteral();
   void advanceCharLiteral();
 
-  void dequePush(GenericToken type, const std::string &value);
+  void dequePush(GenericToken type, const std::string &value,
+                 const unsigned int &line_num, const unsigned int &col_num);
 
   void debugPrinter(bool verbose = false);
 

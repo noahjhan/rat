@@ -9,6 +9,8 @@ RatSource::RatSource(const std::string &filename) : filename_(filename)
   }
   line_num = 1;
   col_num = 1;
+  prev_line_num = 1;
+  prev_col_num = 1;
 }
 
 RatSource::~RatSource() { fs_.close(); }
@@ -40,20 +42,25 @@ RatSource &RatSource::operator=(const RatSource &other)
 
 void RatSource::destructor() { fs_.close(); }
 
-void RatSource::seek_reset() { fs_.seekg(0, std::ios::beg); }
+void RatSource::seek_reset()
+{
+  fs_.seekg(0, std::ios::beg);
+  RESET_LINE
+  RESET_COL
+}
 
 std::string RatSource::readLine()
 {
+  RESET_COL
   std::string line;
   if (std::getline(fs_, line))
   {
-    line_num++;
-    col_num = 1;
+    NEXT_LINE
     return line;
   }
   return "";
 }
-
+/// @todo validate line resets
 std::string RatSource::readWord()
 {
   std::string word;
@@ -61,11 +68,11 @@ std::string RatSource::readWord()
 
   while (fs_.get(ch) && std::isspace(ch))
   {
-    col_num++;
+    NEXT_COL
     if (ch == '\n')
     {
-      col_num = 1;
-      line_num++;
+      RESET_COL
+      NEXT_LINE
     }
   }
 
@@ -77,7 +84,7 @@ std::string RatSource::readWord()
   do
   {
     word.push_back(ch);
-    col_num++;
+    NEXT_COL
   } while (fs_.get(ch) && !std::isspace(ch));
 
   return word;
@@ -88,11 +95,11 @@ char RatSource::advanceChar()
   char ch;
   if (fs_.get(ch))
   {
-    col_num++;
+    NEXT_COL
     if (ch == '\n')
     {
-      col_num = 1;
-      line_num++;
+      RESET_COL
+      NEXT_LINE
     }
     return ch;
   }
@@ -101,6 +108,7 @@ char RatSource::advanceChar()
 
 char RatSource::peekChar() { return fs_.peek(); }
 
+/// @todo handle begin of file unget error
 void RatSource::reverse()
 {
   if (!fs_.good())
@@ -111,17 +119,21 @@ void RatSource::reverse()
   fs_.unget();
   if (fs_.peek() == '\n')
   {
-    throw std::runtime_error("cannot reverse a newline character");
+    line_num = prev_line_num;
   }
-  col_num--;
+  col_num = prev_col_num;
 }
 
 void RatSource::advanceWhitespace()
 {
   char ch;
+  if (!std::isspace(fs_.peek()))
+  {
+    return;
+  }
   while (fs_.get(ch))
   {
-    col_num++;
+    NEXT_COL
     if (ch == EOF || ch == '\0')
     {
       std::cerr << "in advance whitespace: '" << int(ch)
@@ -129,13 +141,17 @@ void RatSource::advanceWhitespace()
     }
     if (ch == '\n')
     {
-      line_num++;
-      col_num = 1;
+      RESET_COL
+      NEXT_LINE
     }
     if (!std::isspace(ch))
     {
       fs_.unget();
-      col_num--;
+      if (fs_.peek() == '\n')
+      {
+        line_num = prev_line_num;
+      }
+      col_num = prev_col_num;
       return;
     }
   }

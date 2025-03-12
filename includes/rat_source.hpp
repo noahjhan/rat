@@ -10,6 +10,31 @@
 #include <string>
 #include <unordered_map>
 
+#define RESET_LINE                                                             \
+  do                                                                           \
+  {                                                                            \
+    prev_line_num = line_num;                                                  \
+    line_num = 1;                                                              \
+  } while (0);
+#define RESET_COL                                                              \
+  do                                                                           \
+  {                                                                            \
+    prev_col_num = col_num;                                                    \
+    col_num = 1;                                                               \
+  } while (0);
+#define NEXT_LINE                                                              \
+  do                                                                           \
+  {                                                                            \
+    prev_line_num = line_num;                                                  \
+    ++line_num;                                                                \
+  } while (0);
+#define NEXT_COL                                                               \
+  do                                                                           \
+  {                                                                            \
+    prev_col_num = col_num;                                                    \
+    ++col_num;                                                                 \
+  } while (0);
+
 class RatSource
 {
 public:
@@ -40,5 +65,7 @@ private:
   std::fstream fs_;
   unsigned int line_num;
   unsigned int col_num;
+  unsigned int prev_line_num;
+  unsigned int prev_col_num;
 };
 #endif // RAT_SOURCE_HPP

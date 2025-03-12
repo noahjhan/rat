@@ -15,7 +15,7 @@ int main()
   while (lex.advanceToken())
   {
   }
-  lex.debugPrinter();
+  lex.debugPrinter(true);
   std::deque<Token> dq = lex.getTokens();
   auto parse = Parser(dq);
   return 0;

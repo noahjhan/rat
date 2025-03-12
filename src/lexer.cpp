@@ -55,6 +55,10 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 
 void Lexer::advanceStringLiteral()
 {
+
+  const unsigned int line_num = source_file_.getLineNum();
+  const unsigned int col_num = source_file_.getColNum();
+
   char curr = source_file_.advanceChar();
   std::string partial;
   if (curr != '\"')
@@ -71,7 +75,7 @@ void Lexer::advanceStringLiteral()
     {
       // end of literal reached
       partial.push_back(curr);
-      dequePush(GenericToken::STRING_LITERAL, partial);
+      dequePush(GenericToken::STRING_LITERAL, partial, line_num, col_num);
       return;
     }
     if (curr == EOF || curr == '\0')
@@ -85,6 +89,8 @@ void Lexer::advanceStringLiteral()
 
 void Lexer::advanceCharLiteral()
 {
+  const unsigned int line_num = source_file_.getLineNum();
+  const unsigned int col_num = source_file_.getColNum();
   char curr = source_file_.advanceChar();
   std::string partial;
   if (curr != '\'')
@@ -117,7 +123,7 @@ void Lexer::advanceCharLiteral()
         throw std::invalid_argument("syntax error: unrecognized char literal");
       }
 
-      dequePush(GenericToken::CHAR_LITERAL, partial);
+      dequePush(GenericToken::CHAR_LITERAL, partial, line_num, col_num);
       return;
     }
     if (curr == EOF || curr == '\0')
@@ -136,6 +142,10 @@ void Lexer::advanceCharLiteral()
 bool Lexer::advanceToken()
 {
   source_file_.advanceWhitespace();
+
+  const unsigned int line_num = source_file_.getLineNum();
+  const unsigned int col_num = source_file_.getColNum();
+
   char curr = source_file_.advanceChar();
   std::string partial;
 
@@ -170,7 +180,7 @@ bool Lexer::advanceToken()
             "failed to correctly process token before punctuator");
       }
       partial.push_back(curr);
-      dequePush(GenericToken::PUNCTUATOR, partial);
+      dequePush(GenericToken::PUNCTUATOR, partial, line_num, col_num);
       return true;
     }
   }
@@ -197,13 +207,13 @@ bool Lexer::advanceToken()
       {
         curr = source_file_.advanceChar();
       }
-      dequePush(GenericToken::KEYWORD, partial);
+      dequePush(GenericToken::KEYWORD, partial, line_num, col_num);
       return true;
     }
 
     if (types_.find(partial) != types_.end())
     {
-      dequePush(GenericToken::TYPE, partial);
+      dequePush(GenericToken::TYPE, partial, line_num, col_num);
       return true;
     }
 
@@ -219,7 +229,7 @@ bool Lexer::advanceToken()
       {
         curr = source_file_.advanceChar();
       }
-      dequePush(GenericToken::OPERATOR, partial);
+      dequePush(GenericToken::OPERATOR, partial, line_num, col_num);
       return true;
     }
     curr = source_file_.advanceChar();
@@ -247,23 +257,23 @@ bool Lexer::advanceToken()
 
   if (is_identifier)
   {
-    dequePush(GenericToken::IDENTIFIER, partial);
+    dequePush(GenericToken::IDENTIFIER, partial, line_num, col_num);
     return true;
   }
 
   if (is_numeric)
   {
-    dequePush(GenericToken::NUMERIC_LITERAL, partial);
+    dequePush(GenericToken::NUMERIC_LITERAL, partial, line_num, col_num);
     return true;
   }
   std::cerr << "recieved: '" << partial << '\'' << std::endl;
   throw std::invalid_argument("unrecognized token");
 }
 /// @todo: pass line and col num as param
-void Lexer::dequePush(GenericToken type, const std::string &value)
+void Lexer::dequePush(GenericToken type, const std::string &value,
+                      const unsigned int &line_num, const unsigned int &col_num)
 {
-  auto t =
-      Token(type, value, source_file_.getLineNum(), source_file_.getColNum());
+  auto t = Token(type, value, line_num, col_num);
   tokens_.push_back(t);
 }
 
