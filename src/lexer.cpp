@@ -9,7 +9,7 @@
  * @todo: add support for comments
  *
  * @todo: add support for escape sequence in string literals
- * 
+ *
  */
 
 bool Lexer::isAcceptableIdentifier(const char &ch)
@@ -40,17 +40,17 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
   punctuators_ = {':', '\'', '\"', '[', ']', '{', '}', '(', ')'};
 
-  keywords_ = {"let", "oplet", "if",  "else", "elif",
-               "fn",  "fn_",   "fn?", "fn/",  "null"};
+  keywords_ = {"let", "oplet", "if", "else", "elif",
+               "fn", "fn_", "fn?", "fn/", "null"};
 
-  operators_ = {"=", "+", "-",  "*",  "/",  "%",  "==", "!=",
-                "<", ">", "<=", ">=", "&&", "||", "!",  "&",
-                "|", "^", "~",  "<<", ">>", "->", "=>"};
+  operators_ = {"=", "+", "-", "*", "/", "%", "==", "!=",
+                "<", ">", "<=", ">=", "&&", "||", "!", "&",
+                "|", "^", "~", "<<", ">>", "->", "=>"};
 
-  types_ = {"int",        "float",   "double",   "bool",      "char",
-            "long",       "short",   "pointer",  "uint",      "ulong",
-            "ushort",     "uchar",   "string",   "op_int",    "op_float",
-            "op_double",  "op_bool", "op_char",  "op_long",   "op_short",
+  types_ = {"int", "float", "double", "bool", "char",
+            "long", "short", "pointer", "uint", "ulong",
+            "ushort", "uchar", "string", "op_int", "op_float",
+            "op_double", "op_bool", "op_char", "op_long", "op_short",
             "op_pointer", "op_uint", "op_ulong", "op_ushort", "op_uchar",
             "op_string"};
 }
@@ -84,7 +84,7 @@ void Lexer::advanceStringLiteral()
     {
       // end of file reached
       throw std::invalid_argument(
-          "error: string literals must be surrounded by double-quotes");
+      "error: string literals must be surrounded by double-quotes");
     }
   }
 }
@@ -103,7 +103,7 @@ void Lexer::advanceCharLiteral()
   }
   while (isAcceptableCharLiteral(curr))
   {
-    std::unordered_set<char> escape_chars = {'n', 't',  'r', 'b',  'f',  'v',
+    std::unordered_set<char> escape_chars = {'n', 't', 'r', 'b', 'f', 'v',
                                              'a', '\\', '?', '\'', '\"', '0'};
     partial.push_back(curr);
     curr = source_file_.advanceChar();
@@ -132,7 +132,7 @@ void Lexer::advanceCharLiteral()
     {
       // end of file reached
       throw std::invalid_argument(
-          "error: character literals must be surrounded by single-quotes");
+      "error: character literals must be surrounded by single-quotes");
     }
   }
 }
@@ -179,7 +179,7 @@ bool Lexer::advanceToken()
         std::cerr << "expected empty partial, recieved: " << partial
                   << std::endl;
         throw std::invalid_argument(
-            "failed to correctly process token before punctuator");
+        "failed to correctly process token before punctuator");
       }
       partial.push_back(curr);
       dequePush(GenericToken::PUNCTUATOR, partial, line_num, col_num);

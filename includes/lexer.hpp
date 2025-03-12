@@ -15,7 +15,7 @@
 
 class Lexer
 {
-public:
+  public:
   Lexer(const RatSource &source_file);
 
   bool isAcceptableIdentifier(const char &ch);
@@ -35,7 +35,7 @@ public:
 
   std::deque<Token> &getTokens();
 
-private:
+  private:
   RatSource source_file_;
   std::deque<Token> tokens_;
   std::unordered_set<char> punctuators_;

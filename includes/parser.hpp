@@ -9,10 +9,10 @@
 
 class Parser
 {
-public:
+  public:
   Parser(std::deque<Token> &tokens);
 
-private:
+  private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;
   // AST ast_;
   std::deque<Token> tokens_;

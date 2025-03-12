@@ -123,8 +123,8 @@ struct Token
 
   Token(GenericToken type, std::string value, unsigned int line_num,
         unsigned int col_num)
-      : type_(type), value_(std::move(value)), line_num_(line_num),
-        col_num_(col_num)
+  : type_(type), value_(std::move(value)), line_num_(line_num),
+    col_num_(col_num)
   {
   }
 };

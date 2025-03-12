@@ -1,2 +1,45 @@
- BasedOnStyle: LLVM
- BreakBeforeBraces: Allman
+BasedOnStyle: LLVM
+
+TabWidth: 2
+IndentWidth: 2
+UseTab: Never
+
+Language: Cpp
+# Standard: Cpp17
+
+PointerAlignment: Right
+
+AccessModifierOffset: 0
+
+AlignAfterOpenBracket: true
+AlignConsecutiveAssignments: false
+AlignEscapedNewlinesLeft: true
+AlignOperands: true
+AlignTrailingComments: true
+
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: false
+NamespaceIndentation: None
+
+BreakBeforeBinaryOperators: false
+BreakBeforeBraces: Allman
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializersBeforeComma: false
+
+ColumnLimit: 0
+MaxEmptyLinesToKeep: 2
+
+ConstructorInitializerIndentWidth: 0
+ContinuationIndentWidth: 0
+IndentCaseLabels: true
+IndentFunctionDeclarationAfterType: false
+
+

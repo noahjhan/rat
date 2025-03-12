@@ -8,36 +8,36 @@
 #include <string>
 #include <unordered_map>
 
-#define RESET_LINE                                                             \
-  do                                                                           \
-  {                                                                            \
-    prev_line_num = line_num;                                                  \
-    line_num = 1;                                                              \
+#define RESET_LINE            \
+  do                          \
+  {                           \
+    prev_line_num = line_num; \
+    line_num = 1;             \
   } while (0)
-#define RESET_COL                                                              \
-  do                                                                           \
-  {                                                                            \
-    prev_col_num = col_num;                                                    \
-    col_num = 1;                                                               \
+#define RESET_COL           \
+  do                        \
+  {                         \
+    prev_col_num = col_num; \
+    col_num = 1;            \
   } while (0)
-#define NEXT_LINE                                                              \
-  do                                                                           \
-  {                                                                            \
-    prev_line_num = line_num;                                                  \
-    ++line_num;                                                                \
+#define NEXT_LINE             \
+  do                          \
+  {                           \
+    prev_line_num = line_num; \
+    ++line_num;               \
   } while (0)
-#define NEXT_COL                                                               \
-  do                                                                           \
-  {                                                                            \
-    prev_col_num = col_num;                                                    \
-    ++col_num;                                                                 \
+#define NEXT_COL            \
+  do                        \
+  {                         \
+    prev_col_num = col_num; \
+    ++col_num;              \
   } while (0)
 #define PREV_LINE (line_num = prev_line_num)
 #define PREV_COL (col_num = prev_col_num)
 
 class RatSource
 {
-public:
+  public:
   RatSource(const std::string &filename);
   ~RatSource();
   RatSource(const RatSource &other);
@@ -60,7 +60,7 @@ public:
 
   void debugPrinter();
 
-private:
+  private:
   std::string filename_;
   std::fstream fs_;
   unsigned int line_num;
