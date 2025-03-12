@@ -38,6 +38,7 @@ enum class ConstituentToken
   TYPE_ULONG,
   TYPE_USHORT,
   TYPE_UCHAR,
+  TYPE_STRING,
 
   TYPE_OP_INT,
   TYPE_OP_FLOAT,
@@ -50,6 +51,7 @@ enum class ConstituentToken
   TYPE_OP_ULONG,
   TYPE_OP_USHORT,
   TYPE_OP_UCHAR,
+  TYPE_OP_STRING,
 
   // keyword
   VARIABLE_DECLARATION_LET,

@@ -42,8 +42,8 @@ bool Lexer::isAcceptableNumericLiteral(const char &ch)
 
 bool Lexer::isAcceptableCharLiteral(const char &ch)
 {
-  return true;
 
+  return true;
   // @todo: support for chars
 }
 
@@ -52,14 +52,19 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
   punctuators_ = {':', '\'', '\"', '[', ']',
                   '{', '}',  '(',  ')'}; // subject to change
 
-  keywords_ = {"let", "oplet", "if", "else", "elif", "fn", "fn_", "fn?", "fn/"};
+  keywords_ = {"let", "oplet", "if",  "else", "elif",
+               "fn",  "fn_",   "fn?", "fn/",  "null"};
 
   operators_ = {"=", "+", "-",  "*",  "/",  "%",  "==", "!=",
                 "<", ">", "<=", ">=", "&&", "||", "!",  "&",
                 "|", "^", "~",  "<<", ">>", "->", "=>"};
 
-  types_ = {"int",   "float",   "double", "bool",  "char",   "long",
-            "short", "pointer", "uint",   "ulong", "ushort", "uchar"};
+  types_ = {"int",        "float",   "double",   "bool",      "char",
+            "long",       "short",   "pointer",  "uint",      "ulong",
+            "ushort",     "uchar",   "string",   "op_int",    "op_float",
+            "op_double",  "op_bool", "op_char",  "op_long",   "op_short",
+            "op_pointer", "op_uint", "op_ulong", "op_ushort", "op_uchar",
+            "op_string"};
 }
 
 void Lexer::advanceStringLiteral()
@@ -110,6 +115,10 @@ void Lexer::advanceCharLiteral()
     {
       // end of literal reached
       partial.push_back(curr);
+      if (source_file_.peekChar() == '\'')
+      {
+        partial.push_back(source_file_.advanceChar());
+      }
       dequePush(GenericToken::CHAR_LITERAL, partial);
       return;
     }
@@ -218,6 +227,9 @@ bool Lexer::advanceToken()
     }
     curr = source_file_.advanceChar();
   }
+  // generally identifiers cannot begin with numbers
+  // numbers can only end with alphabetic symbols
+
   // handle numeric literals
   bool is_numeric = true;
   bool is_identifier = (!std::isdigit(partial.front()));

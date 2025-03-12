@@ -9,5 +9,9 @@ fn_ main() {
     print("Hello, World!")
     foo()
     let add = fn/ x y -> x + y
+    let ch: char = 'a'
+    let ch_2: char = '\"'
+    let ch_3: char = '\''
+    oplet op_value: op_int = null
     rev
 }
