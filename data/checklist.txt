@@ -19,7 +19,7 @@ if token is new...
     create new isAcceptable function
 
     modify advanceToken function to avoid ambiguous tokens 
-        that is, a new token cannot be interpretted in more than one way
+        that is, a new token cannot be interpreted in more than one way
 
     add ConsituentToken and translation in token.hpp and dictionary.hpp
 
