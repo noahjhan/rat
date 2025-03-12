@@ -8,6 +8,8 @@
  *
  * @todo: add support for comments
  *
+ * @todo: add support for escape sequence in string literals
+ * 
  */
 
 bool Lexer::isAcceptableIdentifier(const char &ch)

@@ -1,5 +1,3 @@
-// file stream abstraction for rat files
-
 #ifndef RAT_SOURCE_HPP
 #define RAT_SOURCE_HPP
 
