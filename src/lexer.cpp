@@ -1,21 +1,22 @@
 #include "lexer.hpp"
 
-/*
-
-@todo: implement line and col number
-
-@todo: allow for spaces between keywords and types
-
-@todo: add support for comments
-
-*/
+/**
+ *
+ * @todo: implement line and col number
+ *
+ * @todo: allow for spaces between keywords and types
+ *
+ * @todo: add support for comments
+ *
+ */
 
 bool Lexer::isAcceptableIdentifier(const char &ch)
 {
   return std::isalnum(ch) || ch == '_';
 }
-
-// @todo: stricter string literal evaluation
+/**
+ * @todo: stricter string literal evaluation
+ */
 bool Lexer::isAcceptableStringLiteral(const char &ch)
 {
   return std::isprint(ch) || std::isspace(ch);
@@ -28,9 +29,10 @@ bool Lexer::isAcceptableNumericLiteral(const char &ch)
                                          's', 'c', '.', '-'};
   return std::isdigit(ch) || (non_digits.find(ch) != non_digits.end());
 }
-
-// @todo: support for chars
-// this function may be redundant
+/**
+ * @todo: support for chars
+ * this function may be redundant
+ */
 bool Lexer::isAcceptableCharLiteral(const char &ch) { return true; }
 
 Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
@@ -128,8 +130,10 @@ void Lexer::advanceCharLiteral()
   }
 }
 
-// @todo: access line and col num at the start of the token to include more
-// debug info
+/**
+ * @todo: access line and col num at the start of the token
+ * to include more debug info
+ */
 bool Lexer::advanceToken()
 {
   source_file_.advanceWhitespace();
@@ -256,8 +260,10 @@ bool Lexer::advanceToken()
   std::cerr << "recieved: '" << partial << '\'' << std::endl;
   throw std::invalid_argument("unrecognized token");
 }
-
-// @todo: pass line and col num as param
+/**
+ * @todo: pass line and col num as param
+ *
+ */
 void Lexer::dequePush(GenericToken type, const std::string &value)
 {
   auto t =
