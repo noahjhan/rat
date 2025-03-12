@@ -6,6 +6,8 @@
 
 @todo: allow for spaces between keywords and types
 
+@todo: add support for comments
+
 */
 
 bool Lexer::isAcceptableIdentifier(const char &ch)
