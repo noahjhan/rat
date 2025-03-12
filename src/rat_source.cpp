@@ -108,13 +108,28 @@ char RatSource::advanceChar()
 
 char RatSource::peekChar() { return fs_.peek(); }
 
-/// @todo handle begin of file unget error
+/**
+ * @todo handle begin of file unget error for some reason the commented BOF error check breaks the lexing process
+ * there is never an uncaught exception, so inside the if is never reached
+ * calling tellg() causes issues
+ */
+
 void RatSource::reverse()
 {
+  /**
+   *  @todo for some reason the commented BOF error check breaks the lexing process
+   *  ...however there is no uncaught exception?
+   *  merely calling tellg() causes issues
+   */
+
+  // if (fs_.tellg() == 0)
+  // {
+  //   throw std::invalid_argument("error: cannot reverse beginning of file");
+  // }
+
   if (!fs_.good())
   {
-    std::cerr << "error cannot reverse: EOF" << std::endl;
-    return;
+    throw std::invalid_argument("error: cannot reverse end of file");
   }
   fs_.unget();
   if (fs_.peek() == '\n')
@@ -136,8 +151,7 @@ void RatSource::advanceWhitespace()
     NEXT_COL;
     if (ch == EOF)
     {
-      std::cerr << "in advance whitespace: '" << int(ch)
-                << "' invalid character" << std::endl;
+      return;
     }
     if (ch == '\n')
     {

@@ -12,7 +12,7 @@ int main()
   while (lex.advanceToken())
   {
   }
-  lex.debugPrinter(true);
+  lex.debugPrinter(); // use true as param if want verbose printing i.e. line & column numbers
   std::deque<Token> dq = lex.getTokens();
   auto parse = Parser(dq);
   return 0;

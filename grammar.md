@@ -1,5 +1,6 @@
 $$
 \begin{aligned}
+\text{work in progress}\\\\
 \text{Function} &\to \text{Type} \ \text{Identifier} ( \text{Parameters} ) \ \text{Body} \\
 \text{Type} &\to \text{int} \ | \ \text{float} \ | \ \text{void} \\
 \text{Identifier} &\to \text{[a-zA-Z][a-zA-Z0-9]*} \\
@@ -8,6 +9,6 @@ $$
 \text{Statements} &\to \text{Statement} \ (\text{Statement})^* \\
 \text{Statement} &\to \text{Expression} ; \ | \ \text{Return} ; \\
 \text{Return} &\to \text{return} \ \text{Expression} \\
-\text{Expression} &\to \text{Identifier} \ | \text{Literal} 
+\text{Expression} &\to \text{Identifier} \ | \text{ Literal} 
 \end{aligned}
 $$

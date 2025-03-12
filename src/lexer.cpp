@@ -10,6 +10,9 @@
  *
  * @todo: add support for escape sequence in string literals
  *
+ * @todo: add support for lists i.e {1, 2, 3, 4, 5}
+ *        perhaps an array type?
+ *
  */
 
 bool Lexer::isAcceptableIdentifier(const char &ch)
@@ -176,7 +179,7 @@ bool Lexer::advanceToken()
     {
       if (!partial.empty())
       {
-        std::cerr << "expected empty partial, recieved: " << partial
+        std::cerr << "expected empty partial, recieved: '" << partial << '\''
                   << std::endl;
         throw std::invalid_argument(
         "failed to correctly process token before punctuator");
