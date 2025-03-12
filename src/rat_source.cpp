@@ -42,20 +42,20 @@ RatSource &RatSource::operator=(const RatSource &other)
 
 void RatSource::destructor() { fs_.close(); }
 
-void RatSource::seek_reset()
+void RatSource::seekReset()
 {
   fs_.seekg(0, std::ios::beg);
-  RESET_LINE
-  RESET_COL
+  RESET_LINE;
+  RESET_COL;
 }
 
 std::string RatSource::readLine()
 {
-  RESET_COL
+  RESET_COL;
   std::string line;
   if (std::getline(fs_, line))
   {
-    NEXT_LINE
+    NEXT_LINE;
     return line;
   }
   return "";
@@ -68,11 +68,11 @@ std::string RatSource::readWord()
 
   while (fs_.get(ch) && std::isspace(ch))
   {
-    NEXT_COL
+    NEXT_COL;
     if (ch == '\n')
     {
-      RESET_COL
-      NEXT_LINE
+      RESET_COL;
+      NEXT_LINE;
     }
   }
 
@@ -84,7 +84,7 @@ std::string RatSource::readWord()
   do
   {
     word.push_back(ch);
-    NEXT_COL
+    NEXT_COL;
   } while (fs_.get(ch) && !std::isspace(ch));
 
   return word;
@@ -95,11 +95,11 @@ char RatSource::advanceChar()
   char ch;
   if (fs_.get(ch))
   {
-    NEXT_COL
+    NEXT_COL;
     if (ch == '\n')
     {
-      RESET_COL
-      NEXT_LINE
+      RESET_COL;
+      NEXT_LINE;
     }
     return ch;
   }
@@ -119,9 +119,9 @@ void RatSource::reverse()
   fs_.unget();
   if (fs_.peek() == '\n')
   {
-    line_num = prev_line_num;
+    PREV_LINE;
   }
-  col_num = prev_col_num;
+  PREV_COL;
 }
 
 void RatSource::advanceWhitespace()
@@ -133,7 +133,7 @@ void RatSource::advanceWhitespace()
   }
   while (fs_.get(ch))
   {
-    NEXT_COL
+    NEXT_COL;
     if (ch == EOF || ch == '\0')
     {
       std::cerr << "in advance whitespace: '" << int(ch)
@@ -141,28 +141,43 @@ void RatSource::advanceWhitespace()
     }
     if (ch == '\n')
     {
-      RESET_COL
-      NEXT_LINE
+      RESET_COL;
+      NEXT_LINE;
     }
     if (!std::isspace(ch))
     {
       fs_.unget();
       if (fs_.peek() == '\n')
       {
-        line_num = prev_line_num;
+        PREV_LINE;
       }
-      col_num = prev_col_num;
+      PREV_COL;
       return;
     }
   }
 }
 
-void RatSource::selectLine(const unsigned &ix)
+void RatSource::seekLine(const unsigned &idx)
 {
-  /// @todo
+  char ch;
+  seekReset();
+  while (line_num < idx)
+  {
+    fs_.get(ch);
+    if (ch == EOF)
+    {
+      std::cerr << "file length: '" << line_num << "' requested: '" << idx
+                << '\'' << std::endl;
+      throw std::invalid_argument("error: index out of bounds");
+    }
+    if (ch == '\n')
+    {
+      NEXT_LINE;
+    }
+  }
 }
 
-void RatSource::selectCol(const unsigned &i)
+void RatSource::seekCol(const unsigned &idx)
 {
   /// @todo
 }
@@ -173,7 +188,7 @@ unsigned int RatSource::getColNum() { return this->col_num; }
 
 void RatSource::debugPrinter()
 {
-  seek_reset();
+  seekReset();
   if (!fs_.is_open())
   {
     throw std::invalid_argument("error opening file");
@@ -185,5 +200,5 @@ void RatSource::debugPrinter()
   {
     std::cout << line << std::endl;
   }
-  seek_reset();
+  seekReset();
 }
