@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Rat will be an attempt at writing simple compiler. Hopefully the lang will be turing complete. 
+ 
 
 ## Grammar
 
