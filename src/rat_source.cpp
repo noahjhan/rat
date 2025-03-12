@@ -143,14 +143,12 @@ void RatSource::advanceWhitespace()
 
 void RatSource::selectLine(const unsigned &ix)
 {
-  // @todo implement seeking to the specific line
-  // use seekg with proper offset
+  /// @todo
 }
 
 void RatSource::selectCol(const unsigned &i)
 {
-  // @todo implement seeking to the specific col
-  // modify the file pointer);
+  /// @todo
 }
 
 unsigned int RatSource::getLineNum() { return this->line_num; }

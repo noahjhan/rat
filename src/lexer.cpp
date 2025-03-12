@@ -14,15 +14,14 @@ bool Lexer::isAcceptableIdentifier(const char &ch)
 {
   return std::isalnum(ch) || ch == '_';
 }
-/**
- * @todo: stricter string literal evaluation
- */
+
+/// @todo: stricter string literal evaluation
 bool Lexer::isAcceptableStringLiteral(const char &ch)
 {
   return std::isprint(ch) || std::isspace(ch);
 }
 
-// @todo: add support for non-decimal base
+/// @todo: add support for non-decimal base
 bool Lexer::isAcceptableNumericLiteral(const char &ch)
 {
   std::unordered_set<char> non_digits = {'u', 'i', 'f', 'd', 'l',
@@ -260,10 +259,7 @@ bool Lexer::advanceToken()
   std::cerr << "recieved: '" << partial << '\'' << std::endl;
   throw std::invalid_argument("unrecognized token");
 }
-/**
- * @todo: pass line and col num as param
- *
- */
+/// @todo: pass line and col num as param
 void Lexer::dequePush(GenericToken type, const std::string &value)
 {
   auto t =
