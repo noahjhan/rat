@@ -92,6 +92,8 @@ void Lexer::advanceCharLiteral()
   }
   while (isAcceptableCharLiteral(curr))
   {
+    std::unordered_set<char> escape_chars = {'n', 't',  'r', 'b',  'f',  'v',
+                                             'a', '\\', '?', '\'', '\"', '0'};
     partial.push_back(curr);
     curr = source_file_.advanceChar();
     if (curr == '\'')
@@ -102,6 +104,16 @@ void Lexer::advanceCharLiteral()
       {
         partial.push_back(source_file_.advanceChar());
       }
+
+      if ((partial.size() != 3 && partial.size() != 4) ||
+          (partial.size() == 4 &&
+           (partial[1] != '\\' ||
+            (escape_chars.find(partial[2]) == escape_chars.end()))))
+      {
+        std::cerr << "recieved: '" << partial << '\'' << std::endl;
+        throw std::invalid_argument("syntax error: unrecognized char literal");
+      }
+
       dequePush(GenericToken::CHAR_LITERAL, partial);
       return;
     }
@@ -149,7 +161,7 @@ bool Lexer::advanceToken()
       {
         std::cerr << "expected empty partial, recieved: " << partial
                   << std::endl;
-        throw std::runtime_error(
+        throw std::invalid_argument(
             "failed to correctly process token before punctuator");
       }
       partial.push_back(curr);
@@ -240,7 +252,7 @@ bool Lexer::advanceToken()
     return true;
   }
   std::cerr << "recieved: '" << partial << '\'' << std::endl;
-  throw std::runtime_error("unrecognized token");
+  throw std::invalid_argument("unrecognized token");
 }
 
 // @todo: pass line and col num as param
