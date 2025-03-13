@@ -74,7 +74,6 @@ enum class ConstituentToken
   NULL_LITERAL,
 
   // punctuators
-  SEMICOLON,
   COLON,
   SINGLE_QUOTE,
   DOUBLE_QUOTE,
@@ -121,10 +120,8 @@ struct Token
   unsigned int line_num_;
   unsigned int col_num_;
 
-  Token(GenericToken type, std::string value, unsigned int line_num,
-        unsigned int col_num)
-  : type_(type), value_(std::move(value)), line_num_(line_num),
-    col_num_(col_num)
+  Token(GenericToken type, std::string value, unsigned int line_num, unsigned int col_num)
+  : type_(type), value_(std::move(value)), line_num_(line_num), col_num_(col_num)
   {
   }
 };

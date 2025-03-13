@@ -261,7 +261,7 @@ bool Lexer::advanceToken()
     }
   }
 
-  if (is_numeric == is_identifier)
+  if ((is_numeric && is_identifier))
   {
     debugLineCol(line_num, col_num);
     std::cerr << "recieved: '" << partial << '\'' << std::endl;

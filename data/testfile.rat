@@ -7,7 +7,7 @@ fn foo() {
 fn_ main() {
     let x: int = 10
     print("Hello, World!")
-    foo()
+    foo();
     let add = fn/ x y -> x + y
     let ch: char = 'a'
     let ch_2: char = '\\'

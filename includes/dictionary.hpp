@@ -45,7 +45,6 @@ const std::unordered_map<std::string, ConstituentToken> DICT_INIT = {
 {"elif", ConstituentToken::CONDITIONAL_ELSE_IF},
 {"match", ConstituentToken::PATTERN_MATCH},
 {"null", ConstituentToken::NULL_LITERAL},
-{";", ConstituentToken::SEMICOLON},
 {":", ConstituentToken::COLON},
 {"'", ConstituentToken::SINGLE_QUOTE},
 {"\"", ConstituentToken::DOUBLE_QUOTE},
