@@ -14,10 +14,12 @@
  *        perhaps an array type?
  *
  * @todo: test string literal edge cases
- * 
- * @todo: add functionality for multi-line string literals i.e "hello""world" is one token
- *      
  *
+ * @todo: add functionality for multi-line string literals i.e "hello""world" is one token (this is likely a parser
+ *        issue)
+ *
+ * @todo: validate numeric literals such that they can only contain one of 'u' and one of type letter i.e  129.68df is
+ *        invalid (what is a double float?)
  */
 
 bool Lexer::isAcceptableIdentifier(const char &ch) { return std::isalnum(ch) || ch == '_'; }
@@ -70,7 +72,9 @@ void Lexer::advanceStringLiteral()
   std::string partial;
   if (curr != '\"')
   {
+    debugLineCol(line_num, col_num);
     std::cerr << "advanceStringLiteral: expected: \", recieved: " << curr << std::endl;
+    debugPrintln(line_num);
     throw std::invalid_argument("error: caller function did not align stream");
   }
   while (isAcceptableStringLiteral(curr))
