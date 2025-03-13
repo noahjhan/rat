@@ -1,8 +1,6 @@
 #ifndef AST_HPP
 #define AST_HPP
 
-#define GENERIC_EXPR std::unique_ptr<std::variant<GenericExpr, BinaryExpr, UnaryExpr, NumericLiteral>>
-
 #include "token.hpp"
 #include <memory>
 #include <variant>
@@ -17,7 +15,7 @@ struct GenericExpr;
 
 struct GenericExpr
 {
-  GENERIC_EXPR expr;
+  std::unique_ptr<std::variant<GenericExpr, BinaryExpr, UnaryExpr, NumericLiteral>> expr;
 };
 
 struct UnaryExpr

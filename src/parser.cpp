@@ -67,16 +67,21 @@ Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
 }
 
 /// @todo recursive descent
+/// @return
 std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr() { return std::unique_ptr<Node::GenericExpr>(); }
 //
 std::unique_ptr<Node::GenericExpr> Parser::exprToNode()
 {
+  // lets assume for now the deque only contains valid expression tokens
+  // lets assume for now the deque only contains puctuators, literals, operators
   Token token = tokens_.back();
   if (/*invalid token*/ 0)
   {
     throw std::invalid_argument("error: non expression token");
   }
-  tokens_.pop_back();
+
+  std::unique_ptr<Node::GenericExpr> gen_expr_ptr;
+  tokens_.pop_back(); // maybe here maybe at the end
 
   switch (token.type)
   {
@@ -91,6 +96,7 @@ std::unique_ptr<Node::GenericExpr> Parser::exprToNode()
       std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral>>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
+      gen_expr_ptr = std::make_unique<Node::GenericExpr>(gen_expr);
     }
     case GenericToken::STRING_LITERAL: throw std::runtime_error("string literal : @todo");
     case GenericToken::CHAR_LITERAL: break;
@@ -98,8 +104,11 @@ std::unique_ptr<Node::GenericExpr> Parser::exprToNode()
     case GenericToken::OPERATOR: break;
     case GenericToken::TYPE: break;
   }
-
-  return std::unique_ptr<Node::GenericExpr>();
+  if (gen_expr_ptr)
+  {
+    return gen_expr_ptr;
+  }
+  return std::unique_ptr<Node::GenericExpr>(); // throw exception here?
 }
 
 /// @todo suppport for optional

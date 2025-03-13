@@ -3,9 +3,6 @@
 
 #include <unordered_map>
 
-#define NODE_GENERIC_EXPR \
-  std::unique_ptr<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral>>
-
 #include "ast.hpp"
 #include "dictionary.hpp"
 #include "lexer.hpp"
