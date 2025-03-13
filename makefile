@@ -23,7 +23,7 @@ OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 
 # output
 EXEC = $(BIN_DIR)/exec
-TEST_EXEC = $(BIN_DIR)/test
+# TEST_EXEC = $(BIN_DIR)/exec
 
 # default target to build the executable
 all: $(EXEC)
@@ -65,12 +65,12 @@ $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
 run: $(EXEC)
-	@echo "$(BLUE)Running exec...$(RESET)"
+	@echo "$(BLUE)Running exec...\n$(RESET)"
 	@ ./$(EXEC)
 
 # test target
-test: $(TEST_EXEC)
-	@echo "$(BLUE)Running tests...$(RESET)"
-	@ ./$(TEST_EXEC)
+# test: $(TEST_EXEC)
+# 	@echo "$(BLUE)Running tests...\n$(RESET)"
+# 	@ ./$(TEST_EXEC)
 
 .PHONY: all clean test

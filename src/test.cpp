@@ -5,7 +5,7 @@
 #define GREEN "\033[32m"
 #define YELLOW "\033[33m"
 #define BLUE "\033[34m"
-#define MAGENTA "\033[35m"
+#define PURPLE "\033[1;35m"
 #define CYAN "\033[36m"
 #define WHITE "\033[37m"
 #define BAR "=============================="
@@ -24,7 +24,8 @@ catch (const std::exception &e)
 
 bool TEST_LEXER()
 {
-  std::cout << BLUE << BAR << "\nTEST CASE: Lexer\n"
+  std::cout << PURPLE << "TEST CASE: Lexer\n"
+            << BAR
             << RESET << std::endl;
   try
   {
@@ -35,20 +36,19 @@ bool TEST_LEXER()
     while (lex.advanceToken())
     {
     }
-    lex.debugPrinter(true); // use true as param if want verbose printing i.e. line & column numbers
+    // lex.debugPrinter(/* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq);
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << "\nTEST CASE FAILED: Lexer\n"
-              << BAR
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Lexer\n"
               << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << "\nTEST CASE PASSED: Lexer\n"
-            << BAR << RESET << std::endl;
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Lexer\n"
+            << RESET << std::endl;
   return true;
 }
 

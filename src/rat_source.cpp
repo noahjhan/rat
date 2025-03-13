@@ -1,5 +1,11 @@
 #include "rat_source.hpp"
 
+/** 
+ * 
+ * @todo: bug in seek_reset: possibility for inf loop
+ * 
+*/
+
 RatSource::RatSource(const std::string &filename) : filename_(filename)
 {
   fs_.open(filename_);
@@ -44,7 +50,12 @@ void RatSource::destructor() { fs_.close(); }
 
 void RatSource::seekReset()
 {
-  fs_.seekg(0, std::ios::beg);
+  fs_.close();
+  fs_.open(filename_);
+  if (!fs_.is_open())
+  {
+    throw std::invalid_argument("invalid file");
+  }
   RESET_LINE;
   RESET_COL;
 }
@@ -175,20 +186,24 @@ void RatSource::seekLine(const unsigned &idx)
 {
   char ch;
   seekReset();
-  while (line_num < idx)
+  while (fs_.get(ch))
   {
-    fs_.get(ch);
     if (ch == EOF)
     {
-      std::cerr << "file length: '" << line_num << "' requested: '" << idx
-                << '\'' << std::endl;
-      throw std::invalid_argument("error: index out of bounds");
+      break;
     }
     if (ch == '\n')
     {
       NEXT_LINE;
     }
+    if (line_num >= idx)
+    {
+      return;
+    }
   }
+  std::cerr << "file length: '" << line_num << "' requested: '" << idx
+            << '\'' << std::endl;
+  throw std::invalid_argument("error: index out of bounds");
 }
 
 void RatSource::seekCol(const unsigned &idx)

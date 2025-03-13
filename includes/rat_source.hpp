@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <unistd.h>
 #include <unordered_map>
 
 #define RESET_LINE            \

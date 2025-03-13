@@ -2,7 +2,6 @@
 #define LEXER_HPP
 
 #include <deque>
-#include <unistd.h> // for sleep()
 #include <unordered_map>
 #include <unordered_set>
 
@@ -30,6 +29,9 @@ class Lexer
 
   void dequePush(GenericToken type, const std::string &value,
                  const unsigned int &line_num, const unsigned int &col_num);
+
+  void debugPrintln(const unsigned int &line_num);
+  void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
 
   void debugPrinter(bool verbose = false);
 
