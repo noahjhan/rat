@@ -13,6 +13,8 @@
  * @todo: add support for lists i.e {1, 2, 3, 4, 5}
  *        perhaps an array type?
  *
+ * @todo: add support for structs -> struct keyword
+ *
  * @todo: test string literal edge cases
  *
  * @todo: add functionality for multi-line string literals i.e "hello""world" is one token (this is likely a parser
@@ -288,7 +290,11 @@ bool Lexer::advanceToken()
 void Lexer::dequePush(GenericToken type, const std::string &value, const unsigned int &line_num,
                       const unsigned int &col_num)
 {
-  auto t = Token(type, value, line_num, col_num);
+  Token t;
+  t.type = type;
+  t.value = value;
+  t.line_num = line_num;
+  t.col_num = col_num;
   tokens_.push_back(t);
 }
 
@@ -312,11 +318,11 @@ void Lexer::debugPrinter(bool verbose)
     std::cout << "DEBUG" << std::endl;
     for (const auto &t : tokens_)
     {
-      std::string str = str_representation.at(t.type_);
+      std::string str = str_representation.at(t.type);
       std::cout << "token: " << str << std::endl;
-      std::cout << "value: " << t.value_ << std::endl;
-      std::cout << "line: " << t.line_num_ << std::endl;
-      std::cout << "col: " << t.col_num_ << std::endl;
+      std::cout << "value: " << t.value << std::endl;
+      std::cout << "line: " << t.line_num << std::endl;
+      std::cout << "col: " << t.col_num << std::endl;
       std::cout << std::endl;
     }
   }
@@ -324,7 +330,7 @@ void Lexer::debugPrinter(bool verbose)
   {
     for (const auto &t : tokens_)
     {
-      std::cout << t.value_ << std::endl;
+      std::cout << t.value << std::endl;
     }
   }
 }

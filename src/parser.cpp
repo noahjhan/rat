@@ -24,48 +24,83 @@ Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
 
   for (const auto &token : tokens_)
   {
-    if (token.value_.empty())
+    if (token.value.empty())
     {
       throw std::invalid_argument("syntax error: empty token");
     }
-    switch (token.type_)
+    switch (token.type)
     {
-      case GenericToken::IDENTIFIER:
-        break;
+      case GenericToken::IDENTIFIER: break;
       case GenericToken::KEYWORD:
-        if (dictionary_.find(token.value_) == dictionary_.end())
+        if (dictionary_.find(token.value) == dictionary_.end())
         {
-          std::cerr << "recieved: '" << token.value_ << '\'' << std::endl;
+          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
           throw std::invalid_argument("syntax error: unrecognized keyword");
         }
         break;
-      case GenericToken::NUMERIC_LITERAL:
-        break;
-      case GenericToken::STRING_LITERAL:
-        break;
-      case GenericToken::CHAR_LITERAL:
-        break;
+      case GenericToken::NUMERIC_LITERAL: break;
+      case GenericToken::STRING_LITERAL: break;
+      case GenericToken::CHAR_LITERAL: break;
       case GenericToken::PUNCTUATOR:
-        if (dictionary_.find(token.value_) == dictionary_.end())
+        if (dictionary_.find(token.value) == dictionary_.end())
         {
-          std::cerr << "recieved: '" << token.value_ << '\'' << std::endl;
+          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
           throw std::invalid_argument("syntax error: unrecognized punctuator");
         }
         break;
       case GenericToken::OPERATOR:
-        if (dictionary_.find(token.value_) == dictionary_.end())
+        if (dictionary_.find(token.value) == dictionary_.end())
         {
-          std::cerr << "recieved: '" << token.value_ << '\'' << std::endl;
+          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
           throw std::invalid_argument("syntax error: unrecognized operator");
         }
         break;
       case GenericToken::TYPE:
-        if (dictionary_.find(token.value_) == dictionary_.end())
+        if (dictionary_.find(token.value) == dictionary_.end())
         {
-          std::cerr << "recieved: '" << token.value_ << '\'' << std::endl;
+          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
           throw std::invalid_argument("syntax error: unrecognized type");
         }
         break;
     }
   }
 }
+
+/// @todo recursive descent
+std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr() { return std::unique_ptr<Node::GenericExpr>(); }
+//
+std::unique_ptr<Node::GenericExpr> Parser::exprToNode()
+{
+  Token token = tokens_.back();
+  if (/*invalid token*/ 0)
+  {
+    throw std::invalid_argument("error: non expression token");
+  }
+  tokens_.pop_back();
+
+  switch (token.type)
+  {
+    case GenericToken::IDENTIFIER: throw std::runtime_error("identifier : @todo");
+    case GenericToken::KEYWORD: throw std::invalid_argument("error: keyword found in expression");
+    case GenericToken::NUMERIC_LITERAL:
+    {
+      Node::NumericLiteral node;
+      node.token = token;
+      node.type = inferTypeNumericLiteral(token.value);
+      auto ptr =
+      std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral>>(node);
+      Node::GenericExpr gen_expr;
+      gen_expr.expr = std::move(ptr);
+    }
+    case GenericToken::STRING_LITERAL: throw std::runtime_error("string literal : @todo");
+    case GenericToken::CHAR_LITERAL: break;
+    case GenericToken::PUNCTUATOR: break;
+    case GenericToken::OPERATOR: break;
+    case GenericToken::TYPE: break;
+  }
+
+  return std::unique_ptr<Node::GenericExpr>();
+}
+
+/// @todo suppport for optional
+ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value) { return ConstituentToken::TYPE_INT; }

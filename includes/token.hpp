@@ -115,14 +115,14 @@ enum class ConstituentToken
 };
 struct Token
 {
-  GenericToken type_;
-  std::string value_;
-  unsigned int line_num_;
-  unsigned int col_num_;
+  // Token(GenericToken type, std::string value, unsigned int line_num, unsigned int col_num)
+  // : type_(type), value_(std::move(value)), line_num_(line_num), col_num_(col_num)
+  // {
+  // }
 
-  Token(GenericToken type, std::string value, unsigned int line_num, unsigned int col_num)
-  : type_(type), value_(std::move(value)), line_num_(line_num), col_num_(col_num)
-  {
-  }
+  GenericToken type;
+  std::string value;
+  unsigned int line_num;
+  unsigned int col_num;
 };
 #endif // TOKEN_HPP

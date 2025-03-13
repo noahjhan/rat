@@ -18,7 +18,7 @@ TEST_DIR = tests
 
 # files
 SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/main.cpp $(SRC_DIR)/lexer.cpp $(SRC_DIR)/parser.cpp $(SRC_DIR)/test.cpp
-HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/parser.hpp $(INC_DIR)/test.hpp
+HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/parser.hpp $(INC_DIR)/test.hpp $(INC_DIR)/ast.hpp
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 
 # output

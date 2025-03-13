@@ -21,6 +21,7 @@ fn_ main() {
     let ch_3: char = '\n'
     let str: string = "section_1"
     "section_2"
+
     op let op_value: op_int = null
     rev
 }
