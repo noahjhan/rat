@@ -10,7 +10,7 @@ fn_ main() {
     foo()
     let add = fn/ x y -> x + y
     let ch: char = 'a'
-    let ch_2: char = '\"'
+    let ch_2: char = '\\'
     let ch_3: char = '\n'
     oplet op_value: op_int = null
     rev

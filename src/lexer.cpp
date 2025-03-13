@@ -13,24 +13,22 @@
  * @todo: add support for lists i.e {1, 2, 3, 4, 5}
  *        perhaps an array type?
  *
+ * @todo: test string literal edge cases
+ * 
+ * @todo: add functionality for multi-line string literals i.e "hello""world" is one token
+ *      
+ *
  */
 
-bool Lexer::isAcceptableIdentifier(const char &ch)
-{
-  return std::isalnum(ch) || ch == '_';
-}
+bool Lexer::isAcceptableIdentifier(const char &ch) { return std::isalnum(ch) || ch == '_'; }
 
 /// @todo: stricter string literal evaluation
-bool Lexer::isAcceptableStringLiteral(const char &ch)
-{
-  return std::isprint(ch) || std::isspace(ch);
-}
+bool Lexer::isAcceptableStringLiteral(const char &ch) { return std::isprint(ch) || std::isspace(ch); }
 
 /// @todo: add support for non-decimal base
 bool Lexer::isAcceptableNumericLiteral(const char &ch)
 {
-  std::unordered_set<char> non_digits = {'u', 'i', 'f', 'd', 'l',
-                                         's', 'c', '.', '-'};
+  std::unordered_set<char> non_digits = {'u', 'i', 'f', 'd', 'l', 's', 'c', '.', '-'};
   return std::isdigit(ch) || (non_digits.find(ch) != non_digits.end());
 }
 /**
@@ -43,29 +41,23 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
   punctuators_ = {':', '\'', '\"', '[', ']', '{', '}', '(', ')'};
 
-  keywords_ = {"let", "oplet", "if", "else", "elif",
-               "fn", "fn_", "fn?", "fn/", "null"};
+  keywords_ = {"let", "oplet", "if", "else", "elif", "fn", "fn_", "fn?", "fn/", "null"};
 
-  operators_ = {"=", "+", "-", "*", "/", "%", "==", "!=",
-                "<", ">", "<=", ">=", "&&", "||", "!", "&",
-                "|", "^", "~", "<<", ">>", "->", "=>"};
+  operators_ = {"=",  "+",  "-", "*", "/", "%", "==", "!=", "<",  ">",  "<=", ">=",
+                "&&", "||", "!", "&", "|", "^", "~",  "<<", ">>", "->", "=>"};
 
-  types_ = {"int", "float", "double", "bool", "char",
-            "long", "short", "pointer", "uint", "ulong",
-            "ushort", "uchar", "string", "op_int", "op_float",
-            "op_double", "op_bool", "op_char", "op_long", "op_short",
-            "op_pointer", "op_uint", "op_ulong", "op_ushort", "op_uchar",
-            "op_string"};
+  types_ = {"int",     "float",    "double",     "bool",    "char",     "long",      "short",     "pointer",  "uint",
+            "ulong",   "ushort",   "uchar",      "string",  "op_int",   "op_float",  "op_double", "op_bool",  "op_char",
+            "op_long", "op_short", "op_pointer", "op_uint", "op_ulong", "op_ushort", "op_uchar",  "op_string"};
 
-  str_representation = {
-  {GenericToken::IDENTIFIER, "Identifier"},
-  {GenericToken::KEYWORD, "Keyword"},
-  {GenericToken::NUMERIC_LITERAL, "Numeric Literal"},
-  {GenericToken::STRING_LITERAL, "String Literal"},
-  {GenericToken::CHAR_LITERAL, "Char Literal"},
-  {GenericToken::PUNCTUATOR, "Punctuator"},
-  {GenericToken::OPERATOR, "Operator"},
-  {GenericToken::TYPE, "Type"}};
+  str_representation = {{GenericToken::IDENTIFIER, "Identifier"},
+                        {GenericToken::KEYWORD, "Keyword"},
+                        {GenericToken::NUMERIC_LITERAL, "Numeric Literal"},
+                        {GenericToken::STRING_LITERAL, "String Literal"},
+                        {GenericToken::CHAR_LITERAL, "Char Literal"},
+                        {GenericToken::PUNCTUATOR, "Punctuator"},
+                        {GenericToken::OPERATOR, "Operator"},
+                        {GenericToken::TYPE, "Type"}};
 }
 
 void Lexer::advanceStringLiteral()
@@ -92,13 +84,11 @@ void Lexer::advanceStringLiteral()
       dequePush(GenericToken::STRING_LITERAL, partial, line_num, col_num);
       return;
     }
-    if (curr == EOF)
+    if (curr == EOF || curr == '\n')
     {
-      // end of file reached
       debugLineCol(line_num, col_num);
       debugPrintln(line_num);
-      throw std::invalid_argument(
-      "error: string literals must be surrounded by double-quotes");
+      throw std::invalid_argument("error: string literals must be surrounded by double-quotes");
     }
   }
 }
@@ -113,15 +103,13 @@ void Lexer::advanceCharLiteral()
   {
 
     debugLineCol(line_num, col_num);
-    std::cerr << "advanceCharLiteral: expected: \', recieved: " << curr
-              << std::endl;
+    std::cerr << "advanceCharLiteral: expected: \', recieved: " << curr << std::endl;
     debugPrintln(line_num);
     throw std::invalid_argument("error: caller function did not align stream");
   }
   while (isAcceptableCharLiteral(curr))
   {
-    std::unordered_set<char> escape_chars = {'n', 't', 'r', 'b', 'f', 'v',
-                                             'a', '\\', '?', '\'', '\"', '0'};
+    std::unordered_set<char> escape_chars = {'n', 't', 'r', 'b', 'f', 'v', 'a', '\\', '?', '\'', '\"', '0'};
     partial.push_back(curr);
     curr = source_file_.advanceChar();
     if (curr == '\'')
@@ -132,10 +120,8 @@ void Lexer::advanceCharLiteral()
       {
         partial.push_back(source_file_.advanceChar());
       }
-      if ((partial.size() != 3 && partial.size() != 4) ||
-          (partial.size() == 4 && partial[1] != '\\') ||
-          (partial.size() == 3 && partial[1] == '\\') ||
-          (escape_chars.find(partial[2]) == escape_chars.end()))
+      if ((partial.size() != 3 && partial.size() != 4) || (partial.size() == 4 && partial[1] != '\\') ||
+          (partial.size() == 3 && partial[1] == '\\') || (escape_chars.find(partial[2]) == escape_chars.end()))
       {
         debugLineCol(line_num, col_num);
         std::cerr << "recieved: '" << partial << '\'' << std::endl;
@@ -197,11 +183,9 @@ bool Lexer::advanceToken()
       {
 
         debugLineCol(line_num, col_num);
-        std::cerr << "expected empty partial, recieved: '" << partial << '\''
-                  << std::endl;
+        std::cerr << "expected empty partial, recieved: '" << partial << '\'' << std::endl;
         debugPrintln(line_num);
-        throw std::invalid_argument(
-        "failed to correctly process token before punctuator");
+        throw std::invalid_argument("failed to correctly process token before punctuator");
       }
       partial.push_back(curr);
       dequePush(GenericToken::PUNCTUATOR, partial, line_num, col_num);
@@ -298,8 +282,8 @@ bool Lexer::advanceToken()
   throw std::invalid_argument("unrecognized token");
 }
 /// @todo: pass line and col num as param
-void Lexer::dequePush(GenericToken type, const std::string &value,
-                      const unsigned int &line_num, const unsigned int &col_num)
+void Lexer::dequePush(GenericToken type, const std::string &value, const unsigned int &line_num,
+                      const unsigned int &col_num)
 {
   auto t = Token(type, value, line_num, col_num);
   tokens_.push_back(t);

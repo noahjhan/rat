@@ -1,10 +1,10 @@
 #include "rat_source.hpp"
 
-/** 
- * 
+/**
+ *
  * @todo: bug in seek_reset: possibility for inf loop
- * 
-*/
+ *
+ */
 
 RatSource::RatSource(const std::string &filename) : filename_(filename)
 {
