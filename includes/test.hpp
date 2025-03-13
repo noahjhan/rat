@@ -6,6 +6,8 @@
 
 bool TEST_LEXER();
 
+bool TEST_PARSER();
+
 bool TEST_ALL();
 
 #endif // TEST_HPP

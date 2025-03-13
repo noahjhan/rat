@@ -14,9 +14,10 @@ class Parser
   Parser(std::deque<Token> &tokens);
 
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
-  std::unique_ptr<Node::GenericExpr> exprToNode();
 
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
+
+  int numTokens() const;
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;

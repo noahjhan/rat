@@ -68,9 +68,8 @@ Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
 
 /// @todo recursive descent
 /// @return
-std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr() { return std::unique_ptr<Node::GenericExpr>(); }
 //
-std::unique_ptr<Node::GenericExpr> Parser::exprToNode()
+std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
   // lets assume for now the deque only contains valid expression tokens
   // lets assume for now the deque only contains puctuators, literals, operators
@@ -96,9 +95,12 @@ std::unique_ptr<Node::GenericExpr> Parser::exprToNode()
       std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral>>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
-      gen_expr_ptr = std::make_unique<Node::GenericExpr>(gen_expr);
+      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
     }
-    case GenericToken::STRING_LITERAL: throw std::runtime_error("string literal : @todo");
+    break;
+    case GenericToken::STRING_LITERAL:
+      std::cerr << "recieved: '" << token.value << '\'' << std::endl;
+      throw std::runtime_error("string literal : @todo");
     case GenericToken::CHAR_LITERAL: break;
     case GenericToken::PUNCTUATOR: break;
     case GenericToken::OPERATOR: break;
@@ -108,8 +110,10 @@ std::unique_ptr<Node::GenericExpr> Parser::exprToNode()
   {
     return gen_expr_ptr;
   }
-  return std::unique_ptr<Node::GenericExpr>(); // throw exception here?
+  return std::unique_ptr<Node::GenericExpr>(); // throw exception here
 }
 
 /// @todo suppport for optional
 ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value) { return ConstituentToken::TYPE_INT; }
+
+int Parser::numTokens() const { return tokens_.size(); }

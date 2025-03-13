@@ -31,9 +31,8 @@ bool TEST_LEXER()
     while (lex.advanceToken())
     {
     }
-    lex.debugPrinter(true /* use true here for verbose printing */);
+    // lex.debugPrinter(false /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
-    auto parse = Parser(dq);
   }
   catch (const std::exception &e)
   {
@@ -45,4 +44,34 @@ bool TEST_LEXER()
   return true;
 }
 
-bool TEST_ALL() { return TEST_LEXER(); }
+bool TEST_PARSER()
+{
+  std::cout << PURPLE << "TEST CASE: Parser\n" << BAR << RESET << std::endl;
+  try
+  {
+
+    std::string file_name = "data/expression.rat";
+    auto rat = RatSource(file_name);
+    auto lex = Lexer(rat);
+    while (lex.advanceToken())
+    {
+    }
+    // lex.debugPrinter(true /* use true here for verbose printing */);
+    std::deque<Token> dq = lex.getTokens();
+    auto parse = Parser(dq);
+    while (parse.numTokens())
+    {
+      parse.tokenToExpr();
+    }
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << e.what() << std::endl;
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Parser\n" << RESET << std::endl;
+    return false;
+  }
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Parser\n" << RESET << std::endl;
+  return true;
+}
+
+bool TEST_ALL() { return (TEST_LEXER() && TEST_PARSER()); }
