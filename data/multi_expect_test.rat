@@ -1,4 +1,0 @@
-let x: int = 10
-"hello, world!"
-let y: int = 30
-"error not here"

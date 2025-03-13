@@ -9,32 +9,32 @@
 #include <unistd.h>
 #include <unordered_map>
 
-#define RESET_LINE            \
+#define RESET_LINE              \
+  do                            \
+  {                             \
+    prev_line_num_ = line_num_; \
+    line_num_ = 1;              \
+  } while (0)
+#define RESET_COL             \
   do                          \
   {                           \
-    prev_line_num = line_num; \
-    line_num = 1;             \
+    prev_col_num_ = col_num_; \
+    col_num_ = 1;             \
   } while (0)
-#define RESET_COL           \
-  do                        \
-  {                         \
-    prev_col_num = col_num; \
-    col_num = 1;            \
+#define NEXT_LINE               \
+  do                            \
+  {                             \
+    prev_line_num_ = line_num_; \
+    ++line_num_;                \
   } while (0)
-#define NEXT_LINE             \
+#define NEXT_COL              \
   do                          \
   {                           \
-    prev_line_num = line_num; \
-    ++line_num;               \
+    prev_col_num_ = col_num_; \
+    ++col_num_;               \
   } while (0)
-#define NEXT_COL            \
-  do                        \
-  {                         \
-    prev_col_num = col_num; \
-    ++col_num;              \
-  } while (0)
-#define PREV_LINE (line_num = prev_line_num)
-#define PREV_COL (col_num = prev_col_num)
+#define PREV_LINE (line_num_ = prev_line_num_)
+#define PREV_COL (col_num_ = prev_col_num_)
 
 class RatSource
 {
@@ -64,9 +64,9 @@ class RatSource
   private:
   std::string filename_;
   std::fstream fs_;
-  unsigned int line_num;
-  unsigned int col_num;
-  unsigned int prev_line_num;
-  unsigned int prev_col_num;
+  unsigned int line_num_;
+  unsigned int col_num_;
+  unsigned int prev_line_num_;
+  unsigned int prev_col_num_;
 };
 #endif // RAT_SOURCE_HPP

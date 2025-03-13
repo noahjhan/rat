@@ -55,7 +55,7 @@ enum class ConstituentToken
 
   // keyword
   VARIABLE_DECLARATION_LET,
-  VARIABLE_DECLARATION_OPLET,      // optional let
+  VARIABLE_DECLARATION_OP,         // optional let
   FUNCTION_DECLARATION_F,          // f
   FUNCTION_DECLARATION_F_VOID,     // f_
   FUNCTION_DECLARATION_F_OPTIONAL, // f?

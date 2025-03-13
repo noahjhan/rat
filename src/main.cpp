@@ -5,8 +5,4 @@
 #include "rat_source.hpp"
 #include "test.hpp"
 
-int main()
-{
-  TEST_ALL();
-  return 0;
-}
+int main() { return (!TEST_ALL()); }

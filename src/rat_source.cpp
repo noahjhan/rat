@@ -13,10 +13,10 @@ RatSource::RatSource(const std::string &filename) : filename_(filename)
   {
     throw std::invalid_argument("invalid file");
   }
-  line_num = 1;
-  col_num = 1;
-  prev_line_num = 1;
-  prev_col_num = 1;
+  line_num_ = 1;
+  col_num_ = 1;
+  prev_line_num_ = 1;
+  prev_col_num_ = 1;
 }
 
 RatSource::~RatSource() { fs_.close(); }
@@ -28,8 +28,8 @@ RatSource::RatSource(const RatSource &other)
     fs_.close();
     this->filename_ = other.filename_;
     this->fs_.open(this->filename_);
-    this->line_num = other.line_num;
-    this->col_num = other.col_num;
+    this->line_num_ = other.line_num_;
+    this->col_num_ = other.col_num_;
   }
 }
 
@@ -40,8 +40,8 @@ RatSource &RatSource::operator=(const RatSource &other)
     fs_.close();
     this->filename_ = other.filename_;
     this->fs_.open(this->filename_);
-    this->line_num = other.line_num;
-    this->col_num = other.col_num;
+    this->line_num_ = other.line_num_;
+    this->col_num_ = other.col_num_;
   }
   return *this;
 }
@@ -196,13 +196,12 @@ void RatSource::seekLine(const unsigned &idx)
     {
       NEXT_LINE;
     }
-    if (line_num >= idx)
+    if (line_num_ >= idx)
     {
       return;
     }
   }
-  std::cerr << "file length: '" << line_num << "' requested: '" << idx
-            << '\'' << std::endl;
+  std::cerr << "file length: '" << line_num_ << "' requested: '" << idx << '\'' << std::endl;
   throw std::invalid_argument("error: index out of bounds");
 }
 
@@ -211,9 +210,9 @@ void RatSource::seekCol(const unsigned &idx)
   /// @todo
 }
 
-unsigned int RatSource::getLineNum() { return this->line_num; }
+unsigned int RatSource::getLineNum() { return this->line_num_; }
 
-unsigned int RatSource::getColNum() { return this->col_num; }
+unsigned int RatSource::getColNum() { return this->col_num_; }
 
 void RatSource::debugPrinter()
 {

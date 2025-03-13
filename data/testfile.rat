@@ -7,13 +7,20 @@ fn foo() {
 fn_ main() {
     let x: int = 10
     print("Hello, World!")
-    foo();
+    foo()
+    if (x == 10) {
+        print("Hooray!")
+    } else if (x == 11) {
+        print("Sad")
+    } else {
+        foo()
+    }
     let add = fn/ x y -> x + y
     let ch: char = 'a'
     let ch_2: char = '\\'
     let ch_3: char = '\n'
     let str: string = "section_1"
     "section_2"
-    oplet op_value: op_int = null
+    op let op_value: op_int = null
     rev
 }

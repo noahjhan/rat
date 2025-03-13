@@ -37,20 +37,19 @@ bool Lexer::isAcceptableNumericLiteral(const char &ch)
  * @todo: support for chars
  * this function may be redundant
  */
-bool Lexer::isAcceptableCharLiteral(const char &ch) { return true; }
+bool Lexer::isAcceptableCharLiteral(const char &ch) { return isprint(ch); }
 
 Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
   punctuators_ = {':', '\'', '\"', '[', ']', '{', '}', '(', ')'};
 
-  keywords_ = {"let", "oplet", "if", "else", "elif", "fn", "fn_", "fn?", "fn/", "null"};
+  keywords_ = {"let", "op", "if", "else", "fn", "fn_", "fn?", "fn/", "null"};
 
   operators_ = {"=",  "+",  "-", "*", "/", "%", "==", "!=", "<",  ">",  "<=", ">=",
                 "&&", "||", "!", "&", "|", "^", "~",  "<<", ">>", "->", "=>"};
 
-  types_ = {"int",     "float",    "double",     "bool",    "char",     "long",      "short",     "pointer",  "uint",
-            "ulong",   "ushort",   "uchar",      "string",  "op_int",   "op_float",  "op_double", "op_bool",  "op_char",
-            "op_long", "op_short", "op_pointer", "op_uint", "op_ulong", "op_ushort", "op_uchar",  "op_string"};
+  types_ = {"int",     "float", "double", "bool",   "char",  "long",  "short",
+            "pointer", "uint",  "ulong",  "ushort", "uchar", "string"};
 
   str_representation = {{GenericToken::IDENTIFIER, "Identifier"},
                         {GenericToken::KEYWORD, "Keyword"},

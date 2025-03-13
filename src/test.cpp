@@ -21,9 +21,7 @@ catch (const std::exception &e)
 
 bool TEST_LEXER()
 {
-  std::cout << PURPLE << "TEST CASE: Lexer\n"
-            << BAR
-            << RESET << std::endl;
+  std::cout << PURPLE << "TEST CASE: Lexer\n" << BAR << RESET << std::endl;
   try
   {
 
@@ -33,23 +31,18 @@ bool TEST_LEXER()
     while (lex.advanceToken())
     {
     }
-    // lex.debugPrinter(/* use true here for verbose printing */);
+    lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq);
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Lexer\n"
-              << RESET << std::endl;
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Lexer\n" << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Lexer\n"
-            << RESET << std::endl;
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Lexer\n" << RESET << std::endl;
   return true;
 }
 
-bool TEST_ALL()
-{
-  return TEST_LEXER();
-}
+bool TEST_ALL() { return TEST_LEXER(); }
