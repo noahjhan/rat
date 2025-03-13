@@ -42,6 +42,7 @@ class Lexer
   std::unordered_set<std::string> keywords_;
   std::unordered_set<std::string> operators_;
   std::unordered_set<std::string> types_;
+  std::unordered_map<GenericToken, std::string> str_representation;
 };
 
 #endif // LEXER_HPP

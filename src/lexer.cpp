@@ -56,6 +56,16 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
             "op_double", "op_bool", "op_char", "op_long", "op_short",
             "op_pointer", "op_uint", "op_ulong", "op_ushort", "op_uchar",
             "op_string"};
+
+  str_representation = {
+  {GenericToken::IDENTIFIER, "Identifier"},
+  {GenericToken::KEYWORD, "Keyword"},
+  {GenericToken::NUMERIC_LITERAL, "Numeric Literal"},
+  {GenericToken::STRING_LITERAL, "String Literal"},
+  {GenericToken::CHAR_LITERAL, "Char Literal"},
+  {GenericToken::PUNCTUATOR, "Punctuator"},
+  {GenericToken::OPERATOR, "Operator"},
+  {GenericToken::TYPE, "Type"}};
 }
 
 void Lexer::advanceStringLiteral()
@@ -291,6 +301,8 @@ void Lexer::debugPrinter(bool verbose)
     std::cout << "DEBUG" << std::endl;
     for (const auto &t : tokens_)
     {
+      std::string str = str_representation.at(t.type_);
+      std::cout << "token: " << str << std::endl;
       std::cout << "value: " << t.value_ << std::endl;
       std::cout << "line: " << t.line_num_ << std::endl;
       std::cout << "col: " << t.col_num_ << std::endl;
