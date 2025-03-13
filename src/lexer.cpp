@@ -79,7 +79,8 @@ void Lexer::advanceStringLiteral()
   if (curr != '\"')
   {
     std::cerr << "advanceStringLiteral: expected: \", recieved: " << curr
-              << std::endl;
+              << '\n'
+              << "at line: " << line_num << " col: " << col_num << std::endl;
     throw std::invalid_argument("error: caller function did not align stream");
   }
   while (isAcceptableStringLiteral(curr))
@@ -96,6 +97,8 @@ void Lexer::advanceStringLiteral()
     if (curr == EOF)
     {
       // end of file reached
+      std::cerr
+      << "at line: " << line_num << " col: " << col_num << std::endl;
       throw std::invalid_argument(
       "error: string literals must be surrounded by double-quotes");
     }
@@ -111,7 +114,8 @@ void Lexer::advanceCharLiteral()
   if (curr != '\'')
   {
     std::cerr << "advanceCharLiteral: expected: \', recieved: " << curr
-              << std::endl;
+              << '\n'
+              << "at line: " << line_num << " col: " << col_num << std::endl;
     throw std::invalid_argument("error: caller function did not align stream");
   }
   while (isAcceptableCharLiteral(curr))
@@ -134,7 +138,8 @@ void Lexer::advanceCharLiteral()
            (partial[1] != '\\' ||
             (escape_chars.find(partial[2]) == escape_chars.end()))))
       {
-        std::cerr << "recieved: '" << partial << '\'' << std::endl;
+        std::cerr << "recieved: '" << partial << '\'' << '\n'
+                  << "at line: " << line_num << " col: " << col_num << std::endl;
         throw std::invalid_argument("syntax error: unrecognized char literal");
       }
 
@@ -144,6 +149,8 @@ void Lexer::advanceCharLiteral()
     if (curr == EOF)
     {
       // end of file reached
+      std::cerr
+      << "at line: " << line_num << " col: " << col_num << std::endl;
       throw std::invalid_argument(
       "error: character literals must be surrounded by single-quotes");
     }
@@ -190,7 +197,8 @@ bool Lexer::advanceToken()
       if (!partial.empty())
       {
         std::cerr << "expected empty partial, recieved: '" << partial << '\''
-                  << std::endl;
+                  << '\n'
+                  << "at line: " << line_num << " col: " << col_num << std::endl;
         throw std::invalid_argument(
         "failed to correctly process token before punctuator");
       }
@@ -266,7 +274,8 @@ bool Lexer::advanceToken()
 
   if (is_numeric == is_identifier)
   {
-    std::cerr << "recieved: '" << partial << '\'' << std::endl;
+    std::cerr << "recieved: '" << partial << '\'' << '\n'
+              << "at line: " << line_num << " col: " << col_num << std::endl;
     throw std::invalid_argument("ambiguous token");
   }
 
@@ -281,7 +290,8 @@ bool Lexer::advanceToken()
     dequePush(GenericToken::NUMERIC_LITERAL, partial, line_num, col_num);
     return true;
   }
-  std::cerr << "recieved: '" << partial << '\'' << std::endl;
+  std::cerr << "recieved: '" << partial << '\'' << '\n'
+            << "at line: " << line_num << " col: " << col_num << std::endl;
   throw std::invalid_argument("unrecognized token");
 }
 /// @todo: pass line and col num as param
