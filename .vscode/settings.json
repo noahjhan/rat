@@ -54,6 +54,7 @@
         "iomanip": "cpp",
         "ratio": "cpp",
         "algorithm": "cpp",
-        "unordered_set": "cpp"
+        "unordered_set": "cpp",
+        "regex": "cpp"
     }
 }

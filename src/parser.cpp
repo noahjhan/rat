@@ -65,6 +65,31 @@ Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
     }
   }
 }
+/// @todo
+///
+/// the point of this dispatch will be to pop a token
+/// peek the next token and use only that information
+/// to determine how to interpret them into AST
+void Parser::dispatch()
+{
+  if (tokens_.empty())
+  {
+    throw std::invalid_argument("empty deque");
+  }
+  Token curr = tokens_.front();
+  tokens_.pop_front();
+  Token next = tokens_.front();
+
+  if (curr.type == GenericToken::KEYWORD)
+  {
+    if (dictionary_.find(curr.value) == dictionary_.end())
+    {
+      std::cerr << "recieved '" << curr.value << '\'' << std::endl;
+      throw std::invalid_argument("unrecognized keyword");
+    }
+    ConstituentToken keyword = dictionary_.at(curr.value);
+  }
+}
 
 /// @todo recursive descent
 /// @return
@@ -73,14 +98,17 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
   // lets assume for now the deque only contains valid expression tokens
   // lets assume for now the deque only contains puctuators, literals, operators
-  Token token = tokens_.back();
+  // I guess currently this takes in a deque and pops a token, and processes it as if it is part of an expression
+  //
+  //
+  Token token = tokens_.front();
   if (/*invalid token*/ 0)
   {
     throw std::invalid_argument("error: non expression token");
   }
 
   std::unique_ptr<Node::GenericExpr> gen_expr_ptr;
-  tokens_.pop_back(); // maybe here maybe at the end
+  tokens_.pop_front(); // maybe here maybe at the end
 
   switch (token.type)
   {
@@ -91,8 +119,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       Node::NumericLiteral node;
       node.token = token;
       node.type = inferTypeNumericLiteral(token.value);
-      auto ptr =
-      std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral>>(node);
+      auto ptr = std::make_unique<
+      std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral, Node::Punctuator>>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
@@ -102,7 +130,25 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       std::cerr << "recieved: '" << token.value << '\'' << std::endl;
       throw std::runtime_error("string literal : @todo");
     case GenericToken::CHAR_LITERAL: break;
-    case GenericToken::PUNCTUATOR: break;
+    case GenericToken::PUNCTUATOR:
+    {
+      if (DICT_INIT.find(token.value) == DICT_INIT.end())
+      {
+        std::cerr << "recieved: '" << token.value << '\'' << std::endl;
+        throw std::invalid_argument("error: dictionary does not contain punctuator");
+      }
+      Node::Punctuator node;
+      node.token = token;
+      node.type = DICT_INIT.at(token.value);
+      auto ptr = std::make_unique<
+      std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral, Node::Punctuator>>(node);
+      Node::GenericExpr gen_expr;
+      gen_expr.expr = std::move(ptr);
+      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+
+      // return not generic?
+    }
+    break;
     case GenericToken::OPERATOR: break;
     case GenericToken::TYPE: break;
   }
@@ -114,6 +160,39 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 }
 
 /// @todo suppport for optional
-ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value) { return ConstituentToken::TYPE_INT; }
+ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
+{
+  static const std::regex pattern(R"(\d+(\.\d+[fd]?)?|u[uilsc]?)");
+  std::smatch match;
+
+  if (!std::regex_match(value, match, pattern))
+  {
+    throw std::invalid_argument("error: invalid numeric literal");
+  }
+
+  bool is_u_type = value.find('u') != std::string::npos;
+  bool is_f_type = value.find('f') != std::string::npos || value.find('d') != std::string::npos;
+
+  if (is_u_type && is_f_type)
+  {
+    throw std::invalid_argument("ambiguous numeric literal");
+  }
+
+  char suffix = match[2].str().empty() ? '\0' : match[2].str()[0];
+
+  switch (suffix)
+  {
+    case 'u': return ConstituentToken::TYPE_UINT;
+    case 'i': return is_u_type ? ConstituentToken::TYPE_UINT : ConstituentToken::TYPE_INT;
+    case 'l': return is_u_type ? ConstituentToken::TYPE_ULONG : ConstituentToken::TYPE_LONG;
+    case 's': return is_u_type ? ConstituentToken::TYPE_USHORT : ConstituentToken::TYPE_SHORT;
+    case 'c': return is_u_type ? ConstituentToken::TYPE_UCHAR : ConstituentToken::TYPE_CHAR;
+    case 'f': return ConstituentToken::TYPE_FLOAT;
+    case 'd': return ConstituentToken::TYPE_DOUBLE;
+    case '\0': return is_u_type ? ConstituentToken::TYPE_UINT : ConstituentToken::TYPE_INT;
+    default: std::cerr << value << std::endl; throw std::invalid_argument("ambiguous numeric literal token");
+  }
+}
+
 
 int Parser::numTokens() const { return tokens_.size(); }

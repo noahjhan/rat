@@ -1,6 +1,9 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+#include <iostream>
+#include <regex>
+#include <stdexcept>
 #include <unordered_map>
 
 #include "ast.hpp"
@@ -13,6 +16,7 @@ class Parser
   public:
   Parser(std::deque<Token> &tokens);
 
+  void dispatch();
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
 
   ConstituentToken inferTypeNumericLiteral(const std::string &value);

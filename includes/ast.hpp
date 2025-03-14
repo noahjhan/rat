@@ -11,11 +11,12 @@ namespace Node
 struct BinaryExpr;
 struct UnaryExpr;
 struct NumericLiteral;
+struct Punctuator;
 struct GenericExpr;
 
 struct GenericExpr
 {
-  std::unique_ptr<std::variant<GenericExpr, BinaryExpr, UnaryExpr, NumericLiteral>> expr;
+  std::unique_ptr<std::variant<GenericExpr, BinaryExpr, UnaryExpr, NumericLiteral, Punctuator>> expr;
 };
 
 struct UnaryExpr
