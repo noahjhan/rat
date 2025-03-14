@@ -15,6 +15,8 @@
  *
  * tl;dr
  * this constructor may be redundant / for debug purposes
+ *
+ * @todo copy over the debug functions from lexer, maybe make a generic debug.cpp file
  */
 
 int add(int a, int b) { return a + b; }
@@ -88,6 +90,7 @@ void Parser::dispatch()
       throw std::invalid_argument("unrecognized keyword");
     }
     ConstituentToken keyword = dictionary_.at(curr.value);
+    // move to proper process node function pending keyword
   }
 }
 
@@ -119,8 +122,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       Node::NumericLiteral node;
       node.token = token;
       node.type = inferTypeNumericLiteral(token.value);
-      auto ptr = std::make_unique<
-      std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral, Node::Punctuator>>(node);
+      auto ptr = std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,
+                                               Node::NumericLiteral, Node::Punctuator, Node::Operator>>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
@@ -132,25 +135,38 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
     case GenericToken::CHAR_LITERAL: break;
     case GenericToken::PUNCTUATOR:
     {
-      if (DICT_INIT.find(token.value) == DICT_INIT.end())
+      if (dictionary_.find(token.value) == dictionary_.end())
       {
         std::cerr << "recieved: '" << token.value << '\'' << std::endl;
         throw std::invalid_argument("error: dictionary does not contain punctuator");
       }
       Node::Punctuator node;
       node.token = token;
-      node.type = DICT_INIT.at(token.value);
-      auto ptr = std::make_unique<
-      std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral, Node::Punctuator>>(node);
+      node.type = dictionary_.at(token.value);
+      auto ptr = std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,
+                                               Node::NumericLiteral, Node::Punctuator, Node::Operator>>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
-
-      // return not generic?
     }
     break;
-    case GenericToken::OPERATOR: break;
-    case GenericToken::TYPE: break;
+    case GenericToken::OPERATOR:
+    {
+      if (dictionary_.find(token.value) == dictionary_.end())
+      {
+        throw std::invalid_argument("error: dictionary does not contain operator");
+      }
+      Node::Operator node;
+      node.token = token;
+      node.type = dictionary_.at(token.value);
+      auto ptr = std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,
+                                               Node::NumericLiteral, Node::Punctuator, Node::Operator>>(node);
+      Node::GenericExpr gen_expr;
+      gen_expr.expr = std::move(ptr);
+      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+    }
+    break;
+    case GenericToken::TYPE: throw std::invalid_argument("error: keyword found in expression");
   }
   if (gen_expr_ptr)
   {
@@ -160,6 +176,7 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 }
 
 /// @todo suppport for optional
+/// @todo move some of this to lexer
 ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 {
   static const std::regex pattern(R"(\d+(\.\d+[fd]?)?|u[uilsc]?)");

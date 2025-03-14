@@ -12,22 +12,23 @@ struct BinaryExpr;
 struct UnaryExpr;
 struct NumericLiteral;
 struct Punctuator;
+struct Operator;
 struct GenericExpr;
 
 struct GenericExpr
 {
-  std::unique_ptr<std::variant<GenericExpr, BinaryExpr, UnaryExpr, NumericLiteral, Punctuator>> expr;
+  std::unique_ptr<std::variant<GenericExpr, BinaryExpr, UnaryExpr, NumericLiteral, Punctuator, Operator>> expr;
 };
 
 struct UnaryExpr
 {
-  ConstituentToken op;
+  std::unique_ptr<Operator> op;
   std::unique_ptr<GenericExpr> expr;
 };
 
 struct BinaryExpr
 {
-  ConstituentToken op;
+  std::unique_ptr<Operator> op;
   std::unique_ptr<GenericExpr> lhs;
   std::unique_ptr<GenericExpr> rhs;
 };
@@ -39,6 +40,12 @@ struct NumericLiteral
 };
 
 struct Punctuator
+{
+  Token token;
+  ConstituentToken type;
+};
+
+struct Operator
 {
   Token token;
   ConstituentToken type;
