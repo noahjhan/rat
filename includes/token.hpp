@@ -53,6 +53,8 @@ enum class ConstituentToken
   TYPE_OP_UCHAR,
   TYPE_OP_STRING,
 
+  NULL_LITERAL,
+
   // keyword
   VARIABLE_DECLARATION_LET,
   VARIABLE_DECLARATION_OP,         // optional let
@@ -67,11 +69,13 @@ enum class ConstituentToken
   CONDITIONAL_ELSE_IF,
   PATTERN_MATCH,
 
+  /*
   // literals
-  NUMERIC,
-  STRING,
-  BOOLEAN,
-  NULL_LITERAL,
+  NUMERIC_LITERAL,
+  STRING_LITERAL,
+  BOOLEAN_LITERAL,
+  CHAR_LITERAL
+  */
 
   // punctuators
   COLON,

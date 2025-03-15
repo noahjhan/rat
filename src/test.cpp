@@ -59,10 +59,18 @@ bool TEST_PARSER()
     // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq);
+    std::vector<Node::GenericExpr> nodes;
     while (parse.numTokens())
     {
-      parse.tokenToExpr();
+      nodes.push_back(std::move(*(parse.tokenToExpr())));
     }
+      assert(std::holds_alternative<Node::Punctuator>(*(nodes[0].expr)));
+      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[1].expr)));
+      assert(std::holds_alternative<Node::Operator>(*(nodes[2].expr)));
+      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
+      assert(std::holds_alternative<Node::Punctuator>(*(nodes[4].expr)));
+      assert(std::holds_alternative<Node::Operator>(*(nodes[5].expr)));
+      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));
   }
   catch (const std::exception &e)
   {

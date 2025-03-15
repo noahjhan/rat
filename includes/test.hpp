@@ -1,6 +1,9 @@
 #ifndef TEST_HPP
 #define TEST_HPP
 
+#include <cassert>
+#include <variant>
+
 #include "lexer.hpp"
 #include "parser.hpp"
 

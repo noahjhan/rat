@@ -105,7 +105,10 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   //
   //
   Token token = tokens_.front();
-  if (/*invalid token*/ 0)
+  if (tokens_.empty()) {
+    throw std::runtime_error("error: empty token deque");
+  }
+  if (0)
   {
     throw std::invalid_argument("error: non expression token");
   }
@@ -132,7 +135,18 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
     case GenericToken::STRING_LITERAL:
       std::cerr << "recieved: '" << token.value << '\'' << std::endl;
       throw std::runtime_error("string literal : @todo");
-    case GenericToken::CHAR_LITERAL: break;
+    case GenericToken::CHAR_LITERAL: 
+      {
+        Node::NumericLiteral node;
+        node.token = token;
+        node.type = ConstituentToken::TYPE_CHAR;
+        auto ptr = std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,
+                                               Node::NumericLiteral, Node::Punctuator, Node::Operator>>(node);
+        Node::GenericExpr gen_expr;
+        gen_expr.expr = std::move(ptr);
+        gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+      } 
+    break;
     case GenericToken::PUNCTUATOR:
     {
       if (dictionary_.find(token.value) == dictionary_.end())

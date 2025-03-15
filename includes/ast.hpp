@@ -17,7 +17,12 @@ struct GenericExpr;
 
 struct GenericExpr
 {
-  std::unique_ptr<std::variant<GenericExpr, BinaryExpr, UnaryExpr, NumericLiteral, Punctuator, Operator>> expr;
+  std::unique_ptr<std::variant<GenericExpr,
+                               BinaryExpr, 
+                               UnaryExpr, 
+                               NumericLiteral, 
+                               Punctuator, 
+                               Operator>> expr;
 };
 
 struct UnaryExpr
