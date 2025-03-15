@@ -320,7 +320,7 @@ void Lexer::debugPrinter(bool verbose)
     {
       std::string str = str_representation.at(t.type);
       std::cout << "token: " << str << std::endl;
-      std::cout << "value: " << t.value << std::endl;
+      std::cout << "value: '" << t.value << '\'' << std::endl;
       std::cout << "line: " << t.line_num << std::endl;
       std::cout << "col: " << t.col_num << std::endl;
       std::cout << std::endl;
@@ -330,7 +330,7 @@ void Lexer::debugPrinter(bool verbose)
   {
     for (const auto &t : tokens_)
     {
-      std::cout << t.value << std::endl;
+      std::cout << '\'' << t.value << '\'' << std::endl;
     }
   }
 }

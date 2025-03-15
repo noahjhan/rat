@@ -44,9 +44,9 @@ bool TEST_LEXER()
   return true;
 }
 
-bool TEST_PARSER()
+bool TEST_EXPR_SIMPLE()
 {
-  std::cout << PURPLE << "TEST CASE: Parser\n" << BAR << RESET << std::endl;
+  std::cout << PURPLE << "TEST CASE: Expr Simple\n" << BAR << RESET << std::endl;
   try
   {
 
@@ -75,11 +75,11 @@ bool TEST_PARSER()
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Parser\n" << RESET << std::endl;
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr Simple\n" << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Parser\n" << RESET << std::endl;
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr Simple\n" << RESET << std::endl;
   return true;
 }
 
-bool TEST_ALL() { return (TEST_LEXER() && TEST_PARSER()); }
+bool TEST_ALL() { return (TEST_LEXER() && TEST_EXPR_SIMPLE()); }
