@@ -196,7 +196,7 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 /// @todo create usuable regex
 ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 {
-  static const std::regex pattern(R"((\d*)(((\.)?(\d*)?(d|f)?)|(u)?(|i|c|l|s|)?)?)");
+  static const std::regex pattern(R"((\d*)(((\.)?(\d*)?(d|f)?)|(u)?[icls]?)?)");
   std::smatch match;
   if (!std::regex_match(value, match, pattern))
   {
