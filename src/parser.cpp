@@ -193,9 +193,10 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 
 /// @todo suppport for optional
 /// @todo move some of this to lexer
+/// @todo create usuable regex
 ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 {
-  static const std::regex pattern(R"(\d+(\.\d+[fd]?)?|u[ilsc]?)");
+  static const std::regex pattern(R"((\d*)(((\.)?(\d*)?(d|f)?)|(u)?(|i|c|l|s|)?)?)");
   std::smatch match;
   if (!std::regex_match(value, match, pattern))
   {
@@ -203,16 +204,21 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
   }
 
   bool is_u_type = value.find('u') != std::string::npos;
-  bool is_f_type = value.find('f') != std::string::npos || value.find('d') != std::string::npos;
+  bool is_f_type =
+  value.find('f') != std::string::npos || value.find('d') != std::string::npos || value.find('.') != std::string::npos;
 
   if (is_u_type && is_f_type)
   {
     throw std::invalid_argument("ambiguous numeric literal");
   }
 
-  char suffix = match[2].str().empty() ? '\0' : match[2].str()[0];
+  // type inference default int
+  if (std ::isdigit(value.back()))
+  {
+    return is_f_type ? ConstituentToken::TYPE_DOUBLE : ConstituentToken::TYPE_INT;
+  }
 
-  switch (suffix)
+  switch (value.back())
   {
     case 'u': return ConstituentToken::TYPE_UINT;
     case 'i': return is_u_type ? ConstituentToken::TYPE_UINT : ConstituentToken::TYPE_INT;
