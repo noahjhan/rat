@@ -31,7 +31,7 @@ bool TEST_LEXER()
     while (lex.advanceToken())
     {
     }
-    // lex.debugPrinter(true /* use true here for verbose printing */);
+    lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
   }
   catch (const std::exception &e)
@@ -64,13 +64,13 @@ bool TEST_EXPR_SIMPLE()
     {
       nodes.push_back(std::move(*(parse.tokenToExpr())));
     }
-      assert(std::holds_alternative<Node::Punctuator>(*(nodes[0].expr)));
-      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[1].expr)));
-      assert(std::holds_alternative<Node::Operator>(*(nodes[2].expr)));
-      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
-      assert(std::holds_alternative<Node::Punctuator>(*(nodes[4].expr)));
-      assert(std::holds_alternative<Node::Operator>(*(nodes[5].expr)));
-      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));
+    assert(std::holds_alternative<Node::Punctuator>(*(nodes[0].expr)));
+    assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[1].expr)));
+    assert(std::holds_alternative<Node::Operator>(*(nodes[2].expr)));
+    assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
+    assert(std::holds_alternative<Node::Punctuator>(*(nodes[4].expr)));
+    assert(std::holds_alternative<Node::Operator>(*(nodes[5].expr)));
+    assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));
   }
   catch (const std::exception &e)
   {

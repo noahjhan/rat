@@ -46,6 +46,7 @@ const std::unordered_map<std::string, ConstituentToken> DICT_INIT = {
 {"//", ConstituentToken::COMMENT_LINE},
 {"/*", ConstituentToken::COMMENT_BLOCK_OPEN},
 {"*/", ConstituentToken::COMMENT_BLOCK_CLOSE},
+{";", ConstituentToken::NEWLINE},
 {"=", ConstituentToken::ASSIGNMENT},
 {"+", ConstituentToken::ARITHMETHIC_ADD},
 {"-", ConstituentToken::ARITHMETHIC_MUL},

@@ -150,22 +150,24 @@ void RatSource::reverse()
   PREV_COL;
 }
 
-void RatSource::advanceWhitespace()
+bool RatSource::advanceWhitespace()
 {
+  bool is_newline = false;
   char ch;
   if (!std::isspace(fs_.peek()))
   {
-    return;
+    return is_newline;
   }
   while (fs_.get(ch))
   {
     NEXT_COL;
     if (ch == EOF)
     {
-      return;
+      return is_newline;
     }
     if (ch == '\n')
     {
+      is_newline = true;
       RESET_COL;
       NEXT_LINE;
     }
@@ -177,7 +179,7 @@ void RatSource::advanceWhitespace()
         PREV_LINE;
       }
       PREV_COL;
-      return;
+      return is_newline;
     }
   }
 }

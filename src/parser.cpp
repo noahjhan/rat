@@ -81,17 +81,18 @@ void Parser::dispatch()
   Token curr = tokens_.front();
   tokens_.pop_front();
   Token next = tokens_.front();
-switch(curr.type) {
-
+  switch (curr.type)
   {
-    if (dictionary_.find(curr.value) == dictionary_.end())
+
     {
-      std::cerr << "recieved '" << curr.value << '\'' << std::endl;
-      throw std::invalid_argument("unrecognized keyword");
+      if (dictionary_.find(curr.value) == dictionary_.end())
+      {
+        std::cerr << "recieved '" << curr.value << '\'' << std::endl;
+        throw std::invalid_argument("unrecognized keyword");
+      }
+      ConstituentToken keyword = dictionary_.at(curr.value);
     }
-    ConstituentToken keyword = dictionary_.at(curr.value);
-    }
-    }
+  }
 }
 
 /// @todo recursive descent
@@ -105,7 +106,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   //
   //
   Token token = tokens_.front();
-  if (tokens_.empty()) {
+  if (tokens_.empty())
+  {
     throw std::runtime_error("error: empty token deque");
   }
   if (0)
@@ -135,17 +137,17 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
     case GenericToken::STRING_LITERAL:
       std::cerr << "recieved: '" << token.value << '\'' << std::endl;
       throw std::runtime_error("string literal : @todo");
-    case GenericToken::CHAR_LITERAL: 
-      {
-        Node::NumericLiteral node;
-        node.token = token;
-        node.type = ConstituentToken::TYPE_CHAR;
-        auto ptr = std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,
+    case GenericToken::CHAR_LITERAL:
+    {
+      Node::NumericLiteral node;
+      node.token = token;
+      node.type = ConstituentToken::TYPE_CHAR;
+      auto ptr = std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,
                                                Node::NumericLiteral, Node::Punctuator, Node::Operator>>(node);
-        Node::GenericExpr gen_expr;
-        gen_expr.expr = std::move(ptr);
-        gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
-      } 
+      Node::GenericExpr gen_expr;
+      gen_expr.expr = std::move(ptr);
+      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+    }
     break;
     case GenericToken::PUNCTUATOR:
     {

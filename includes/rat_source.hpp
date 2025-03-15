@@ -52,7 +52,7 @@ class RatSource
   char advanceChar();
   char peekChar();
   void reverse();
-  void advanceWhitespace();
+  bool advanceWhitespace();
   void seekLine(const unsigned &i);
   void seekCol(const unsigned &i);
 

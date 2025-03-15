@@ -91,6 +91,7 @@ enum class ConstituentToken
   COMMENT_LINE,
   COMMENT_BLOCK_OPEN,
   COMMENT_BLOCK_CLOSE,
+  NEWLINE,
 
   // operators
   ASSIGNMENT,

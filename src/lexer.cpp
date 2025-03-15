@@ -153,7 +153,11 @@ void Lexer::advanceCharLiteral()
  */
 bool Lexer::advanceToken()
 {
-  source_file_.advanceWhitespace();
+  bool is_newline = source_file_.advanceWhitespace();
+  if (is_newline)
+  {
+    dequePush(GenericToken::PUNCTUATOR, ";", 0, 0);
+  }
 
   const unsigned int line_num = source_file_.getLineNum();
   const unsigned int col_num = source_file_.getColNum();
