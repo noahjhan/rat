@@ -81,8 +81,8 @@ void Parser::dispatch()
   Token curr = tokens_.front();
   tokens_.pop_front();
   Token next = tokens_.front();
+switch(curr.type) {
 
-  if (curr.type == GenericToken::KEYWORD)
   {
     if (dictionary_.find(curr.value) == dictionary_.end())
     {
@@ -90,8 +90,8 @@ void Parser::dispatch()
       throw std::invalid_argument("unrecognized keyword");
     }
     ConstituentToken keyword = dictionary_.at(curr.value);
-    // move to proper process node function pending keyword
-  }
+    }
+    }
 }
 
 /// @todo recursive descent

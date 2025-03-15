@@ -1,5 +1,8 @@
 # Rat Programming Language
 
+![Logo](https://cdn.discordapp.com/attachments/786456071878606879/1350353863592378438/rato.png?ex=67d66e89&is=67d51d09&hm=0772633909c9b9d53cf95ada063bcda717894e0ac42d71bfa4817b6e6557a3c0&)
+
+
 ## Introduction
 
 "In many ways, the work of a programmer is easy. We risk very little yet enjoy a position over those who offer up their code and their selves to our judgment. We thrive on ambiguous commit messages, which are fun to write and to read. But the bitter truth we programmers must face, is that in the grand scheme of things, the average piece of junk code is probably more meaningful than our criticism designating it so. But there are times when a programmer truly risks something, and that is in the discovery and defense of the new. The world is often unkind to new talent, new creations. The new needs friends.
