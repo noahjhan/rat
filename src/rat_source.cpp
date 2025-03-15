@@ -165,7 +165,7 @@ bool RatSource::advanceWhitespace()
     {
       return is_newline;
     }
-    if (ch == '\n' || ch == ';')
+    if (ch == '\n')
     {
       is_newline = true;
       RESET_COL;
@@ -174,7 +174,7 @@ bool RatSource::advanceWhitespace()
     if (!std::isspace(ch))
     {
       fs_.unget();
-      if (fs_.peek() == '\n' || ch == ';')
+      if (fs_.peek() == '\n')
       {
         PREV_LINE;
       }

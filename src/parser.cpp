@@ -195,9 +195,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 /// @todo move some of this to lexer
 ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 {
-  static const std::regex pattern(R"(\d+(\.\d+[fd]?)?|u[uilsc]?)");
+  static const std::regex pattern(R"(\d+(\.\d+[fd]?)?|u[ilsc]?)");
   std::smatch match;
-
   if (!std::regex_match(value, match, pattern))
   {
     throw std::invalid_argument("error: invalid numeric literal");

@@ -156,6 +156,7 @@ bool Lexer::advanceToken()
   bool is_newline = source_file_.advanceWhitespace();
   if (is_newline)
   {
+    // for now end line punctuator is 0 0
     dequePush(GenericToken::PUNCTUATOR, ";", 0, 0);
   }
 
