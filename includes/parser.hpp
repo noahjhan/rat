@@ -32,7 +32,7 @@ class Parser
   int numTokens() const;
 
   void debugASTPrinter(std::vector<Node::GenericExpr> &vect);
-  void debugASTPrinterRecursive(const Node::GenericExpr &node);
+  void debugASTPrinterRecursive(const Node::GenericExpr &node, int depth);
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;

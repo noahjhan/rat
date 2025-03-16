@@ -359,56 +359,61 @@ void Parser::debugASTPrinter(std::vector<Node::GenericExpr> &vect)
 {
   for (const auto &node : vect)
   {
-    debugASTPrinterRecursive(node);
+    debugASTPrinterRecursive(node, 0);
   }
 }
 
-void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node)
+void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
 {
   auto variant = node.expr.get();
 
   if (!variant)
   {
-    std::cout << "variant is null" << std::endl;
+    std::cout << std::string(depth, '\t') << "variant is null" << std::endl;
     return;
   }
 
   if (std::holds_alternative<Node::GenericExpr>(*variant))
   {
-    std::cout << "recursively holds expression" << std::endl;
-    debugASTPrinterRecursive(std::get<Node::GenericExpr>(*variant));
+    std::cout << std::string(depth, '\t') << "recursively holds expression"
+              << std::endl;
+    debugASTPrinterRecursive(std::get<Node::GenericExpr>(*variant), depth + 1);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant))
   {
-    std::cout << "holds binary expression" << std::endl;
+    std::cout << std::string(depth, '\t') << "holds binary expression"
+              << std::endl;
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
     if (binaryExpr.lhs)
     {
-      std::cout << "lhs: ";
-      debugASTPrinterRecursive(*binaryExpr.lhs);
+      std::cout << std::string(depth, '\t') << "lhs: ";
+      debugASTPrinterRecursive(*binaryExpr.lhs, depth + 1);
     }
     if (binaryExpr.rhs)
     {
-      std::cout << "rhs: ";
-      debugASTPrinterRecursive(*binaryExpr.rhs);
+      std::cout << std::string(depth, '\t') << "rhs: ";
+      debugASTPrinterRecursive(*binaryExpr.rhs, depth + 1);
     }
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*variant))
   {
-    std::cout << "holds unary expression" << std::endl;
+    std::cout << std::string(depth, '\t') << "holds unary expression"
+              << std::endl;
     const auto &unaryExpr = std::get<Node::UnaryExpr>(*variant);
     if (unaryExpr.expr)
     {
-      std::cout << "expr: ";
-      debugASTPrinterRecursive(*unaryExpr.expr);
+      std::cout << std::string(depth, '\t') << "expr: ";
+      debugASTPrinterRecursive(*unaryExpr.expr, depth + 1);
     }
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*variant))
   {
-    std::cout << "holds numeric literal" << std::endl;
+    std::cout << std::string(depth, '\t') << "holds numeric literal"
+              << std::endl;
   }
   else
   {
-    std::cout << "holds ambiguous state" << std::endl;
+    std::cout << std::string(depth, '\t') << "holds ambiguous state"
+              << std::endl;
   }
 }
