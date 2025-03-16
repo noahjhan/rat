@@ -2,9 +2,9 @@
 #define LEXER_HPP
 
 #include <deque>
+#include <regex>
 #include <unordered_map>
 #include <unordered_set>
-#include <regex>
 
 #include "rat_source.hpp"
 #include "token.hpp"

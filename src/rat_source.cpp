@@ -120,15 +120,16 @@ char RatSource::advanceChar()
 char RatSource::peekChar() { return fs_.peek(); }
 
 /**
- * @todo handle begin of file unget error for some reason the commented BOF error check breaks the lexing process
- * there is never an uncaught exception, so inside the if is never reached
- * calling tellg() causes issues
+ * @todo handle begin of file unget error for some reason the commented BOF
+ * error check breaks the lexing process there is never an uncaught exception,
+ * so inside the if is never reached calling tellg() causes issues
  */
 
 void RatSource::reverse()
 {
   /**
-   *  @todo for some reason the commented BOF error check breaks the lexing process
+   *  @todo for some reason the commented BOF error check breaks the lexing
+   * process
    *  ...however there is no uncaught exception?
    *  merely calling tellg() causes issues
    */
@@ -203,7 +204,8 @@ void RatSource::seekLine(const unsigned &idx)
       return;
     }
   }
-  std::cerr << "file length: '" << line_num_ << "' requested: '" << idx << '\'' << std::endl;
+  std::cerr << "file length: '" << line_num_ << "' requested: '" << idx << '\''
+            << std::endl;
   throw std::invalid_argument("error: index out of bounds");
 }
 
