@@ -5,6 +5,7 @@
 #include <regex>
 #include <stdexcept>
 #include <unordered_map>
+#include <vector>
 
 #include "ast.hpp"
 #include "dictionary.hpp"
@@ -29,6 +30,9 @@ class Parser
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
 
   int numTokens() const;
+
+  void debugASTPrinter(std::vector<Node::GenericExpr> &vect);
+  void debugASTPrinterRecursive(const Node::GenericExpr &node);
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;

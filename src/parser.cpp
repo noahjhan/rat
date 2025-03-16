@@ -308,19 +308,12 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 /// @todo create usuable regex
 ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 {
-
-  static const std::regex pattern(R"((\d*)(((\.)?(\d*)?(d|f)?)|(u)?[icls]?)?)");
-  std::smatch match;
-  if (!std::regex_match(value, match, pattern))
-  {
-    throw std::invalid_argument("error: invalid numeric literal");
-  }
-
   bool is_u_type = value.find('u') != std::string::npos;
   bool is_f_type = value.find('f') != std::string::npos ||
                    value.find('d') != std::string::npos ||
                    value.find('.') != std::string::npos;
 
+  // this is already checked in lexer.cpp
   if (is_u_type && is_f_type)
   {
     throw std::invalid_argument("ambiguous numeric literal");
@@ -361,3 +354,61 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 
 
 int Parser::numTokens() const { return tokens_.size(); }
+
+void Parser::debugASTPrinter(std::vector<Node::GenericExpr> &vect)
+{
+  for (const auto &node : vect)
+  {
+    debugASTPrinterRecursive(node);
+  }
+}
+
+void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node)
+{
+  auto variant = node.expr.get();
+
+  if (!variant)
+  {
+    std::cout << "variant is null" << std::endl;
+    return;
+  }
+
+  if (std::holds_alternative<Node::GenericExpr>(*variant))
+  {
+    std::cout << "recursively holds expression" << std::endl;
+    debugASTPrinterRecursive(std::get<Node::GenericExpr>(*variant));
+  }
+  else if (std::holds_alternative<Node::BinaryExpr>(*variant))
+  {
+    std::cout << "holds binary expression" << std::endl;
+    const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
+    if (binaryExpr.lhs)
+    {
+      std::cout << "lhs: ";
+      debugASTPrinterRecursive(*binaryExpr.lhs);
+    }
+    if (binaryExpr.rhs)
+    {
+      std::cout << "rhs: ";
+      debugASTPrinterRecursive(*binaryExpr.rhs);
+    }
+  }
+  else if (std::holds_alternative<Node::UnaryExpr>(*variant))
+  {
+    std::cout << "holds unary expression" << std::endl;
+    const auto &unaryExpr = std::get<Node::UnaryExpr>(*variant);
+    if (unaryExpr.expr)
+    {
+      std::cout << "expr: ";
+      debugASTPrinterRecursive(*unaryExpr.expr);
+    }
+  }
+  else if (std::holds_alternative<Node::NumericLiteral>(*variant))
+  {
+    std::cout << "holds numeric literal" << std::endl;
+  }
+  else
+  {
+    std::cout << "holds ambiguous state" << std::endl;
+  }
+}

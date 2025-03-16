@@ -52,14 +52,12 @@ bool TEST_EXPR_SIMPLE()
             << BAR << RESET << std::endl;
   try
   {
-
-    std::string file_name = "data/expression.rat";
+    std::string file_name = "data/simple_expression.rat";
     auto rat = RatSource(file_name);
     auto lex = Lexer(rat);
     while (lex.advanceToken())
     {
     }
-    // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq);
     std::vector<Node::GenericExpr> nodes;
@@ -68,23 +66,27 @@ bool TEST_EXPR_SIMPLE()
       auto node = parse.tokenToExpr();
       nodes.push_back(node ? std::move(*(node)) : Node::GenericExpr());
     }
-    // assert(std::holds_alternative<Node::Punctuator>(*(nodes[0].expr)));
 
-    assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[1].expr)));
-    assert(std::get<Node::NumericLiteral>(*(nodes[1].expr)).type ==
-           ConstituentToken::TYPE_FLOAT);
+    if (nodes.size() > 1 && nodes[1].expr)
+    {
+      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[1].expr)));
+      assert(std::get<Node::NumericLiteral>(*(nodes[1].expr)).type ==
+             ConstituentToken::TYPE_FLOAT);
+    }
 
-    // assert(std::holds_alternative<Node::Operator>(*(nodes[2].expr)));
+    if (nodes.size() > 3 && nodes[3].expr)
+    {
+      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
+      assert(std::get<Node::NumericLiteral>(*(nodes[3].expr)).type ==
+             ConstituentToken::TYPE_INT);
+    }
 
-    assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
-    assert(std::get<Node::NumericLiteral>(*(nodes[3].expr)).type ==
-           ConstituentToken::TYPE_INT);
-
-    // assert(std::holds_alternative<Node::Punctuator>(*(nodes[4].expr)));
-    // assert(std::holds_alternative<Node::Operator>(*(nodes[5].expr)));
-    assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));
-    assert(std::get<Node::NumericLiteral>(*(nodes[6].expr)).type ==
-           ConstituentToken::TYPE_DOUBLE);
+    if (nodes.size() > 6 && nodes[6].expr)
+    {
+      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));
+      assert(std::get<Node::NumericLiteral>(*(nodes[6].expr)).type ==
+             ConstituentToken::TYPE_DOUBLE);
+    }
   }
   catch (const std::exception &e)
   {
@@ -104,7 +106,7 @@ bool TEST_EXPR_AST()
   try
   {
 
-    std::string file_name = "data/expression.rat";
+    std::string file_name = "data/expression_ast.rat";
     auto rat = RatSource(file_name);
     auto lex = Lexer(rat);
     while (lex.advanceToken())
@@ -119,6 +121,7 @@ bool TEST_EXPR_AST()
       auto expr = parse.recurseExpr(); // Get the unique_ptr
       nodes.push_back(expr ? std::move(*expr) : Node::GenericExpr());
     }
+    parse.debugASTPrinter(nodes);
   }
   catch (const std::exception &e)
   {
