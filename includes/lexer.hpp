@@ -4,6 +4,7 @@
 #include <deque>
 #include <unordered_map>
 #include <unordered_set>
+#include <regex>
 
 #include "rat_source.hpp"
 #include "token.hpp"
@@ -21,6 +22,8 @@ class Lexer
   bool isAcceptableStringLiteral(const char &ch);
   bool isAcceptableNumericLiteral(const char &ch);
   bool isAcceptableCharLiteral(const char &ch);
+
+  bool isAcceptableNumericSequence(const std::string &value);
 
   bool advanceToken();
 

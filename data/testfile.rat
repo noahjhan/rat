@@ -1,7 +1,7 @@
 fn foo() {
     print("Goodbye!")
-    let y: uint = 128..98fd
-    let should_throw: int = 100u.2cdff
+    let y: uint = 128.98f
+    let z: int = 100u
     ret
 }
 

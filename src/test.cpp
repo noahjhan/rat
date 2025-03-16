@@ -74,7 +74,6 @@ bool TEST_EXPR_SIMPLE()
     assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
     assert(std::get<Node::NumericLiteral>(*(nodes[3].expr)).type == ConstituentToken::TYPE_INT);
 
-
     assert(std::holds_alternative<Node::Punctuator>(*(nodes[4].expr)));
     assert(std::holds_alternative<Node::Operator>(*(nodes[5].expr)));
     assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));

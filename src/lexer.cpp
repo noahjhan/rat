@@ -2,16 +2,9 @@
 
 /**
  *
- * @todo: implement line and col number
  *
- * @todo: allow for spaces between keywords and types
  *
  * @todo: add support for comments
- *
- * @todo: add support for escape sequence in string literals
- *
- * @todo: add support for lists i.e {1, 2, 3, 4, 5}
- *        perhaps an array type?
  *
  * @todo: add support for structs -> struct keyword
  *
@@ -20,8 +13,9 @@
  * @todo: add functionality for multi-line string literals i.e "hello""world" is one token (this is likely a parser
  *        issue)
  *
- * @todo: validate numeric literals such that they can only contain one of 'u' and one of type letter i.e  129.68df is
- *        invalid (what is a double float?)
+ * @todo move numeric literal regex matching into lexer.cpp from parser.cpp
+ *       honestly rework logic so everything is a regex match
+ *
  */
 
 bool Lexer::isAcceptableIdentifier(const char &ch) { return std::isalnum(ch) || ch == '_'; }
@@ -40,6 +34,27 @@ bool Lexer::isAcceptableNumericLiteral(const char &ch)
  * this function may be redundant
  */
 bool Lexer::isAcceptableCharLiteral(const char &ch) { return isprint(ch); }
+
+bool Lexer::isAcceptableNumericSequence(const std::string &value)
+{
+  static const std::regex pattern(R"((\d*)(((\.)?(\d*)?(d|f)?)|(u)?[icls]?)?)");
+  std::smatch match;
+  if (!std::regex_match(value, match, pattern))
+  {
+    return false;
+  }
+
+  bool is_u_type = value.find('u') != std::string::npos;
+  bool is_f_type =
+  value.find('f') != std::string::npos || value.find('d') != std::string::npos || value.find('.') != std::string::npos;
+
+  if (is_u_type && is_f_type)
+  {
+    return false;
+  }
+
+  return true;
+}
 
 Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
@@ -255,12 +270,12 @@ bool Lexer::advanceToken()
 
   bool is_numeric = true;
   bool is_identifier = (!std::isdigit(partial.front()));
+  if (!isAcceptableNumericSequence(partial))
+  {
+    is_numeric = false;
+  }
   for (const auto &ch : partial)
   {
-    if (!isAcceptableNumericLiteral(ch))
-    {
-      is_numeric = false;
-    }
     if (!isAcceptableIdentifier(ch))
     {
       is_identifier = false;

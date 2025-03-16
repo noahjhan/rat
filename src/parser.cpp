@@ -95,6 +95,33 @@ void Parser::dispatch()
   }
 }
 
+std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric() { return std::unique_ptr<Node::GenericExpr>(); }
+
+std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
+{
+  if (tokens_.front().type == GenericToken::NUMERIC_LITERAL || tokens_.front().type == GenericToken::IDENTIFIER)
+  {
+    auto numeric = recurseNumeric();
+  } 
+
+  // check for * or /, if encountered generate expression and restart process
+
+
+  return std::unique_ptr<Node::GenericExpr>();
+}
+
+std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
+{
+  auto factor = recurseFactor();
+  return std::unique_ptr<Node::GenericExpr>();
+}
+
+std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
+{
+  auto term = recurseTerm();
+  return std::unique_ptr<Node::GenericExpr>();
+}
+
 /// @todo recursive descent
 /// @return
 //
@@ -196,6 +223,7 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 /// @todo create usuable regex
 ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 {
+
   static const std::regex pattern(R"((\d*)(((\.)?(\d*)?(d|f)?)|(u)?[icls]?)?)");
   std::smatch match;
   if (!std::regex_match(value, match, pattern))
