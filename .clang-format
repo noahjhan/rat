@@ -34,7 +34,7 @@ BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
 
-ColumnLimit: 120
+ColumnLimit: 80
 MaxEmptyLinesToKeep: 2
 
 ConstructorInitializerIndentWidth: 0

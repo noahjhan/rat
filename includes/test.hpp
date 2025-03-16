@@ -9,7 +9,9 @@
 
 bool TEST_LEXER();
 
-bool TEST_PARSER();
+bool TEST_EXPR_SIMPLE();
+
+bool TEST_EXPR_AST();
 
 bool TEST_ALL();
 

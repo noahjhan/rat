@@ -37,16 +37,19 @@ bool TEST_LEXER()
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Lexer\n" << RESET << std::endl;
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Lexer\n"
+              << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Lexer\n" << RESET << std::endl;
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Lexer\n"
+            << RESET << std::endl;
   return true;
 }
 
 bool TEST_EXPR_SIMPLE()
 {
-  std::cout << PURPLE << "TEST CASE: Expr Simple\n" << BAR << RESET << std::endl;
+  std::cout << PURPLE << "TEST CASE: Expr Simple\n"
+            << BAR << RESET << std::endl;
   try
   {
 
@@ -62,31 +65,73 @@ bool TEST_EXPR_SIMPLE()
     std::vector<Node::GenericExpr> nodes;
     while (parse.numTokens())
     {
-      nodes.push_back(std::move(*(parse.tokenToExpr())));
+      auto node = parse.tokenToExpr();
+      nodes.push_back(node ? std::move(*(node)) : Node::GenericExpr());
     }
-    assert(std::holds_alternative<Node::Punctuator>(*(nodes[0].expr)));
+    // assert(std::holds_alternative<Node::Punctuator>(*(nodes[0].expr)));
 
     assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[1].expr)));
-    assert(std::get<Node::NumericLiteral>(*(nodes[1].expr)).type == ConstituentToken::TYPE_FLOAT);
+    assert(std::get<Node::NumericLiteral>(*(nodes[1].expr)).type ==
+           ConstituentToken::TYPE_FLOAT);
 
-    assert(std::holds_alternative<Node::Operator>(*(nodes[2].expr)));
+    // assert(std::holds_alternative<Node::Operator>(*(nodes[2].expr)));
 
     assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
-    assert(std::get<Node::NumericLiteral>(*(nodes[3].expr)).type == ConstituentToken::TYPE_INT);
+    assert(std::get<Node::NumericLiteral>(*(nodes[3].expr)).type ==
+           ConstituentToken::TYPE_INT);
 
-    assert(std::holds_alternative<Node::Punctuator>(*(nodes[4].expr)));
-    assert(std::holds_alternative<Node::Operator>(*(nodes[5].expr)));
+    // assert(std::holds_alternative<Node::Punctuator>(*(nodes[4].expr)));
+    // assert(std::holds_alternative<Node::Operator>(*(nodes[5].expr)));
     assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));
-    assert(std::get<Node::NumericLiteral>(*(nodes[6].expr)).type == ConstituentToken::TYPE_DOUBLE);
+    assert(std::get<Node::NumericLiteral>(*(nodes[6].expr)).type ==
+           ConstituentToken::TYPE_DOUBLE);
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr Simple\n" << RESET << std::endl;
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr Simple\n"
+              << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr Simple\n" << RESET << std::endl;
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr Simple\n"
+            << RESET << std::endl;
   return true;
 }
 
-bool TEST_ALL() { return (TEST_LEXER() && TEST_EXPR_SIMPLE()); }
+bool TEST_EXPR_AST()
+{
+  std::cout << PURPLE << "TEST CASE: Expr AST\n" << BAR << RESET << std::endl;
+  try
+  {
+
+    std::string file_name = "data/expression.rat";
+    auto rat = RatSource(file_name);
+    auto lex = Lexer(rat);
+    while (lex.advanceToken())
+    {
+    }
+    // lex.debugPrinter(true /* use true here for verbose printing */);
+    std::deque<Token> dq = lex.getTokens();
+    auto parse = Parser(dq);
+    std::vector<Node::GenericExpr> nodes;
+    while (parse.numTokens())
+    {
+      auto expr = parse.recurseExpr(); // Get the unique_ptr
+      nodes.push_back(expr ? std::move(*expr) : Node::GenericExpr());
+    }
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << e.what() << std::endl;
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr AST\n"
+              << RESET << std::endl;
+    return false;
+  }
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr AST\n"
+            << RESET << std::endl;
+  return true;
+}
+bool TEST_ALL()
+{
+  return (TEST_LEXER() && TEST_EXPR_SIMPLE()) && TEST_EXPR_AST();
+}

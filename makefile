@@ -1,7 +1,8 @@
 # compiler and linker
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -g -O0 -I./includes 
-LDFLAGS = 
+CXXFLAGS = -Wall -std=c++17 -g -O0 -I./includes -fsanitize=address
+LDFLAGS = -fsanitize=address
+
 
 # colors
 BLUE = \033[1;34m
