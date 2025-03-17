@@ -22,6 +22,10 @@ class Parser
   std::unique_ptr<Node::GenericExpr> recurseNumeric();
   std::unique_ptr<Node::GenericExpr> recurseFactor();
   std::unique_ptr<Node::GenericExpr> recurseTerm();
+  std::unique_ptr<Node::GenericExpr> recurseAdditive(); // rename
+  std::unique_ptr<Node::GenericExpr> recurseShift();
+  std::unique_ptr<Node::GenericExpr> recurseComparison();
+  std::unique_ptr<Node::GenericExpr> recurseLogical();
   std::unique_ptr<Node::GenericExpr> recurseExpr();
 
   std::unique_ptr<Node::GenericExpr> tokenToExpr();

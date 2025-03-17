@@ -84,25 +84,11 @@ Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
 /// to determine how to interpret them into AST
 void Parser::dispatch()
 {
-  // if (tokens_.empty())
-  // {
-  //   throw std::invalid_argument("empty deque");
-  // }
-  // Token curr = tokens_.front();
-  // tokens_.pop_front();
-  // Token next = tokens_.front();
-  // switch (curr.type)
-  // {
-
-  //   {
-  //     if (dictionary_.find(curr.value) == dictionary_.end())
-  //     {
-  //       std::cerr << "recieved '" << curr.value << '\'' << std::endl;
-  //       throw std::invalid_argument("unrecognized keyword");
-  //     }
-  //     ConstituentToken keyword = dictionary_.at(curr.value);
-  //   }
-  // }
+  // expext expressions to occur
+  // 1 - Variable Assignment
+  // 2 - As Function Param
+  // 3 - Conditional Expr
+  // 4 - Return Values
 }
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
@@ -139,7 +125,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
     tokens_.pop_front(); // Consume ')'
     return expr;
   }
-
+  tokens_.pop_front();
   return nullptr;
 }
 
@@ -167,7 +153,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
   return factor;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
+std::unique_ptr<Node::GenericExpr> Parser::recurseAdditive()
 {
   auto term = recurseTerm();
   while (!tokens_.empty() &&
@@ -185,12 +171,100 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
   }
   return term;
 }
+
+std::unique_ptr<Node::GenericExpr> Parser::recurseShift()
+{
+  auto additive = recurseAdditive();
+  while (!tokens_.empty() &&
+         (tokens_.front().value == "<<" || tokens_.front().value == ">>"))
+  {
+    Node::BinaryExpr bin_expr;
+    bin_expr.lhs = std::move(additive);
+
+    if (tokens_.front().value == "<<")
+      bin_expr.op = ConstituentToken::BITWISE_SL;
+    else if (tokens_.front().value == ">>")
+      bin_expr.op = ConstituentToken::BITWISE_SR;
+
+    tokens_.pop_front();
+    bin_expr.rhs = recurseAdditive();
+    additive = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
+    std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+  }
+  return additive;
+}
+
+std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
+{
+  auto shift = recurseShift();
+  while (!tokens_.empty() &&
+         (tokens_.front().value == "==" || tokens_.front().value == "!=" ||
+          tokens_.front().value == "<" || tokens_.front().value == "<=" ||
+          tokens_.front().value == ">" || tokens_.front().value == ">="))
+  {
+    Node::BinaryExpr bin_expr;
+    bin_expr.lhs = std::move(shift);
+
+    if (tokens_.front().value == "==")
+      bin_expr.op = ConstituentToken::COMPARISON_EQ;
+    else if (tokens_.front().value == "!=")
+      bin_expr.op = ConstituentToken::COMPARISON_NEQ;
+    else if (tokens_.front().value == "<")
+      bin_expr.op = ConstituentToken::COMPARISON_LT;
+    else if (tokens_.front().value == "<=")
+      bin_expr.op = ConstituentToken::COMPARISON_LTE;
+    else if (tokens_.front().value == ">")
+      bin_expr.op = ConstituentToken::COMPARISON_GT;
+    else if (tokens_.front().value == ">=")
+      bin_expr.op = ConstituentToken::COMPARISON_GTE;
+
+    tokens_.pop_front();
+    bin_expr.rhs = recurseShift();
+    shift = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
+    std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+  }
+  return shift;
+}
+
+std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
+{
+  auto comparison = recurseComparison();
+  while (!tokens_.empty() &&
+         (tokens_.front().value == "&&" || tokens_.front().value == "||"))
+  {
+    Node::BinaryExpr bin_expr;
+    bin_expr.lhs = std::move(comparison);
+
+    if (tokens_.front().value == "&&")
+      bin_expr.op = ConstituentToken::LOGICAL_AND;
+    else if (tokens_.front().value == "||")
+      bin_expr.op = ConstituentToken::LOGICAL_OR;
+
+    tokens_.pop_front();
+    bin_expr.rhs = recurseComparison();
+    comparison = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
+    std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+  }
+  return comparison;
+}
+
+std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
+{
+  auto logical = recurseLogical();
+  if (!logical)
+  {
+    throw std::invalid_argument(
+    "I cannot believe you didnt handle null properly");
+  }
+  return logical;
+}
+
 std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
   // lets assume for now the deque only contains valid expression tokens
-  // lets assume for now the deque only contains puctuators, literals, operators
-  // I guess currently this takes in a deque and pops a token, and processes it
-  // as if it is part of an expression
+  // lets assume for now the deque only contains puctuators, literals,
+  // operators I guess currently this takes in a deque and pops a token, and
+  // processes it as if it is part of an expression
   //
   //
   Token token = tokens_.front();
@@ -214,8 +288,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
     {
       Node::Identifier node;
       node.token = token;
-      node.type = ConstituentToken::VARIABLE_ID; // not exactly true -> does not
-                                                 // support functions
+      node.type = ConstituentToken::VARIABLE_ID; // not exactly true -> does
+                                                 // not support functions
       auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
