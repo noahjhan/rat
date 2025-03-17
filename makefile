@@ -2,8 +2,8 @@
 
 # compiler and linker
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -g -O0 -I./includes -fsanitize=address
-LDFLAGS = -fsanitize=address
+CXXFLAGS = -Wall -std=c++17 -g -O0 -I./includes # -fsanitize=address
+LDFLAGS = # -fsanitize=address
 
 
 # colors
@@ -21,7 +21,7 @@ TEST_DIR = tests
 
 # files
 SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/main.cpp $(SRC_DIR)/lexer.cpp $(SRC_DIR)/parser.cpp $(SRC_DIR)/test.cpp
-HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/parser.hpp $(INC_DIR)/test.hpp $(INC_DIR)/ast.hpp
+HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/lexer.hpp $(INC_DIR)/parser.hpp $(INC_DIR)/test.hpp $(INC_DIR)/ast.hpp $(INC_DIR)/dictionary.hpp
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 
 # output

@@ -12,8 +12,6 @@
 #include "lexer.hpp"
 #include "token.hpp"
 
-
-
 class Parser
 {
   public:
@@ -37,6 +35,8 @@ class Parser
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;
+  std::unordered_map<ConstituentToken, std::string> reverse_dictionary =
+  REVERSE_DICT;
   std::deque<Token> tokens_;
 };
 

@@ -183,6 +183,7 @@ bool RatSource::advanceWhitespace()
       return is_newline;
     }
   }
+  return false; // EOF
 }
 
 void RatSource::seekLine(const unsigned &idx)

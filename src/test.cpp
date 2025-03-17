@@ -1,8 +1,8 @@
 #include "test.hpp"
 
 #define RESET "\033[0m"
-#define RED "\033[31m"
-#define GREEN "\033[32m"
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
 #define BLUE "\033[34m"
 #define PURPLE "\033[1;35m"
 #define BAR "=============================="
@@ -121,8 +121,7 @@ bool TEST_EXPR_AST()
       auto expr = parse.recurseExpr(); // Get the unique_ptr
       nodes.push_back(expr ? std::move(*expr) : Node::GenericExpr());
     }
-    std::cout << "number of expressions: " << nodes.size() << std::endl;
-    parse.debugASTPrinter(nodes);
+    // parse.debugASTPrinter(nodes);
   }
   catch (const std::exception &e)
   {
@@ -135,7 +134,37 @@ bool TEST_EXPR_AST()
             << RESET << std::endl;
   return true;
 }
+
 bool TEST_ALL()
 {
-  return (TEST_LEXER() && TEST_EXPR_SIMPLE()) && TEST_EXPR_AST();
+  int totalTests = 3; // change per test
+  int failedTests = 0;
+
+  if (!TEST_LEXER())
+  {
+    failedTests++;
+  }
+  if (!TEST_EXPR_SIMPLE())
+  {
+    failedTests++;
+  }
+  if (!TEST_EXPR_AST())
+  {
+    failedTests++;
+  }
+
+  if (failedTests > 0)
+  {
+    std::cout << RED << "TOTAL TESTS: " << totalTests << std::endl;
+    std::cout << BAR << "\n"
+              << failedTests << " test(s) failed!" << "\n"
+              << BAR << RESET << std::endl;
+  }
+  else
+  {
+    std::cout << GREEN << "TOTAL TESTS: " << totalTests << std::endl;
+    std::cout << BAR << "\nAll tests passed!\n" << BAR << RESET << std::endl;
+  }
+
+  return (failedTests == 0);
 }

@@ -84,31 +84,32 @@ Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
 /// to determine how to interpret them into AST
 void Parser::dispatch()
 {
-  if (tokens_.empty())
-  {
-    throw std::invalid_argument("empty deque");
-  }
-  Token curr = tokens_.front();
-  tokens_.pop_front();
-  Token next = tokens_.front();
-  switch (curr.type)
-  {
+  // if (tokens_.empty())
+  // {
+  //   throw std::invalid_argument("empty deque");
+  // }
+  // Token curr = tokens_.front();
+  // tokens_.pop_front();
+  // Token next = tokens_.front();
+  // switch (curr.type)
+  // {
 
-    {
-      if (dictionary_.find(curr.value) == dictionary_.end())
-      {
-        std::cerr << "recieved '" << curr.value << '\'' << std::endl;
-        throw std::invalid_argument("unrecognized keyword");
-      }
-      ConstituentToken keyword = dictionary_.at(curr.value);
-    }
-  }
+  //   {
+  //     if (dictionary_.find(curr.value) == dictionary_.end())
+  //     {
+  //       std::cerr << "recieved '" << curr.value << '\'' << std::endl;
+  //       throw std::invalid_argument("unrecognized keyword");
+  //     }
+  //     ConstituentToken keyword = dictionary_.at(curr.value);
+  //   }
+  // }
 }
+
 std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 {
   if (!tokens_.empty() &&
-      tokens_.front().type == GenericToken::NUMERIC_LITERAL ||
-      tokens_.front().type == GenericToken::IDENTIFIER)
+      (tokens_.front().type == GenericToken::NUMERIC_LITERAL ||
+       tokens_.front().type == GenericToken::IDENTIFIER))
   {
     return tokenToExpr();
   }
@@ -146,13 +147,18 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
 {
   auto factor = recurseFactor();
   while (!tokens_.empty() &&
-         (tokens_.front().value == "*" || tokens_.front().value == "/"))
+         (tokens_.front().value == "*" || tokens_.front().value == "/" ||
+          tokens_.front().value == "%"))
   {
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(factor);
-    bin_expr.op = (tokens_.front().value == "*") ?
-                  ConstituentToken::ARITHMETHIC_MUL :
-                  ConstituentToken::ARITHMETHIC_DIV;
+    if (tokens_.front().value == "*")
+      bin_expr.op = ConstituentToken::ARITHMETHIC_MUL;
+    else if (tokens_.front().value == "/")
+      bin_expr.op = ConstituentToken::ARITHMETHIC_DIV;
+    else if (tokens_.front().value == "%")
+      bin_expr.op = ConstituentToken::ARITHMETHIC_MOD;
+
     tokens_.pop_front();
     bin_expr.rhs = recurseFactor();
     factor = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
@@ -341,6 +347,8 @@ int Parser::numTokens() const { return tokens_.size(); }
 
 void Parser::debugASTPrinter(std::vector<Node::GenericExpr> &vect)
 {
+
+  std::cout << "number of expressions: " << vect.size() << std::endl;
   for (const auto &node : vect)
   {
     debugASTPrinterRecursive(node, 0);
@@ -365,7 +373,9 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant))
   {
-    std::cout << "holds binary expression" << std::endl;
+    auto op = reverse_dictionary.at(
+    std::get<Node::BinaryExpr>(*variant).op); // validate that op is real
+    std::cout << "holds binary expression: " << op << std::endl;
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
     if (binaryExpr.lhs)
     {
