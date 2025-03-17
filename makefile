@@ -1,3 +1,5 @@
+# @todo: clean up makefile for make test
+
 # compiler and linker
 CXX = g++
 CXXFLAGS = -Wall -std=c++17 -g -O0 -I./includes -fsanitize=address
@@ -26,7 +28,7 @@ OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 EXEC = $(BIN_DIR)/exec
 # TEST_EXEC = $(BIN_DIR)/exec
 
-# default target to build the executable
+# exec target 
 all: $(EXEC)
 
 # build executable
