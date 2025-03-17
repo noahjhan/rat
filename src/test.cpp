@@ -31,7 +31,7 @@ bool TEST_LEXER()
     while (lex.advanceToken())
     {
     }
-    // lex.debugPrinter(true /* use true here for verbose printing */);
+    lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
   }
   catch (const std::exception &e)
@@ -56,11 +56,11 @@ bool TEST_EXPR_TYPES()
     while (lex.advanceToken())
     {
     }
-    // lex.debugPrinter(true /* use true here for verbose printing */);
+    lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
-    // parse.debugASTPrinter(*root_expr);
+    parse.debugASTPrinter(*root_expr);
     if (!root_expr)
     {
       throw std::runtime_error("Failed to parse the root expression");
@@ -116,11 +116,11 @@ bool TEST_EXPR_AST()
     while (lex.advanceToken())
     {
     }
-    // lex.debugPrinter(true /* use true here for verbose printing */);
+    lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
-    // parse.debugASTPrinter(*root_expr);
+    parse.debugASTPrinter(*root_expr);
   }
   catch (const std::exception &e)
   {

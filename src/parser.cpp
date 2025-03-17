@@ -291,7 +291,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
     else if (tokens_.front().value == "^")
       bin_expr.op = ConstituentToken::BITWISE_XOR;
     else if (tokens_.front().value == "|")
-      bin_expr.op = ConstituentToken::LOGICAL_OR;
+      bin_expr.op = ConstituentToken::BITWISE_OR;
     else if (tokens_.front().value == "&&")
       bin_expr.op = ConstituentToken::LOGICAL_AND;
     else if (tokens_.front().value == "||")
