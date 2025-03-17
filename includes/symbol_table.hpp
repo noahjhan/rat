@@ -30,11 +30,19 @@ class SymbolTable
   void enterScope();
   void exitScope();
 
-  bool lookupFunction();
-  bool lookupVariable();
+  bool lookupFunction(
+  const std::string &identifier,
+  const std::vector<std::pair<std::string, ConsituentToken>> &parameters,
+  const ConstituentToken &return_type);
+  bool lookupVariable(const std::string &identifier,
+                      const ConstituentToken &type, const std::string &value);
 
-  void addFunction();
-  void addVariable();
+  void addFunction(
+  const std::string &identifier,
+  const std::vector<std::pair<std::string, ConsituentToken>> &parameters,
+  const ConstituentToken &return_type);
+  void addVariable(const std::string &identifier, const ConstituentToken &type,
+                   const std::string &value);
 
   private:
   std::stack<std::variant<FunctionSymbol, VariableSymbol>> stack_;

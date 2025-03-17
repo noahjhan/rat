@@ -22,8 +22,48 @@ void SymbolTable::exitScope()
   }
 }
 
-bool SymbolTable::lookupFunction();
-bool SymbolTable::lookupVariable();
+bool SymboTable::lookupFunction(
+const std::string &identifier,
+const std::vector<std::pair<std::string, ConsituentToken>> &parameters,
+const ConstituentToken &return_type)
+{
+  // find identifier (within size of scope)
+  // if not found, return false
+  // if found, validate return type and param
+  return false;
+}
 
-void SymbolTable::addFunction();
-void SymbolTable::addVariable();
+bool SymbolTable::lookupVariable(const std::string &identifier,
+                                 const ConstituentToken &type,
+                                 const std::string &value)
+{
+  // find identifier (within size of scope)
+  // if not found, return false
+  // if found, validate type and value
+  return false;
+}
+
+void SymbolTable::addFunction(
+const std::string &identifier,
+const std::vector<std::pair<std::string, ConsituentToken>> &parameters,
+const ConstituentToken &return_type)
+{
+  // lookup
+  // if found, throw (redefinition)
+  // if not found, top of ++frame_size_
+  // create struct
+  // add to top of stack
+  return;
+}
+
+void SymbolTable::addVariable(const std::string &identifier,
+                              const ConstituentToken &type,
+                              const std::string &value)
+{
+  // lookup
+  // if found, throw (redefinition)
+  // if not found, top of ++frame_size_
+  // create struct
+  // add to top of stack
+  return;
+}
