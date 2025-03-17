@@ -142,63 +142,42 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
 {
   auto factor = recurseFactor();
-  if (!factor)
-  {
-    return nullptr;
-  }
-
-  if (!tokens_.empty() &&
-      (tokens_.front().value == "+" || tokens_.front().value == "-"))
+  while (!tokens_.empty() &&
+         (tokens_.front().value == "*" || tokens_.front().value == "/"))
   {
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(factor);
-    bin_expr.op = (tokens_.front().value == "+") ?
-                  ConstituentToken::ARITHMETHIC_ADD :
-                  ConstituentToken::ARITHMETHIC_SUB;
+    bin_expr.op = (tokens_.front().value == "*") ?
+                  ConstituentToken::ARITHMETHIC_MUL :
+                  ConstituentToken::ARITHMETHIC_DIV;
     tokens_.pop_front();
-    bin_expr.rhs = recurseExpr();
-    auto ptr =
-    std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
-                                  Node::UnaryExpr, Node::NumericLiteral>>(
-    std::move(bin_expr));
-    Node::GenericExpr gen_expr;
-    gen_expr.expr = std::move(ptr);
-    return std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+    bin_expr.rhs = recurseFactor();
+    factor = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
+        std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
+                                      Node::UnaryExpr, Node::NumericLiteral>>(std::move(bin_expr))});
   }
-
   return factor;
 }
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
 {
   auto term = recurseTerm();
-  if (!term)
-  {
-    return nullptr;
-  }
-
-  if (!tokens_.empty() &&
-      (tokens_.front().value == "*" || tokens_.front().value == "/"))
+  while (!tokens_.empty() &&
+         (tokens_.front().value == "+" || tokens_.front().value == "-"))
   {
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(term);
-    bin_expr.op = (tokens_.front().value == "*") ?
-                  ConstituentToken::ARITHMETHIC_MUL :
-                  ConstituentToken::ARITHMETHIC_DIV;
+    bin_expr.op = (tokens_.front().value == "+") ?
+                  ConstituentToken::ARITHMETHIC_ADD :
+                  ConstituentToken::ARITHMETHIC_SUB;
     tokens_.pop_front();
-    bin_expr.rhs = recurseExpr();
-    auto ptr =
-    std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
-                                  Node::UnaryExpr, Node::NumericLiteral>>(
-    std::move(bin_expr));
-    Node::GenericExpr gen_expr;
-    gen_expr.expr = std::move(ptr);
-    return std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+    bin_expr.rhs = recurseTerm();
+    term = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
+        std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
+                                      Node::UnaryExpr, Node::NumericLiteral>>(std::move(bin_expr))});
   }
-
   return term;
 }
-
 std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
   // lets assume for now the deque only contains valid expression tokens
