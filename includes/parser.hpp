@@ -15,14 +15,14 @@
 class Parser
 {
   public:
-  Parser(std::deque<Token> &tokens);
+  Parser(std::deque<Token> &tokens, RatSource &source_file);
 
   void dispatch();
 
   std::unique_ptr<Node::GenericExpr> recurseNumeric();
   std::unique_ptr<Node::GenericExpr> recurseFactor();
   std::unique_ptr<Node::GenericExpr> recurseTerm();
-  std::unique_ptr<Node::GenericExpr> recurseAdditive(); // rename
+  std::unique_ptr<Node::GenericExpr> recurseAdditive();
   std::unique_ptr<Node::GenericExpr> recurseShift();
   std::unique_ptr<Node::GenericExpr> recurseComparison();
   std::unique_ptr<Node::GenericExpr> recurseLogical();
@@ -34,6 +34,8 @@ class Parser
 
   int numTokens() const;
 
+  void debugPrintln(const unsigned int &line_num);
+  void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
   void debugASTPrinter(std::vector<Node::GenericExpr> &vect);
   void debugASTPrinterRecursive(const Node::GenericExpr &node, int depth);
 
@@ -42,6 +44,7 @@ class Parser
   std::unordered_map<ConstituentToken, std::string> reverse_dictionary =
   REVERSE_DICT;
   std::deque<Token> tokens_;
+  RatSource source_file_;
 };
 
 #endif // PARSER_HPP

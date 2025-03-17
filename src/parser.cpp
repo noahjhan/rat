@@ -24,14 +24,17 @@
  * @todo handle operator precedence and syntax errors such as 2 2 should throw (
  * no operator )
  *
- * @todo identifiers in expression infinite loop
+ * @todo identifiers in expression infinite loo
+ *
+ * @todo support for logical and bitwise not operator
  *
  */
 
 // this code is for debugging purposes...
 // ideally this function calls dispatch which predicts the
 // syntax tree to generate
-Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
+Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)
+: tokens_(tokens), source_file_(source_file)
 {
 
   for (const auto &token : tokens_)
@@ -99,7 +102,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
   {
     return tokenToExpr();
   }
-  tokens_.pop_front();
+  // tokens_.pop_front();
   return nullptr;
 }
 
@@ -125,7 +128,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
     tokens_.pop_front(); // Consume ')'
     return expr;
   }
-  tokens_.pop_front();
+  // tokens_.pop_front();
   return nullptr;
 }
 
@@ -253,8 +256,14 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
   auto logical = recurseLogical();
   if (!logical)
   {
-    throw std::invalid_argument(
-    "I cannot believe you didnt handle null properly");
+    if (tokens_.empty())
+    {
+      throw std::runtime_error("token deque empty");
+    }
+    Token token = tokens_.front();
+    debugLineCol(token.line_num, token.col_num);
+    debugPrintln(token.line_num);
+    throw std::invalid_argument("error: invalid syntax");
   }
   return logical;
 }
@@ -486,4 +495,16 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
   {
     std::cout << "holds ambiguous state" << std::endl;
   }
+}
+
+void Parser::debugPrintln(const unsigned int &line_num)
+{
+  source_file_.seekLine(line_num);
+  std::cerr << line_num << " | " << source_file_.readLine() << std::endl;
+}
+
+void Parser::debugLineCol(const unsigned int &line_num,
+                          const unsigned int &col_num)
+{
+  std::cerr << "at line: " << line_num << ", col: " << col_num << std::endl;
 }

@@ -59,7 +59,7 @@ bool TEST_EXPR_SIMPLE()
     {
     }
     std::deque<Token> dq = lex.getTokens();
-    auto parse = Parser(dq);
+    auto parse = Parser(dq, rat);
     std::vector<Node::GenericExpr> nodes;
     while (parse.numTokens())
     {
@@ -114,7 +114,7 @@ bool TEST_EXPR_AST()
     }
     // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
-    auto parse = Parser(dq);
+    auto parse = Parser(dq, rat);
     std::vector<Node::GenericExpr> nodes;
     while (parse.numTokens())
     {
