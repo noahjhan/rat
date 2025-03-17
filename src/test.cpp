@@ -46,13 +46,12 @@ bool TEST_LEXER()
   return true;
 }
 
-bool TEST_EXPR_SIMPLE()
+bool TEST_EXPR_TYPES()
 {
-  std::cout << PURPLE << "TEST CASE: Expr Simple\n"
-            << BAR << RESET << std::endl;
+  std::cout << PURPLE << "TEST CASE: Expr Types\n" << BAR << RESET << std::endl;
   try
   {
-    std::string file_name = "data/simple_expression.rat";
+    std::string file_name = "data/expression_types.rat";
     auto rat = RatSource(file_name);
     auto lex = Lexer(rat);
     while (lex.advanceToken())
@@ -91,11 +90,11 @@ bool TEST_EXPR_SIMPLE()
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr Simple\n"
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr Types\n"
               << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr Simple\n"
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr Types\n"
             << RESET << std::endl;
   return true;
 }
@@ -144,7 +143,7 @@ bool TEST_ALL()
   {
     failedTests++;
   }
-  if (!TEST_EXPR_SIMPLE())
+  if (!TEST_EXPR_TYPES())
   {
     failedTests++;
   }

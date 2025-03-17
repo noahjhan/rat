@@ -44,7 +44,7 @@ bool Lexer::isAcceptableCharLiteral(const char &ch) { return isprint(ch); }
 
 bool Lexer::isAcceptableNumericSequence(const std::string &value)
 {
-  static const std::regex pattern(R"((\d*)(((\.)?(\d*)?(d|f)?)|(u)?[icls]?)?)");
+  static const std::regex pattern(R"((\d+)(((\.)?(\d*)?(d|f)?)|(u)?[icls]?)?)");
   std::smatch match;
   if (!std::regex_match(value, match, pattern))
   {

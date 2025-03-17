@@ -9,7 +9,7 @@
 
 bool TEST_LEXER();
 
-bool TEST_EXPR_SIMPLE();
+bool TEST_EXPR_TYPES();
 
 bool TEST_EXPR_AST();
 

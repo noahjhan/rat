@@ -55,6 +55,7 @@
         "ratio": "cpp",
         "algorithm": "cpp",
         "unordered_set": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "future": "cpp"
     }
 }

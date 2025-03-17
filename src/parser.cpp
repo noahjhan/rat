@@ -19,14 +19,7 @@
  * @todo copy over the debug functions from lexer, maybe make a generic
  * debug.cpp file
  *
- * handle unary operators and complex binary operators
- *
- * @todo handle operator precedence and syntax errors such as 2 2 should throw (
- * no operator )
- *
  * @todo identifiers in expression infinite loo
- *
- * @todo support for logical and bitwise not operator
  *
  * @todo update grammar for new ops
  */
@@ -151,6 +144,10 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
          (tokens_.front().value == "*" || tokens_.front().value == "/" ||
           tokens_.front().value == "%"))
   {
+    if (!factor)
+    {
+      throw std::invalid_argument("error: expecting lhs for binary expression");
+    }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(factor);
 
@@ -162,7 +159,12 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
       bin_expr.op = ConstituentToken::ARITHMETHIC_MOD;
 
     tokens_.pop_front();
-    bin_expr.rhs = recurseFactor();
+    auto factor_rhs = recurseFactor();
+    if (!factor_rhs)
+    {
+      throw std::invalid_argument("error: expecting rhs for binary expression");
+    }
+    bin_expr.rhs = std::move(factor_rhs);
     factor = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
     std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
@@ -175,13 +177,22 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseAdditive()
   while (!tokens_.empty() &&
          (tokens_.front().value == "+" || tokens_.front().value == "-"))
   {
+    if (!term)
+    {
+      throw std::invalid_argument("error: expecting lhs for binary expression");
+    }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(term);
     bin_expr.op = (tokens_.front().value == "+") ?
                   ConstituentToken::ARITHMETHIC_ADD :
                   ConstituentToken::ARITHMETHIC_SUB;
     tokens_.pop_front();
-    bin_expr.rhs = recurseTerm();
+    auto term_rhs = recurseTerm();
+    if (!term_rhs)
+    {
+      throw std::invalid_argument("error: expecting rhs for binary expression");
+    }
+    bin_expr.rhs = std::move(term_rhs);
     term = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
     std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
@@ -194,6 +205,10 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseShift()
   while (!tokens_.empty() &&
          (tokens_.front().value == "<<" || tokens_.front().value == ">>"))
   {
+    if (!additive)
+    {
+      throw std::invalid_argument("error: expecting lhs for binary expression");
+    }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(additive);
 
@@ -203,7 +218,12 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseShift()
       bin_expr.op = ConstituentToken::BITWISE_SR;
 
     tokens_.pop_front();
-    bin_expr.rhs = recurseAdditive();
+    auto additive_rhs = recurseAdditive();
+    if (!additive_rhs)
+    {
+      throw std::invalid_argument("error: expecting rhs for binary expression");
+    }
+    bin_expr.rhs = std::move(additive_rhs);
     additive = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
     std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
@@ -218,6 +238,11 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
           tokens_.front().value == "<" || tokens_.front().value == "<=" ||
           tokens_.front().value == ">" || tokens_.front().value == ">="))
   {
+    if (!shift)
+    {
+      throw std::invalid_argument("error: expecting lhs for binary expression");
+    }
+
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(shift);
 
@@ -235,7 +260,12 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
       bin_expr.op = ConstituentToken::COMPARISON_GTE;
 
     tokens_.pop_front();
-    bin_expr.rhs = recurseShift();
+    auto shift_rhs = recurseShift();
+    if (!shift_rhs)
+    {
+      throw std::invalid_argument("error: expecting rhs for binary expression");
+    }
+    bin_expr.rhs = std::move(shift_rhs);
     shift = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
     std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
@@ -250,6 +280,10 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
           tokens_.front().value == "|" || tokens_.front().value == "&&" ||
           tokens_.front().value == "||"))
   {
+    if (!comparison)
+    {
+      throw std::invalid_argument("error: expecting lhs for binary expression");
+    }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(comparison);
 
@@ -265,7 +299,13 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
       bin_expr.op = ConstituentToken::LOGICAL_OR;
 
     tokens_.pop_front();
-    bin_expr.rhs = recurseComparison();
+
+    auto comparison_rhs = recurseComparison();
+    if (!comparison_rhs)
+    {
+      throw std::invalid_argument("error: expecting rhs for binary expression");
+    }
+    bin_expr.rhs = std::move(comparison_rhs);
     comparison = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
     std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
@@ -286,6 +326,17 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
     debugLineCol(token.line_num, token.col_num);
     debugPrintln(token.line_num);
     throw std::invalid_argument("error: invalid syntax");
+  }
+  if (std::holds_alternative<Node::BinaryExpr>(*(logical->expr)))
+  {
+    if (!std::get<Node::BinaryExpr>(*(logical->expr)).lhs)
+    {
+      throw std::invalid_argument("error: expecting lhs for binary expression");
+    }
+    if (!std::get<Node::BinaryExpr>(*(logical->expr)).rhs)
+    {
+      throw std::invalid_argument("error: expecting rhs for binary expression");
+    }
   }
   return logical;
 }
@@ -354,41 +405,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
     }
     break;
-    case GenericToken::PUNCTUATOR:
-      // {
-      //   if (dictionary_.find(token.value) == dictionary_.end())
-      //   {
-      //     std::cerr << "recieved: '" << token.value << '\'' << std::endl;
-      //     throw std::invalid_argument("error: dictionary does not contain
-      //     punctuator");
-      //   }
-      //   Node::Punctuator node;
-      //   node.token = token;
-      //   node.type = dictionary_.at(token.value);
-      //   auto ptr =
-      //   std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
-      //   Node::UnaryExpr, Node::NumericLiteral>>(node); Node::GenericExpr
-      //   gen_expr; gen_expr.expr = std::move(ptr); gen_expr_ptr =
-      //   std::make_unique<Node::GenericExpr>(std::move(gen_expr));
-      // }
-      break;
-    case GenericToken::OPERATOR:
-      // {
-      // if (dictionary_.find(token.value) == dictionary_.end())
-      // {
-      //   throw std::invalid_argument("error: dictionary does not contain
-      //   operator");
-      // }
-      // Node::Operator node;
-      // node.token = token;
-      // node.type = dictionary_.at(token.value);
-      // auto ptr = std::make_unique<
-      // std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,
-      // Node::NumericLiteral, Node::Punctuator>>(node); Node::GenericExpr
-      // gen_expr; gen_expr.expr = std::move(ptr); gen_expr_ptr =
-      // std::make_unique<Node::GenericExpr>(std::move(gen_expr));
-      // }
-      break;
+    case GenericToken::PUNCTUATOR: break;
+    case GenericToken::OPERATOR: break;
     case GenericToken::TYPE:
       throw std::invalid_argument("error: keyword found in expression");
   }
@@ -396,7 +414,7 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   {
     return gen_expr_ptr;
   }
-  return std::unique_ptr<Node::GenericExpr>(); // throw exception here
+  throw std::invalid_argument("error: unrecognized token in expression");
 }
 
 /// @todo suppport for optional
@@ -462,8 +480,10 @@ void Parser::debugASTPrinter(std::vector<Node::GenericExpr> &vect)
 
 void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
 {
-  auto variant = node.expr.get();
+  // auto variant =
+  // std::make_unique<EXPRESSION_VARIANT>(std::move(*(node.expr)));
 
+  auto variant = node.expr.get();
   if (!variant)
   {
     std::cout << std::string(depth, ' ') << "variant is null" << std::endl;
@@ -487,10 +507,18 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
       std::cout << std::string(depth * 4, ' ') << "lhs: ";
       debugASTPrinterRecursive(*binaryExpr.lhs, depth + 1);
     }
+    else
+    {
+      throw std::invalid_argument("error: expecting lhs for binary expression");
+    }
     if (binaryExpr.rhs)
     {
       std::cout << std::string(depth * 4, ' ') << "rhs: ";
       debugASTPrinterRecursive(*binaryExpr.rhs, depth + 1);
+    }
+    else
+    {
+      throw std::invalid_argument("error: expecting rhs for binary expression");
     }
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*variant))

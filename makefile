@@ -1,10 +1,9 @@
 # @todo: clean up makefile for make test
 
 # compiler and linker
-CXX = g++
-CXXFLAGS = -Wall -std=c++17 -g -O0 -I./includes # -fsanitize=address
+CXX = clang++
+CXXFLAGS = -Wall -std=c++23 -g -O0 -I./includes # -fsanitize=address
 LDFLAGS = # -fsanitize=address
-
 
 # colors
 BLUE = \033[1;34m
@@ -17,7 +16,6 @@ SRC_DIR = src
 INC_DIR = includes
 BIN_DIR = bin
 EXEC_DIR = $(BIN_DIR)/exec
-TEST_DIR = tests
 
 # files
 SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/main.cpp $(SRC_DIR)/lexer.cpp $(SRC_DIR)/parser.cpp $(SRC_DIR)/test.cpp
@@ -26,7 +24,6 @@ OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 
 # output
 EXEC = $(BIN_DIR)/exec
-# TEST_EXEC = $(BIN_DIR)/exec
 
 # exec target 
 all: $(EXEC)
@@ -38,30 +35,17 @@ $(EXEC): $(OBJECTS)
 	@ $(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 	@echo "$(GREEN)Linking Complete...$(RESET)"
 
-# build test executable
-$(TEST_EXEC): $(TEST_OBJECTS) $(OBJECTS)
-	@mkdir -p $(BIN_DIR)
-	@echo "$(PURPLE)$(CXX) $(TEST_OBJECTS) $(OBJECTS) -o $@ $(LDFLAGS)$(RESET)"
-	@ $(CXX) $(TEST_OBJECTS) $(OBJECTS) -o $@ $(LDFLAGS)
-	@echo "$(GREEN)Linking test executable...$(RESET)"
-
 # compile source into object
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS) | $(BIN_DIR)
 	@echo "$(GREEN)Compiling $<$(RESET)"
 	@echo "$(PURPLE)$(CXX) $(CXXFLAGS) -c $< -o $@$(RESET)"
 	@ $(CXX) $(CXXFLAGS) -c $< -o $@
 
-# compile test source into object
-$(BIN_DIR)/%.o: $(TEST_DIR)/%.cpp $(TEST_HEADERS) | $(BIN_DIR)
-	@echo "$(GREEN)Compiling test $<$(RESET)"
-	@echo "$(PURPLE)$(CXX) $(CXXFLAGS) -c $< -o $@$(RESET)"
-	@ $(CXX) $(CXXFLAGS) -c $< -o $@
-
 # clean up bin 
 clean:
 	@echo "$(GREEN)Cleaning bin and exec directory...$(RESET)"
-	@ rm -rf $(BIN_DIR) $(EXEC) $(TEST_EXEC)
-	@echo "$(PURPLE)rm -rf $(BIN_DIR) $(EXEC) $(TEST_EXEC)$(RESET)"
+	@ rm -rf $(BIN_DIR) $(EXEC) 
+	@echo "$(PURPLE)rm -rf $(BIN_DIR) $(EXEC) $(RESET)"
 
 # create the bin directory if it doesn't exist
 $(BIN_DIR):
@@ -71,9 +55,4 @@ run: $(EXEC)
 	@echo "$(BLUE)Running exec...\n$(RESET)"
 	@ ./$(EXEC)
 
-# test target
-# test: $(TEST_EXEC)
-# 	@echo "$(BLUE)Running tests...\n$(RESET)"
-# 	@ ./$(TEST_EXEC)
-
-.PHONY: all clean test
+.PHONY: all clean run
