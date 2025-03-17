@@ -12,9 +12,7 @@
 #include "lexer.hpp"
 #include "token.hpp"
 
-#define EXPRESSION_VARIANT                                           \
-  std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, \
-               Node::NumericLiteral>
+
 
 class Parser
 {

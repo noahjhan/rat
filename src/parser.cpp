@@ -28,11 +28,9 @@
  *
  */
 
-int add(int a, int b) { return a + b; }
 // this code is for debugging purposes...
 // ideally this function calls dispatch which predicts the
 // syntax tree to generate
-
 Parser::Parser(std::deque<Token> &tokens) : tokens_(tokens)
 {
 
@@ -108,13 +106,14 @@ void Parser::dispatch()
 }
 std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 {
-  if (!tokens_.empty() && tokens_.front().type == GenericToken::NUMERIC_LITERAL)
+  if (!tokens_.empty() &&
+      tokens_.front().type == GenericToken::NUMERIC_LITERAL ||
+      tokens_.front().type == GenericToken::IDENTIFIER)
   {
     return tokenToExpr();
   }
   tokens_.pop_front();
-  std::cerr << "warning: identifier in expression" << std::endl;
-  return nullptr; // Cannot handle identifiers as of yet
+  return nullptr;
 }
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
@@ -203,8 +202,20 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 
   switch (token.type)
   {
+    /// @todo seperate functions maybe seperated struct for function and
+    /// variable identifiers
     case GenericToken::IDENTIFIER:
-      throw std::runtime_error("identifier : @todo");
+    {
+      Node::Identifier node;
+      node.token = token;
+      node.type = ConstituentToken::VARIABLE_ID; // not exactly true -> does not
+                                                 // support functions
+      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
+      Node::GenericExpr gen_expr;
+      gen_expr.expr = std::move(ptr);
+      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+    }
+    break;
     case GenericToken::KEYWORD:
       throw std::invalid_argument("error: keyword found in expression");
     case GenericToken::NUMERIC_LITERAL:
@@ -381,6 +392,11 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
   {
     auto literal = std::get<Node::NumericLiteral>(*variant);
     std::cout << "holds numeric literal: " << literal.token.value << std::endl;
+  }
+  else if (std::holds_alternative<Node::Identifier>(*variant))
+  {
+    auto id = std::get<Node::Identifier>(*variant);
+    std::cout << "holds identifier: " << id.token.value << std::endl;
   }
   else
   {
