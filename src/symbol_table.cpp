@@ -22,9 +22,9 @@ void SymbolTable::exitScope()
   }
 }
 
-bool SymboTable::lookupFunction(
+bool SymbolTable::lookupFunction(
 const std::string &identifier,
-const std::vector<std::pair<std::string, ConsituentToken>> &parameters,
+const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
 const ConstituentToken &return_type)
 {
   // find identifier (within size of scope)
@@ -45,7 +45,7 @@ bool SymbolTable::lookupVariable(const std::string &identifier,
 
 void SymbolTable::addFunction(
 const std::string &identifier,
-const std::vector<std::pair<std::string, ConsituentToken>> &parameters,
+const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
 const ConstituentToken &return_type)
 {
   // lookup

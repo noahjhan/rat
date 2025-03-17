@@ -122,8 +122,8 @@ bool TEST_EXPR_AST()
     auto root_expr = parse.recurseExpr();
     parse.debugASTPrinter(*root_expr);
 
-    auto &nodes = *root_expr;
-    auto &root = *nodes.expr;
+    // auto &nodes = *root_expr;
+    // auto &root = *nodes.expr;
 
     /// @todo write out full expression
   }
