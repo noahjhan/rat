@@ -36,7 +36,7 @@ class Parser
 
   void debugPrintln(const unsigned int &line_num);
   void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
-  void debugASTPrinter(std::vector<Node::GenericExpr> &vect);
+  void debugASTPrinter(Node::GenericExpr &node);
   void debugASTPrinterRecursive(const Node::GenericExpr &node, int depth);
 
   private:

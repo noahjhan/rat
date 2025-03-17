@@ -102,7 +102,6 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 {
   if (tokens_.empty()) return nullptr;
-
   if (tokens_.front().value == "!" || tokens_.front().value == "~")
   {
     tokens_.pop_front();
@@ -354,10 +353,6 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   {
     throw std::runtime_error("error: empty token deque");
   }
-  if (0)
-  {
-    throw std::invalid_argument("error: non expression token");
-  }
 
   std::unique_ptr<Node::GenericExpr> gen_expr_ptr;
   tokens_.pop_front(); // maybe here maybe at the end
@@ -414,6 +409,7 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   {
     return gen_expr_ptr;
   }
+  std::cerr << "received: '" << token.value << '\'' << std::endl;
   throw std::invalid_argument("error: unrecognized token in expression");
 }
 
@@ -468,14 +464,9 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 
 int Parser::numTokens() const { return tokens_.size(); }
 
-void Parser::debugASTPrinter(std::vector<Node::GenericExpr> &vect)
+void Parser::debugASTPrinter(Node::GenericExpr &node)
 {
-
-  std::cout << "number of expressions: " << vect.size() << std::endl;
-  for (const auto &node : vect)
-  {
-    debugASTPrinterRecursive(node, 0);
-  }
+  debugASTPrinterRecursive(node, 0);
 }
 
 void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)

@@ -2,8 +2,8 @@
 
 # compiler and linker
 CXX = clang++
-CXXFLAGS = -Wall -std=c++23 -g -O0 -I./includes # -fsanitize=address
-LDFLAGS = # -fsanitize=address
+CXXFLAGS = -Wall -std=c++23 -g -O0 -I./includes -fsanitize=address
+LDFLAGS = -fsanitize=address
 
 # colors
 BLUE = \033[1;34m

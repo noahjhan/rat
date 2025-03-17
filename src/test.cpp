@@ -31,7 +31,7 @@ bool TEST_LEXER()
     while (lex.advanceToken())
     {
     }
-    lex.debugPrinter(true /* use true here for verbose printing */);
+    // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
   }
   catch (const std::exception &e)
@@ -45,7 +45,6 @@ bool TEST_LEXER()
             << RESET << std::endl;
   return true;
 }
-
 bool TEST_EXPR_TYPES()
 {
   std::cout << PURPLE << "TEST CASE: Expr Types\n" << BAR << RESET << std::endl;
@@ -57,35 +56,41 @@ bool TEST_EXPR_TYPES()
     while (lex.advanceToken())
     {
     }
+    // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
-    std::vector<Node::GenericExpr> nodes;
-    while (parse.numTokens())
+    auto root_expr = parse.recurseExpr();
+    // parse.debugASTPrinter(*root_expr);
+    if (!root_expr)
     {
-      auto node = parse.tokenToExpr();
-      nodes.push_back(node ? std::move(*(node)) : Node::GenericExpr());
+      throw std::runtime_error("Failed to parse the root expression");
     }
 
-    if (nodes.size() > 1 && nodes[1].expr)
-    {
-      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[1].expr)));
-      assert(std::get<Node::NumericLiteral>(*(nodes[1].expr)).type ==
-             ConstituentToken::TYPE_FLOAT);
-    }
+    auto &nodes = *root_expr;
+    auto &root = *nodes.expr;
 
-    if (nodes.size() > 3 && nodes[3].expr)
-    {
-      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[3].expr)));
-      assert(std::get<Node::NumericLiteral>(*(nodes[3].expr)).type ==
-             ConstituentToken::TYPE_INT);
-    }
+    assert(std::holds_alternative<Node::BinaryExpr>(root));
+    auto &root_binary = std::get<Node::BinaryExpr>(root);
+    assert(root_binary.op == ConstituentToken::ARITHMETHIC_MUL);
 
-    if (nodes.size() > 6 && nodes[6].expr)
-    {
-      assert(std::holds_alternative<Node::NumericLiteral>(*(nodes[6].expr)));
-      assert(std::get<Node::NumericLiteral>(*(nodes[6].expr)).type ==
-             ConstituentToken::TYPE_DOUBLE);
-    }
+    assert(std::holds_alternative<Node::BinaryExpr>(*root_binary.lhs->expr));
+    auto &lhs_binary = std::get<Node::BinaryExpr>(*root_binary.lhs->expr);
+    assert(lhs_binary.op == ConstituentToken::ARITHMETHIC_ADD);
+
+    assert(std::holds_alternative<Node::NumericLiteral>(*lhs_binary.lhs->expr));
+    auto &lhs_numeric = std::get<Node::NumericLiteral>(*lhs_binary.lhs->expr);
+    assert(lhs_numeric.type == ConstituentToken::TYPE_FLOAT);
+
+    assert(std::holds_alternative<Node::NumericLiteral>(*lhs_binary.rhs->expr));
+    auto &lhs_rhs_numeric =
+    std::get<Node::NumericLiteral>(*lhs_binary.rhs->expr);
+    assert(lhs_rhs_numeric.type == ConstituentToken::TYPE_INT);
+
+    assert(
+    std::holds_alternative<Node::NumericLiteral>(*root_binary.rhs->expr));
+    auto &root_binary_rhs_numeric =
+    std::get<Node::NumericLiteral>(*root_binary.rhs->expr);
+    assert(root_binary_rhs_numeric.type == ConstituentToken::TYPE_DOUBLE);
   }
   catch (const std::exception &e)
   {
@@ -114,13 +119,8 @@ bool TEST_EXPR_AST()
     // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
-    std::vector<Node::GenericExpr> nodes;
-    while (parse.numTokens())
-    {
-      auto expr = parse.recurseExpr(); // Get the unique_ptr
-      nodes.push_back(expr ? std::move(*expr) : Node::GenericExpr());
-    }
-    parse.debugASTPrinter(nodes);
+    auto root_expr = parse.recurseExpr();
+    // parse.debugASTPrinter(*root_expr);
   }
   catch (const std::exception &e)
   {
