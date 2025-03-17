@@ -151,11 +151,11 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
     bin_expr.lhs = std::move(factor);
 
     if (tokens_.front().value == "*")
-      bin_expr.op = ConstituentToken::ARITHMETHIC_MUL;
+      bin_expr.op = ConstituentToken::ARITHMETIC_MUL;
     else if (tokens_.front().value == "/")
-      bin_expr.op = ConstituentToken::ARITHMETHIC_DIV;
+      bin_expr.op = ConstituentToken::ARITHMETIC_DIV;
     else if (tokens_.front().value == "%")
-      bin_expr.op = ConstituentToken::ARITHMETHIC_MOD;
+      bin_expr.op = ConstituentToken::ARITHMETIC_MOD;
 
     tokens_.pop_front();
     auto factor_rhs = recurseFactor();
@@ -183,8 +183,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseAdditive()
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(term);
     bin_expr.op = (tokens_.front().value == "+") ?
-                  ConstituentToken::ARITHMETHIC_ADD :
-                  ConstituentToken::ARITHMETHIC_SUB;
+                  ConstituentToken::ARITHMETIC_ADD :
+                  ConstituentToken::ARITHMETIC_SUB;
     tokens_.pop_front();
     auto term_rhs = recurseTerm();
     if (!term_rhs)
