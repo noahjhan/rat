@@ -24,6 +24,8 @@
  * @todo handle operator precedence and syntax errors such as 2 2 should throw (
  * no operator )
  *
+ * @todo identifiers in expression infinite loop
+ *
  */
 
 int add(int a, int b) { return a + b; }
@@ -110,6 +112,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
   {
     return tokenToExpr();
   }
+  tokens_.pop_front();
+  std::cerr << "warning: identifier in expression" << std::endl;
   return nullptr; // Cannot handle identifiers as of yet
 }
 
@@ -153,8 +157,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
     tokens_.pop_front();
     bin_expr.rhs = recurseFactor();
     factor = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
-        std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
-                                      Node::UnaryExpr, Node::NumericLiteral>>(std::move(bin_expr))});
+    std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
   return factor;
 }
@@ -173,8 +176,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
     tokens_.pop_front();
     bin_expr.rhs = recurseTerm();
     term = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
-        std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
-                                      Node::UnaryExpr, Node::NumericLiteral>>(std::move(bin_expr))});
+    std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
   return term;
 }
@@ -210,10 +212,7 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       Node::NumericLiteral node;
       node.token = token;
       node.type = inferTypeNumericLiteral(token.value);
-      auto ptr =
-      std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
-                                    Node::UnaryExpr, Node::NumericLiteral>>(
-      node);
+      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
@@ -227,10 +226,7 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       Node::NumericLiteral node;
       node.token = token;
       node.type = ConstituentToken::TYPE_CHAR;
-      auto ptr =
-      std::make_unique<std::variant<Node::GenericExpr, Node::BinaryExpr,
-                                    Node::UnaryExpr, Node::NumericLiteral>>(
-      node);
+      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));

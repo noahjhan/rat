@@ -6,5 +6,5 @@
 #include "test.hpp"
 // clang-format off
 int main() { 
-  return (!TEST_EXPR_AST()); 
+  return (!TEST_ALL()); 
 }
