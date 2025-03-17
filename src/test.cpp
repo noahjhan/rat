@@ -56,7 +56,7 @@ bool TEST_EXPR_TYPES()
     while (lex.advanceToken())
     {
     }
-    lex.debugPrinter(true /* use true here for verbose printing */);
+    //  lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
@@ -116,7 +116,7 @@ bool TEST_EXPR_AST()
     while (lex.advanceToken())
     {
     }
-    lex.debugPrinter(true /* use true here for verbose printing */);
+    // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
@@ -124,7 +124,7 @@ bool TEST_EXPR_AST()
 
     auto &nodes = *root_expr;
     auto &root = *nodes.expr;
-    
+
     /// @todo write out full expression
   }
   catch (const std::exception &e)
