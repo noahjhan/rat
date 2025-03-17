@@ -28,6 +28,7 @@
  *
  * @todo support for logical and bitwise not operator
  *
+ * @todo update grammar for new ops
  */
 
 // this code is for debugging purposes...
@@ -102,13 +103,25 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
   {
     return tokenToExpr();
   }
-  // tokens_.pop_front();
   return nullptr;
 }
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 {
   if (tokens_.empty()) return nullptr;
+
+  if (tokens_.front().value == "!" || tokens_.front().value == "~")
+  {
+    tokens_.pop_front();
+    Node::UnaryExpr un_expr;
+    un_expr.op = (tokens_.front().value == "!") ?
+                 ConstituentToken::BITWISE_NEG :
+                 ConstituentToken::LOGICAL_NOT;
+    un_expr.expr = recurseFactor();
+    auto factor = std::make_unique<Node::GenericExpr>(Node::GenericExpr{
+    std::make_unique<EXPRESSION_VARIANT>(std::move(un_expr))});
+    return factor;
+  }
 
   if (tokens_.front().type == GenericToken::NUMERIC_LITERAL ||
       tokens_.front().type == GenericToken::IDENTIFIER)
@@ -120,7 +133,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
   {
     tokens_.pop_front(); // Consume '('
     auto expr = recurseExpr();
-    if (tokens_.empty() || tokens_.front().value != ")")
+    if (tokens_.empty())
     {
       throw std::invalid_argument(
       "syntax error: invalid parentheses expression");
@@ -128,7 +141,6 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
     tokens_.pop_front(); // Consume ')'
     return expr;
   }
-  // tokens_.pop_front();
   return nullptr;
 }
 
@@ -141,6 +153,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
   {
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(factor);
+
     if (tokens_.front().value == "*")
       bin_expr.op = ConstituentToken::ARITHMETHIC_MUL;
     else if (tokens_.front().value == "/")
@@ -233,12 +246,20 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
 {
   auto comparison = recurseComparison();
   while (!tokens_.empty() &&
-         (tokens_.front().value == "&&" || tokens_.front().value == "||"))
+         (tokens_.front().value == "&" || tokens_.front().value == "^" ||
+          tokens_.front().value == "|" || tokens_.front().value == "&&" ||
+          tokens_.front().value == "||"))
   {
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(comparison);
 
-    if (tokens_.front().value == "&&")
+    if (tokens_.front().value == "&")
+      bin_expr.op = ConstituentToken::BITWISE_AND;
+    else if (tokens_.front().value == "^")
+      bin_expr.op = ConstituentToken::BITWISE_XOR;
+    else if (tokens_.front().value == "|")
+      bin_expr.op = ConstituentToken::LOGICAL_OR;
+    else if (tokens_.front().value == "&&")
       bin_expr.op = ConstituentToken::LOGICAL_AND;
     else if (tokens_.front().value == "||")
       bin_expr.op = ConstituentToken::LOGICAL_OR;
@@ -261,6 +282,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
       throw std::runtime_error("token deque empty");
     }
     Token token = tokens_.front();
+    std::cerr << "received: '" << token.value << '\'' << std::endl;
     debugLineCol(token.line_num, token.col_num);
     debugPrintln(token.line_num);
     throw std::invalid_argument("error: invalid syntax");
@@ -444,40 +466,41 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
 
   if (!variant)
   {
-    std::cout << std::string(depth, '\t') << "variant is null" << std::endl;
+    std::cout << std::string(depth, ' ') << "variant is null" << std::endl;
     return;
   }
 
   if (std::holds_alternative<Node::GenericExpr>(*variant))
   {
-    std::cout << std::string(depth, '\t') << "recursively holds expression"
+    std::cout << std::string(depth, ' ') << "recursively holds expression"
               << std::endl;
     debugASTPrinterRecursive(std::get<Node::GenericExpr>(*variant), depth + 1);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant))
   {
-    auto op = reverse_dictionary.at(
+    auto op = reverse_dictionary_.at(
     std::get<Node::BinaryExpr>(*variant).op); // validate that op is real
     std::cout << "holds binary expression: " << op << std::endl;
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
     if (binaryExpr.lhs)
     {
-      std::cout << std::string(depth, '\t') << "lhs: ";
+      std::cout << std::string(depth * 4, ' ') << "lhs: ";
       debugASTPrinterRecursive(*binaryExpr.lhs, depth + 1);
     }
     if (binaryExpr.rhs)
     {
-      std::cout << std::string(depth, '\t') << "rhs: ";
+      std::cout << std::string(depth * 4, ' ') << "rhs: ";
       debugASTPrinterRecursive(*binaryExpr.rhs, depth + 1);
     }
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*variant))
   {
-    std::cout << "holds unary expression" << std::endl;
+    auto op = reverse_dictionary_.at(std::get<Node::UnaryExpr>(*variant).op);
+    std::cout << "holds unary expression: " << op << std::endl;
     const auto &unaryExpr = std::get<Node::UnaryExpr>(*variant);
     if (unaryExpr.expr)
     {
-      std::cout << std::string(depth, '\t') << "expr: ";
+      std::cout << std::string(depth * 4, ' ') << "expr: ";
       debugASTPrinterRecursive(*unaryExpr.expr, depth + 1);
     }
   }
