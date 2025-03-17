@@ -20,6 +20,10 @@
  * debug.cpp file
  *
  * handle unary operators and complex binary operators
+ *
+ * @todo handle operator precedence and syntax errors such as 2 2 should throw (
+ * no operator )
+ *
  */
 
 int add(int a, int b) { return a + b; }
@@ -140,7 +144,6 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
   auto factor = recurseFactor();
   if (!factor)
   {
-    std::cout << "factor died" << std::endl;
     return nullptr;
   }
 
@@ -163,7 +166,6 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
     return std::make_unique<Node::GenericExpr>(std::move(gen_expr));
   }
 
-
   return factor;
 }
 
@@ -172,10 +174,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
   auto term = recurseTerm();
   if (!term)
   {
-    std::cout << "term died" << std::endl;
     return nullptr;
   }
-
 
   if (!tokens_.empty() &&
       (tokens_.front().value == "*" || tokens_.front().value == "/"))
@@ -198,7 +198,6 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
 
   return term;
 }
-
 
 std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
@@ -352,7 +351,6 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
   }
 }
 
-
 int Parser::numTokens() const { return tokens_.size(); }
 
 void Parser::debugASTPrinter(std::vector<Node::GenericExpr> &vect)
@@ -381,8 +379,7 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant))
   {
-    std::cout << std::string(depth, '\t') << "holds binary expression"
-              << std::endl;
+    std::cout << "holds binary expression" << std::endl;
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
     if (binaryExpr.lhs)
     {
@@ -397,8 +394,7 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*variant))
   {
-    std::cout << std::string(depth, '\t') << "holds unary expression"
-              << std::endl;
+    std::cout << "holds unary expression" << std::endl;
     const auto &unaryExpr = std::get<Node::UnaryExpr>(*variant);
     if (unaryExpr.expr)
     {
@@ -408,12 +404,11 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*variant))
   {
-    std::cout << std::string(depth, '\t') << "holds numeric literal"
-              << std::endl;
+    auto literal = std::get<Node::NumericLiteral>(*variant);
+    std::cout << "holds numeric literal: " << literal.token.value << std::endl;
   }
   else
   {
-    std::cout << std::string(depth, '\t') << "holds ambiguous state"
-              << std::endl;
+    std::cout << "holds ambiguous state" << std::endl;
   }
 }

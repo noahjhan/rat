@@ -121,6 +121,7 @@ bool TEST_EXPR_AST()
       auto expr = parse.recurseExpr(); // Get the unique_ptr
       nodes.push_back(expr ? std::move(*expr) : Node::GenericExpr());
     }
+    std::cout << "number of expressions: " << nodes.size() << std::endl;
     parse.debugASTPrinter(nodes);
   }
   catch (const std::exception &e)

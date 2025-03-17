@@ -10,7 +10,7 @@ Last night, I experienced something new, an extra-ordinary language from a singu
 
 -Anonymous Reviewer
 
-Rat is a bare bones, general purpose, statically-typed, purely functional, personal-project programming language inspired by the Pixar film, Ratatouille. It combines features of Haskell, C, OCaml, and Rust. But is currently a glorified lexer. Honestly, it is a gloried main.cpp file. #UNIT_TESTING! 
+Rat is a bare bones, general purpose, statically-typed, purely functional, 'rataturing-complete', personal-project programming language inspired by the Pixar film, Ratatouille. It combines features of Haskell, C, OCaml, and Rust. But is currently a glorified lexer. Honestly, it is a gloried main.cpp file. #UNIT_TESTING! 
 
 ## Informal Grammar
 

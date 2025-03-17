@@ -24,7 +24,6 @@ class Parser
   std::unique_ptr<Node::GenericExpr> recurseTerm();
   std::unique_ptr<Node::GenericExpr> recurseExpr();
 
-
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
 
   ConstituentToken inferTypeNumericLiteral(const std::string &value);

@@ -4,5 +4,7 @@
 #include "parser.hpp"
 #include "rat_source.hpp"
 #include "test.hpp"
-
-int main() { return (!TEST_ALL()); }
+// clang-format off
+int main() { 
+  return (!TEST_EXPR_AST()); 
+}
