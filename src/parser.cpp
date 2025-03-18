@@ -93,6 +93,11 @@ void Parser::dispatch()
 // let x: int = 10
 std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
+  // remove me
+  while (tokens_.front().value == ";")
+  {
+    tokens_.pop_front();
+  }
 
   if (tokens_.front().value != "let")
     throw std::invalid_argument(

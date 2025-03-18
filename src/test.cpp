@@ -157,6 +157,18 @@ bool TEST_VARIABLE_DECLARATION()
     auto parse = Parser(dq, rat);
     auto variable = parse.variableDeclaration();
     assert(variable.get()->type == ConstituentToken::TYPE_INT);
+    try
+    {
+      auto should_throw = parse.variableDeclaration();
+    }
+    catch (const std::exception &e)
+    {
+      if (static_cast<std::string>(e.what()) !=
+          "error: variable cannot have multiple defintions")
+      {
+        throw std::invalid_argument("error: symbol table should have thrown");
+      }
+    }
   }
   catch (const std::exception &e)
   {

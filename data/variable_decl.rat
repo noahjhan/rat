@@ -1,1 +1,2 @@
 let x: int = 10
+let x: float = 3.0f
