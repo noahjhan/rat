@@ -89,11 +89,9 @@ void Parser::dispatch()
   // 3 - Conditional Expr
   // 4 - Return Values
 }
-
-// let x: int = 10
 std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
-  // remove me
+  // remove me (i.e handle in dispatch)
   while (tokens_.front().value == ";")
   {
     tokens_.pop_front();

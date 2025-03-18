@@ -55,7 +55,7 @@ const ConstituentToken &return_type)
   }
 
   throw std::invalid_argument(
-  "error: function cannot have multiple defintions");
+  "error: function cannot have multiple definitions");
 }
 /// @todo if reference matches only one category, throw
 bool SymbolTable::lookupVariable(const std::string &identifier,
@@ -75,7 +75,7 @@ bool SymbolTable::lookupVariable(const std::string &identifier,
   }
 
   throw std::invalid_argument(
-  "error: variable cannot have multiple defintions");
+  "error: variable cannot have multiple definitions");
 }
 
 void SymbolTable::addFunction(

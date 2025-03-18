@@ -31,17 +31,19 @@ bool TEST_LEXER()
     while (lex.advanceToken())
     {
     }
-    lex.debugPrinter(true /* use true here for verbose printing */);
+    // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Lexer\n"
+    std::cerr << RED << "TEST CASE FAILED: Lexer\n"
+              << BAR << '\n'
               << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Lexer\n"
+  std::cout << GREEN << "TEST CASE PASSED: Lexer\n"
+            << BAR << '\n'
             << RESET << std::endl;
   return true;
 }
@@ -60,7 +62,7 @@ bool TEST_EXPR_TYPES()
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
-    parse.debugASTPrinter(*root_expr);
+    // parse.debugASTPrinter(*root_expr);
     if (!root_expr)
     {
       throw std::runtime_error("Failed to parse the root expression");
@@ -95,11 +97,13 @@ bool TEST_EXPR_TYPES()
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr Types\n"
+    std::cerr << RED << "TEST CASE FAILED: Expr Types\n"
+              << BAR << '\n'
               << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr Types\n"
+  std::cout << GREEN << "TEST CASE PASSED: Expr Types\n"
+            << BAR << '\n'
             << RESET << std::endl;
   return true;
 }
@@ -120,7 +124,7 @@ bool TEST_EXPR_AST()
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
-    parse.debugASTPrinter(*root_expr);
+    // parse.debugASTPrinter(*root_expr);
 
     // auto &nodes = *root_expr;
     // auto &root = *nodes.expr;
@@ -130,11 +134,13 @@ bool TEST_EXPR_AST()
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Expr AST\n"
+    std::cerr << RED << "TEST CASE FAILED: Expr AST\n"
+              << BAR << '\n'
               << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Expr AST\n"
+  std::cout << GREEN << "TEST CASE PASSED: Expr AST\n"
+            << BAR << '\n'
             << RESET << std::endl;
   return true;
 }
@@ -145,39 +151,53 @@ bool TEST_VARIABLE_DECLARATION()
             << BAR << RESET << std::endl;
   try
   {
-
     std::string file_name = "data/variable_decl.rat";
     auto rat = RatSource(file_name);
     auto lex = Lexer(rat);
     while (lex.advanceToken())
     {
     }
+
     // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto variable = parse.variableDeclaration();
     assert(variable.get()->type == ConstituentToken::TYPE_INT);
+
     try
     {
       auto should_throw = parse.variableDeclaration();
+      std::cerr << RED
+                << "TEST CASE FAILED: Variable Declaration - Expected "
+                   "exception not thrown\n"
+                << BAR << '\n'
+                << RESET << std::endl;
+      return false;
     }
     catch (const std::exception &e)
     {
-      if (static_cast<std::string>(e.what()) !=
-          "error: variable cannot have multiple defintions")
+      std::string error_message = e.what();
+      if (error_message != "error: variable cannot have multiple definitions")
       {
-        throw std::invalid_argument("error: symbol table should have thrown");
+        std::cerr << RED << "TEST CASE FAILED: Unexpected exception message: "
+                  << error_message << '\n'
+                  << BAR << '\n'
+                  << RESET << std::endl;
+        return false;
       }
     }
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << BAR << "\nTEST CASE FAILED: Variable Declaration\n"
+    std::cerr << RED << "TEST CASE FAILED: Variable Declaration\n"
+              << BAR << '\n'
               << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Variable Declaration\n"
+
+  std::cout << GREEN << "TEST CASE PASSED: Variable Declaration\n"
+            << BAR << '\n'
             << RESET << std::endl;
   return true;
 }
