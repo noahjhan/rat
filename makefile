@@ -2,8 +2,8 @@
 
 # compiler and linker
 CXX = clang++
-CXXFLAGS = -Wall -std=c++23 -g -O0 -I./includes -fsanitize=address
-LDFLAGS = -fsanitize=address
+CXXFLAGS = -Wall -std=c++23 -g -O0 -I./includes # -fsanitize=address
+LDFLAGS = # -fsanitize=address
 
 # colors
 BLUE = \033[1;34m
@@ -18,8 +18,8 @@ BIN_DIR = bin
 EXEC_DIR = $(BIN_DIR)/exec
 
 # files
-SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/main.cpp $(SRC_DIR)/lexer.cpp $(SRC_DIR)/parser.cpp $(SRC_DIR)/test.cpp
-HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/lexer.hpp $(INC_DIR)/parser.hpp $(INC_DIR)/test.hpp $(INC_DIR)/ast.hpp $(INC_DIR)/dictionary.hpp
+SOURCES = $(SRC_DIR)/rat_source.cpp $(SRC_DIR)/main.cpp $(SRC_DIR)/lexer.cpp $(SRC_DIR)/parser.cpp $(SRC_DIR)/test.cpp $(SRC_DIR)/symbol_table.cpp
+HEADERS = $(INC_DIR)/rat_source.hpp $(INC_DIR)/token.hpp $(INC_DIR)/lexer.hpp $(INC_DIR)/parser.hpp $(INC_DIR)/test.hpp $(INC_DIR)/ast.hpp $(INC_DIR)/dictionary.hpp $(INC_DIR)/symbol_table.hpp
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(BIN_DIR)/%.o)
 
 # output

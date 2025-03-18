@@ -139,9 +139,39 @@ bool TEST_EXPR_AST()
   return true;
 }
 
+bool TEST_VARIABLE_DECLARATION()
+{
+  std::cout << PURPLE << "TEST CASE: Variable Declaration\n" << BAR << RESET << std::endl;
+  try
+  {
+
+    std::string file_name = "data/variable_decl.rat";
+    auto rat = RatSource(file_name);
+    auto lex = Lexer(rat);
+    while (lex.advanceToken())
+    {
+    }
+    lex.debugPrinter(true /* use true here for verbose printing */);
+    std::deque<Token> dq = lex.getTokens();
+    auto parse = Parser(dq, rat);
+    auto variable = parse.variableDeclaration();
+    /// @todo write out full expression
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << e.what() << std::endl;
+    std::cerr << RED << BAR << "\nTEST CASE FAILED: Variable Declaration\n"
+              << RESET << std::endl;
+    return false;
+  }
+  std::cout << GREEN << BAR << "\nTEST CASE PASSED: Variable Declaration\n"
+            << RESET << std::endl;
+  return true;
+}
+
 bool TEST_ALL()
 {
-  int totalTests = 3; // change per test
+  int totalTests = 4; // change per test
   int failedTests = 0;
 
   if (!TEST_LEXER())
@@ -156,7 +186,10 @@ bool TEST_ALL()
   {
     failedTests++;
   }
-
+  if (!TEST_VARIABLE_DECLARATION())
+  {
+    failedTests++;
+  }
   if (failedTests > 0)
   {
     std::cout << RED << "TOTAL TESTS: " << totalTests << std::endl;

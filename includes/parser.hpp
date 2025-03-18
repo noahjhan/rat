@@ -10,6 +10,7 @@
 #include "ast.hpp"
 #include "dictionary.hpp"
 #include "lexer.hpp"
+#include "symbol_table.hpp"
 #include "token.hpp"
 
 class Parser
@@ -18,6 +19,8 @@ class Parser
   Parser(std::deque<Token> &tokens, RatSource &source_file);
 
   void dispatch();
+
+  std::unique_ptr<Node::VariableDecl> variableDeclaration();
 
   std::unique_ptr<Node::GenericExpr> recurseNumeric();
   std::unique_ptr<Node::GenericExpr> recurseFactor();
@@ -28,6 +31,7 @@ class Parser
   std::unique_ptr<Node::GenericExpr> recurseLogical();
   std::unique_ptr<Node::GenericExpr> recurseExpr();
 
+  
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
 
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
@@ -45,6 +49,7 @@ class Parser
   REVERSE_DICT;
   std::deque<Token> tokens_;
   RatSource source_file_;
+  SymbolTable symbol_table_;
 };
 
 #endif // PARSER_HPP

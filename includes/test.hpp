@@ -13,6 +13,8 @@ bool TEST_EXPR_TYPES();
 
 bool TEST_EXPR_AST();
 
+bool TEST_VARIABLE_DECLARATION();
+
 bool TEST_ALL();
 
 #endif // TEST_HPP

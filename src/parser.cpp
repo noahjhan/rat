@@ -88,6 +88,55 @@ void Parser::dispatch()
   // 4 - Return Values
 }
 
+// let x: int = 10
+std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
+{
+
+  if (tokens_.front().type != GenericToken::KEYWORD)
+    throw std::invalid_argument(
+    "error: expected keyword in variable declaration");
+
+  tokens_.pop_front();
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+
+  if (tokens_.front().type != GenericToken::IDENTIFIER)
+    throw std::invalid_argument(
+    "error: expected identifier in variable delcaration");
+
+  Node::VariableDecl variable_decl;
+  variable_decl.token = tokens_.front();
+  tokens_.pop_front();
+
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  if (tokens_.front().type != GenericToken::PUNCTUATOR)
+    throw std::invalid_argument(
+    "error: expected punctuator in variable declaration");
+
+  tokens_.pop_front();
+
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  if (tokens_.front().type != GenericToken::TYPE)
+    throw std::invalid_argument("error: expected type in variable declaration");
+  if (dictionary_.find(tokens_.front().value) == dictionary_.end())
+    throw std::invalid_argument(
+    "error: unrecognized type in variable declatation");
+
+  variable_decl.type = dictionary_.at(tokens_.front().value);
+  tokens_.pop_front();
+
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  if (tokens_.front().type != GenericToken::OPERATOR)
+    throw std::invalid_argument(
+    "error: expected assignment operator in expression");
+
+  tokens_.pop_front();
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+
+  variable_decl.expr = recurseExpr();
+
+  return std::make_unique<Node::VariableDecl>(std::move(variable_decl));
+}
+
 std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 {
   if (!tokens_.empty() &&

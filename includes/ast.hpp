@@ -12,6 +12,7 @@
 namespace Node
 {
 
+struct VariableDecl;
 struct Identifier;
 struct NumericLiteral;
 struct UnaryExpr;
@@ -46,6 +47,13 @@ struct Identifier
 {
   Token token;
   ConstituentToken type;
+};
+
+struct VariableDecl
+{
+  Token token;
+  ConstituentToken type;
+  std::unique_ptr<GenericExpr> expr;
 };
 
 } // namespace Node
