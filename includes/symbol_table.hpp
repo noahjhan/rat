@@ -1,13 +1,17 @@
 #ifndef SYMBOL_TABLE_HPP
 #define SYMBOL_TABLE_HPP
 
+#include <cassert>
 #include <stack>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
 
 #include "token.hpp"
+
+#define SYMBOL_VARIANT std::variant<FunctionSymbol, VariableSymbol, void *>
 
 struct FunctionSymbol
 {
@@ -45,8 +49,9 @@ class SymbolTable
                    const std::string &value);
 
   private:
-  std::stack<std::variant<FunctionSymbol, VariableSymbol>> stack_;
-  std::stack<unsigned int> frame_size_;
+  std::vector<SYMBOL_VARIANT> stack_;
+  std::unordered_map<std::string, FunctionSymbol> function_table_;
+  std::unordered_map<std::string, VariableSymbol> variable_table_;
 };
 
 #endif // SYMBOL_TABLE_HPP
