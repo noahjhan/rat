@@ -22,6 +22,8 @@
  * @todo identifiers in expression infinite loo
  *
  * @todo update grammar for new ops
+ *
+ * @todo add variable to symbol table
  */
 
 // this code is for debugging purposes...
@@ -92,7 +94,7 @@ void Parser::dispatch()
 std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
 
-  if (tokens_.front().type != GenericToken::KEYWORD)
+  if (tokens_.front().value != "let")
     throw std::invalid_argument(
     "error: expected keyword in variable declaration");
 
@@ -108,7 +110,7 @@ std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
   tokens_.pop_front();
 
   if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-  if (tokens_.front().type != GenericToken::PUNCTUATOR)
+  if (tokens_.front().value != ":")
     throw std::invalid_argument(
     "error: expected punctuator in variable declaration");
 
@@ -125,7 +127,7 @@ std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
   tokens_.pop_front();
 
   if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-  if (tokens_.front().type != GenericToken::OPERATOR)
+  if (tokens_.front().value != "=")
     throw std::invalid_argument(
     "error: expected assignment operator in expression");
 
@@ -133,6 +135,8 @@ std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
   if (tokens_.empty()) throw std::invalid_argument("out of tokens");
 
   variable_decl.expr = recurseExpr();
+
+  symbol_table_.addVariable(variable_decl.token.value, variable_decl.type);
 
   return std::make_unique<Node::VariableDecl>(std::move(variable_decl));
 }

@@ -141,7 +141,8 @@ bool TEST_EXPR_AST()
 
 bool TEST_VARIABLE_DECLARATION()
 {
-  std::cout << PURPLE << "TEST CASE: Variable Declaration\n" << BAR << RESET << std::endl;
+  std::cout << PURPLE << "TEST CASE: Variable Declaration\n"
+            << BAR << RESET << std::endl;
   try
   {
 
@@ -151,11 +152,11 @@ bool TEST_VARIABLE_DECLARATION()
     while (lex.advanceToken())
     {
     }
-    lex.debugPrinter(true /* use true here for verbose printing */);
+    // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto variable = parse.variableDeclaration();
-    /// @todo write out full expression
+    assert(variable.get()->type == ConstituentToken::TYPE_INT);
   }
   catch (const std::exception &e)
   {

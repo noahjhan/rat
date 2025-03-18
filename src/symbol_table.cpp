@@ -59,8 +59,7 @@ const ConstituentToken &return_type)
 }
 /// @todo if reference matches only one category, throw
 bool SymbolTable::lookupVariable(const std::string &identifier,
-                                 const ConstituentToken &type,
-                                 const std::string &value)
+                                 const ConstituentToken &type)
 {
 
   if (variable_table_.find(identifier) == variable_table_.end())
@@ -70,8 +69,7 @@ bool SymbolTable::lookupVariable(const std::string &identifier,
 
   VariableSymbol variable = variable_table_.at(identifier);
 
-  if (variable.identifier == identifier && variable.type == type &&
-      variable.value == value)
+  if (variable.identifier == identifier && variable.type == type)
   {
     return true;
   }
@@ -99,17 +97,15 @@ const ConstituentToken &return_type)
 }
 
 void SymbolTable::addVariable(const std::string &identifier,
-                              const ConstituentToken &type,
-                              const std::string &value)
+                              const ConstituentToken &type)
 {
-  if (lookupVariable(identifier, type, value))
+  if (lookupVariable(identifier, type))
   {
     throw std::invalid_argument("error: variable declaration already exists");
   }
   VariableSymbol variable;
   variable.identifier = identifier;
   variable.type = type;
-  variable.value = value;
   stack_.push_back(variable);
 
   variable_table_.insert({identifier, variable});

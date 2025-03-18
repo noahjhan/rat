@@ -39,14 +39,13 @@ class SymbolTable
   const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
   const ConstituentToken &return_type);
   bool lookupVariable(const std::string &identifier,
-                      const ConstituentToken &type, const std::string &value);
+                      const ConstituentToken &type);
 
   void addFunction(
   const std::string &identifier,
   const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
   const ConstituentToken &return_type);
-  void addVariable(const std::string &identifier, const ConstituentToken &type,
-                   const std::string &value);
+  void addVariable(const std::string &identifier, const ConstituentToken &type);
 
   private:
   std::vector<SYMBOL_VARIANT> stack_;

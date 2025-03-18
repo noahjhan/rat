@@ -246,7 +246,8 @@ bool Lexer::advanceToken()
     partial.push_back(curr);
 
     // check if keyword
-    if (keywords_.find(partial) != keywords_.end())
+    if (keywords_.find(partial) != keywords_.end() &&
+        source_file_.peekChar() == ' ')
     {
       char peek = source_file_.peekChar();
       partial.push_back(peek);
