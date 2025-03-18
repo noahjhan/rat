@@ -56,6 +56,10 @@
         "algorithm": "cpp",
         "unordered_set": "cpp",
         "regex": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp"
     }
 }

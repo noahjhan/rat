@@ -5,7 +5,6 @@ IndentWidth: 2
 UseTab: Never
 
 Language: Cpp
-# Standard: Cpp17
 
 PointerAlignment: Right
 
@@ -30,16 +29,25 @@ AlwaysBreakTemplateDeclarations: false
 NamespaceIndentation: None
 
 BreakBeforeBinaryOperators: false
-BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: false
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
 
-ColumnLimit: 80
+ColumnLimit: 120
 MaxEmptyLinesToKeep: 1
 
 ConstructorInitializerIndentWidth: 0
 ContinuationIndentWidth: 0
 IndentCaseLabels: true
 IndentFunctionDeclarationAfterType: false
-
-

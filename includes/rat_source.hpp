@@ -10,26 +10,22 @@
 #include <unordered_map>
 
 #define RESET_LINE              \
-  do                            \
-  {                             \
+  do {                          \
     prev_line_num_ = line_num_; \
     line_num_ = 1;              \
   } while (0)
 #define RESET_COL             \
-  do                          \
-  {                           \
+  do {                        \
     prev_col_num_ = col_num_; \
     col_num_ = 1;             \
   } while (0)
 #define NEXT_LINE               \
-  do                            \
-  {                             \
+  do {                          \
     prev_line_num_ = line_num_; \
     ++line_num_;                \
   } while (0)
 #define NEXT_COL              \
-  do                          \
-  {                           \
+  do {                        \
     prev_col_num_ = col_num_; \
     ++col_num_;               \
   } while (0)

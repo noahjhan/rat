@@ -18,9 +18,15 @@ class Parser
   public:
   Parser(std::deque<Token> &tokens, RatSource &source_file);
 
-  void dispatch();
+  std::unique_ptr<Node::AST> dispatch();
 
   std::unique_ptr<Node::VariableDecl> variableDeclaration();
+  std::unique_ptr<Node::FunctionDecl> functionDeclaration();
+
+  std::unique_ptr<Node::ConditionalStatement> elseStatement(const Token &token);
+  std::unique_ptr<Node::ConditionalStatement> elseifStatement(const Token &token);
+  std::unique_ptr<Node::ConditionalStatement> ifStatement(const Token &token);
+  std::unique_ptr<Node::ConditionalStatement> conditionalStatement();
 
   std::unique_ptr<Node::GenericExpr> recurseNumeric();
   std::unique_ptr<Node::GenericExpr> recurseFactor();
@@ -30,7 +36,6 @@ class Parser
   std::unique_ptr<Node::GenericExpr> recurseComparison();
   std::unique_ptr<Node::GenericExpr> recurseLogical();
   std::unique_ptr<Node::GenericExpr> recurseExpr();
-
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
 
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
@@ -44,8 +49,7 @@ class Parser
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;
-  std::unordered_map<ConstituentToken, std::string> reverse_dictionary_ =
-  REVERSE_DICT;
+  std::unordered_map<ConstituentToken, std::string> reverse_dictionary_ = REVERSE_DICT;
   std::deque<Token> tokens_;
   RatSource source_file_;
   SymbolTable symbol_table_;

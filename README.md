@@ -27,7 +27,7 @@ Rat is a bare bones, general purpose, statically-typed, purely functional, 'rata
 
 fn specifies a pure function - first class function with static return type
 
-fn_ specifies a void function - no return 
+fn_ specifies a void function - no return (this is useful for syscalls) 
 
 fn? specifies an optional function - can return NULL, output will be cast to optional type
 

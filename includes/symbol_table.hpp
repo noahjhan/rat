@@ -34,17 +34,14 @@ class SymbolTable
   void enterScope();
   void exitScope();
 
-  bool lookupFunction(
-  const std::string &identifier,
-  const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-  const ConstituentToken &return_type);
-  bool lookupVariable(const std::string &identifier,
-                      const ConstituentToken &type);
+  bool lookupFunction(const std::string &identifier,
+                      const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
+                      const ConstituentToken &return_type);
+  bool lookupVariable(const std::string &identifier, const ConstituentToken &type);
 
-  void addFunction(
-  const std::string &identifier,
-  const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-  const ConstituentToken &return_type);
+  void addFunction(const std::string &identifier,
+                   const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
+                   const ConstituentToken &return_type);
   void addVariable(const std::string &identifier, const ConstituentToken &type);
 
   private:

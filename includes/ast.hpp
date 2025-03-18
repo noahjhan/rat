@@ -5,9 +5,10 @@
 #include <memory>
 #include <variant>
 
-#define EXPRESSION_VARIANT                                           \
-  std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, \
-               Node::NumericLiteral, Node::Identifier>
+#define EXPRESSION_VARIANT \
+  std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral, Node::Identifier>
+
+#define AST_VARIANT std::variant<Node::FunctionDecl, Node::VariableDecl, Node::ConditionalStatement, Node::GenericExpr>
 
 namespace Node
 {
@@ -18,6 +19,12 @@ struct NumericLiteral;
 struct UnaryExpr;
 struct BinaryExpr;
 struct GenericExpr;
+struct AST;
+
+struct AST
+{
+  std::unique_ptr<AST_VARIANT> ast;
+};
 
 struct GenericExpr
 {
@@ -51,9 +58,23 @@ struct Identifier
 
 struct VariableDecl
 {
-  Token token;
+  Token token; // identifier + line + col
   ConstituentToken type;
   std::unique_ptr<GenericExpr> expr;
+};
+
+struct FunctionDecl
+{
+  Token token;                  // identifier + line + col
+  ConstituentToken return_type; // return_type
+  // I think the actual parameters will be stored in the symbol table
+};
+
+struct ConditionalStatement
+{
+  Token token; // type of expression
+  std::unique_ptr<GenericExpr> expr;
+  std::unique_ptr<ConditionalStatement> next; // if - else if - else
 };
 
 } // namespace Node

@@ -30,8 +30,8 @@ class Lexer
   void advanceStringLiteral();
   void advanceCharLiteral();
 
-  void dequePush(GenericToken type, const std::string &value,
-                 const unsigned int &line_num, const unsigned int &col_num);
+  void dequePush(GenericToken type, const std::string &value, const unsigned int &line_num,
+                 const unsigned int &col_num);
 
   void debugPrintln(const unsigned int &line_num);
   void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
