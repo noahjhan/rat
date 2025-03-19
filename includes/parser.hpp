@@ -18,12 +18,11 @@ class Parser
   public:
   Parser(std::deque<Token> &tokens, RatSource &source_file);
 
-  std::unique_ptr<Node::AST> dispatch();
+  std::shared_ptr<Node::AST> dispatch();
 
-  std::unique_ptr<Node::VariableDecl> variableDeclaration();
-  std::unique_ptr<Node::FunctionDecl> functionDeclaration();
-
-  std::unique_ptr<Node::ConditionalStatement> conditionalStatement();
+  std::shared_ptr<Node::VariableDecl> variableDeclaration();
+  std::shared_ptr<Node::FunctionDecl> functionDeclaration();
+  std::shared_ptr<Node::ConditionalStatement> conditionalStatement();
 
   std::unique_ptr<Node::GenericExpr> recurseNumeric();
   std::unique_ptr<Node::GenericExpr> recurseFactor();

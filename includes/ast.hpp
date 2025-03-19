@@ -28,8 +28,8 @@ struct AST;
 
 struct AST
 {
-  std::unique_ptr<AST_VARIANT> curr;
-  std::unique_ptr<AST> next;
+  std::shared_ptr<AST_VARIANT> curr;
+  std::shared_ptr<AST> next;
 };
 
 struct GenericExpr
@@ -73,7 +73,7 @@ struct FunctionDecl
 {
   Token token;                  // identifier + line + col
   ConstituentToken return_type; // return_type
-  std::unique_ptr<AST> body;
+  std::shared_ptr<AST> body;
   // parameters will be stored in the symbol table
 };
 

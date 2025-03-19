@@ -67,7 +67,7 @@ bool SymbolTable::lookupVariable(const std::string &identifier, const Constituen
 
 void SymbolTable::addFunction(const std::string &identifier,
                               const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-                              const ConstituentToken &return_type)
+                              const std::shared_ptr<Node::AST> &body, const ConstituentToken &return_type)
 {
   if (lookupFunction(identifier, parameters, return_type)) {
     throw std::invalid_argument("error: function cannot have multiple declarations");
@@ -75,6 +75,7 @@ void SymbolTable::addFunction(const std::string &identifier,
   FunctionSymbol function;
   function.identifier = identifier;
   function.parameters = parameters;
+  function.body = std::make_unique<Node::AST>(std::move(*body));
   function.return_type = return_type;
   stack_.push_back(function);
   function_table_.insert({identifier, function});

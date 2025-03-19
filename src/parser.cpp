@@ -51,7 +51,7 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(toke
   symbol_table_.enterScope();
 }
 /// @todo scopes
-std::unique_ptr<Node::AST> Parser::dispatch()
+std::shared_ptr<Node::AST> Parser::dispatch()
 {
   if (tokens_.empty()) {
     symbol_table_.exitScope();
@@ -85,13 +85,13 @@ std::unique_ptr<Node::AST> Parser::dispatch()
 
   const std::string &value = tokens_.front().value;
 
-  auto createASTNode = [&](auto parsingFunction, const std::string error_message) -> std::unique_ptr<Node::AST> {
+  auto createASTNode = [&](auto parsingFunction, const std::string error_message) -> std::shared_ptr<Node::AST> {
     auto ptr = parsingFunction();
     if (!ptr) {
       throw std::invalid_argument(error_message);
     }
-    auto ast = std::make_unique<Node::AST>();
-    ast->curr = std::make_unique<AST_VARIANT>(std::move(*ptr));
+    auto ast = std::make_shared<Node::AST>();
+    ast->curr = std::make_shared<AST_VARIANT>(std::move(*ptr));
     ast->next = dispatch();
     return ast;
   };
@@ -112,7 +112,7 @@ std::unique_ptr<Node::AST> Parser::dispatch()
   return nullptr;
 }
 
-std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
+std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
   // remove me (i.e handle in dispatch)
   while (tokens_.front().value == ";") {
@@ -161,7 +161,7 @@ std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 }
 
 /// @todo support for lambdas
-std::unique_ptr<Node::FunctionDecl> Parser::functionDeclaration()
+std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
 {
   // remove me (i.e handle in dispatch)
   while (tokens_.front().value == ";") {
@@ -172,7 +172,7 @@ std::unique_ptr<Node::FunctionDecl> Parser::functionDeclaration()
 }
 
 // calls statement such that the top of the tokens is the expression
-std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
+std::shared_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 {
 
   const Token token = tokens_.front();
@@ -182,7 +182,7 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
   if (token.value == "if") {
     tokens_.pop_front();
     cond.expr = recurseExpr();
-    cond.body = dispatch();
+    cond.body = std::make_unique<Node::AST>(std::move(*dispatch()));
     return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
 
@@ -197,14 +197,14 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 
   if (next.value == "{") {
     cond.expr = nullptr; // sentinal value for else statements
-    cond.body = dispatch();
+    cond.body = std::make_unique<Node::AST>(std::move(*dispatch()));
     return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
   else if (next.value == "if") {
     tokens_.pop_front();
     cond.token.value = "else if";
     cond.expr = recurseExpr();
-    cond.body = dispatch();
+    cond.body = std::make_unique<Node::AST>(std::move(*dispatch()));
     return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
   else {

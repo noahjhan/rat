@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 
+#include "ast.hpp"
 #include "token.hpp"
 
 #define SYMBOL_VARIANT std::variant<FunctionSymbol, VariableSymbol, void *>
@@ -18,6 +19,7 @@ struct FunctionSymbol
 {
   std::string identifier;
   std::vector<std::pair<std::string, ConstituentToken>> parameters;
+  std::shared_ptr<Node::AST> body;
   ConstituentToken return_type;
 };
 
@@ -42,7 +44,7 @@ class SymbolTable
 
   void addFunction(const std::string &identifier,
                    const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-                   const ConstituentToken &return_type);
+                   const std::shared_ptr<Node::AST> &body, const ConstituentToken &return_type);
   void addVariable(const std::string &identifier, const ConstituentToken &type);
 
   void debugSize();
