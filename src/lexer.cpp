@@ -282,6 +282,9 @@ bool Lexer::advanceToken()
 void Lexer::dequePush(GenericToken type, const std::string &value, const unsigned int &line_num,
                       const unsigned int &col_num)
 {
+  if (value == ";" && tokens_.front().value == ";") {
+    return;
+  }
   Token t;
   t.type = type;
   t.value = value;

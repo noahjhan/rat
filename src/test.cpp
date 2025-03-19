@@ -104,6 +104,16 @@ bool TEST_EXPR_AST()
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
+    try {
+      if (parse.recurseExpr()) {
+        throw std::invalid_argument("errpr: multiple expressions");
+      }
+    }
+    catch (const std::exception &e) {
+      if (std::string(e.what()) != "token deque empty") {
+        throw std::invalid_argument("error: multiple expressions");
+      }
+    }
     // parse.debugASTPrinter(*root_expr);
 
     // auto &nodes = *root_expr;
@@ -165,9 +175,33 @@ bool TEST_VARIABLE_DECLARATION()
   return true;
 }
 
+bool TEST_DISPATCH_SIMPLE()
+{
+  std::cout << PURPLE << "TEST CASE: Dispatch Simple\n" << BAR << RESET << std::endl;
+  try {
+    std::string file_name = "data/dispatch_simple.rat";
+    auto rat = RatSource(file_name);
+    auto lex = Lexer(rat);
+    while (lex.advanceToken()) {
+    }
+    // lex.debugPrinter(true /* use true here for verbose printing */);
+    std::deque<Token> dq = lex.getTokens();
+    auto parse = Parser(dq, rat);
+    auto ast = parse.dispatch();
+  }
+  catch (const std::exception &e) {
+    std::cerr << e.what() << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Dispatch Simple\n" << BAR << '\n' << RESET << std::endl;
+    return false;
+  }
+
+  std::cout << GREEN << "TEST CASE PASSED: Dispatch Simple\n" << BAR << '\n' << RESET << std::endl;
+  return true;
+}
+
 bool TEST_ALL()
 {
-  int totalTests = 4; // change per test
+  int totalTests = 5; // change per test
   int failedTests = 0;
 
   if (!TEST_LEXER()) {
@@ -182,6 +216,10 @@ bool TEST_ALL()
   if (!TEST_VARIABLE_DECLARATION()) {
     failedTests++;
   }
+  if (!TEST_DISPATCH_SIMPLE()) {
+    failedTests++;
+  }
+
   if (failedTests > 0) {
     std::cout << RED << "TOTAL TESTS: " << totalTests << std::endl;
     std::cout << BAR << "\n" << failedTests << " test(s) failed!" << "\n" << BAR << RESET << std::endl;

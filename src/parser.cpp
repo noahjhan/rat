@@ -70,7 +70,7 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(toke
     }
   }
 }
-/// @todo
+/// @todo scopes
 ///
 /// the point of this dispatch will be to pop a token
 /// peek the next token and use only that information
@@ -78,13 +78,48 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(toke
 /// the complete AST will represent one level of scope:
 std::unique_ptr<Node::AST> Parser::dispatch()
 {
-  // expext expressions to occur
-  // 1 - Variable Assignment
-  // 2 - As Function Param
-  // 3 - Conditional Expr
-  // 4 - Return Values
+  if (tokens_.empty()) {
+    return nullptr;
+  }
+
+  while (tokens_.front().value == ";") {
+    tokens_.pop_front();
+  }
+
+  const std::string &value = tokens_.front().value;
+
+  std::cout << "value " << value << std::endl;
+  if (value == "}" || value == "{") {
+    std::cout << "here: " << value << std::endl;
+  }
+
+  auto createASTNode = [&](auto parsingFunc, const char *errorMsg) -> std::unique_ptr<Node::AST> {
+    auto ptr = parsingFunc();
+    if (!ptr) {
+      throw std::invalid_argument(errorMsg);
+    }
+    auto ast = std::make_unique<Node::AST>();
+    ast->curr = std::make_unique<AST_VARIANT>(std::move(*ptr));
+    ast->next = dispatch();
+    return ast;
+  };
+
+  if (value == "fn" || value == "fn_" || value == "fn/" || value == "fn?") {
+    return createASTNode([this] { return functionDeclaration(); }, "null function declaration");
+  }
+  if (value == "let" || value == "op") {
+    return createASTNode([this] { return variableDeclaration(); }, "null variable declaration");
+  }
+  if (value == "if" || value == "else") {
+    return createASTNode([this] { return conditionalStatement(); }, "null conditional statement");
+  }
+  if (value == "rev" || value == "ret") {
+    return createASTNode([this] { return returnStatment(); }, "null return statement");
+  }
+
   return nullptr;
 }
+
 std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
   // remove me (i.e handle in dispatch)
@@ -134,19 +169,19 @@ std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 }
 
 /// @todo support for lambdas
-// std::unique_ptr<Node::FunctionDecl> Parser::functionDeclaration() {
-//     // remove me (i.e handle in dispatch)
-//   while (tokens_.front().value == ";")
-//   {
-//     tokens_.pop_front();
-//   }
+std::unique_ptr<Node::FunctionDecl> Parser::functionDeclaration()
+{
+  // remove me (i.e handle in dispatch)
+  while (tokens_.front().value == ";") {
+    tokens_.pop_front();
+  }
 
-//   // fn functionName(param: Type1, param: type2): Return_type {
-//   //   body
-//   //   return_value
-//   // }
-
-// }:
+  // fn functionName(param: Type1, param: type2): Return_type {
+  //   body
+  //   return_value
+  // }
+  return nullptr;
+}
 
 // calls statement such that the top of the tokens is the expression
 std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
@@ -159,6 +194,8 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
   if (token.value == "if") {
     tokens_.pop_front();
     cond.expr = recurseExpr();
+    cond.body = dispatch();
+    return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
 
   if (token.value == "else") {
@@ -172,10 +209,14 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 
   if (next.value == "(") {
     cond.expr = nullptr; // sentinal value for else statements
+    cond.body = dispatch();
+    return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
   else if (next.value == "if") {
     tokens_.pop_front();
     cond.expr = recurseExpr();
+    cond.body = dispatch();
+    return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
   else {
     throw std::invalid_argument("error: expected keyword in conditional expression");
@@ -183,25 +224,6 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 
   return nullptr;
 }
-
-// tokens_.pop_front();
-// if (tokens_.front().value != "(")
-// {
-//   throw std::invalid_argument("error expected '(' in conditional
-//   statement");
-// }
-
-// tokens_.pop_front();
-// std::unique_ptr<Node::GenericExpr> expr = recurseExpr();
-
-// if (tokens_.front().value != ")")
-// {
-//   throw std::invalid_argument("error expected ')' in conditional
-//   statement");
-// }
-
-// tokens_.pop_front();
-// }
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 {
@@ -225,7 +247,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
     tokens_.pop_front();
 
     if (tokens_.empty()) {
-      std::cerr << "Error: Missing operand after unary operator '" << op << "'\n";
+      std::cerr << "missing operand after unary operator '" << op << "'\n";
+      throw std::invalid_argument("syntax error");
       return nullptr;
     }
 
@@ -234,7 +257,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 
     un_expr.expr = recurseFactor();
     if (!un_expr.expr) {
-      std::cerr << "Error: Invalid expression after unary operator '" << op << "'\n";
+      std::cerr << "invalid expression after unary operator '" << op << "'\n";
+      throw std::invalid_argument("syntax error");
       return nullptr;
     }
     return std::make_unique<Node::GenericExpr>(
@@ -496,6 +520,29 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   throw std::invalid_argument("error: unrecognized token in expression");
 }
 
+std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
+{
+  if (tokens_.front().value == "rev") {
+    // check this?
+    Node::ReturnStatement rev;
+    rev.token = tokens_.front();
+    tokens_.pop_front();
+    rev.type = ConstituentToken::TYPE_VOID;
+    rev.expr = nullptr;
+    return std::make_unique<Node::ReturnStatement>(std::move(rev));
+  }
+  if (tokens_.front().value == "ret") {
+    // check this?
+    Node::ReturnStatement ret;
+    ret.token = tokens_.front();
+    tokens_.pop_front();
+    /// @todo find proper return type for error checking
+    ret.type = ConstituentToken::TYPE_VOID;
+    ret.expr = recurseExpr();
+    return std::make_unique<Node::ReturnStatement>(std::move(ret));
+  }
+  throw std::invalid_argument("unrecognized keyword in return statement");
+}
 /// @todo suppport for optional
 /// @todo move some of this to lexer
 /// @todo create usuable regex

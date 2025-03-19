@@ -53,6 +53,8 @@ enum class ConstituentToken
   TYPE_OP_UCHAR,
   TYPE_OP_STRING,
 
+  TYPE_VOID,
+
   NULL_LITERAL,
 
   // keyword

@@ -8,11 +8,14 @@
 #define EXPRESSION_VARIANT \
   std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral, Node::Identifier>
 
-#define AST_VARIANT std::variant<Node::FunctionDecl, Node::VariableDecl, Node::ConditionalStatement, Node::GenericExpr>
+#define AST_VARIANT                                                                                       \
+  std::variant<Node::FunctionDecl, Node::VariableDecl, Node::ConditionalStatement, Node::ReturnStatement, \
+               Node::GenericExpr>
 
 namespace Node
 {
 
+struct ReturnStatement;
 struct ConditionalStatement;
 struct FunctionDecl;
 struct VariableDecl;
@@ -80,6 +83,13 @@ struct ConditionalStatement
   std::unique_ptr<GenericExpr> expr;
   std::unique_ptr<ConditionalStatement> next; // if - else if - else
   std::unique_ptr<AST> body;
+};
+
+struct ReturnStatement
+{
+  Token token;
+  ConstituentToken type;
+  std::unique_ptr<GenericExpr> expr;
 };
 
 } // namespace Node
