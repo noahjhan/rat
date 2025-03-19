@@ -45,7 +45,7 @@ bool SymbolTable::lookupFunction(const std::string &identifier,
     return true;
   }
 
-  throw std::invalid_argument("error: function cannot have multiple definitions");
+  throw std::invalid_argument("error: function cannot have multiple declarations");
 }
 /// @todo if reference matches only one category, throw
 bool SymbolTable::lookupVariable(const std::string &identifier, const ConstituentToken &type)
@@ -69,7 +69,7 @@ void SymbolTable::addFunction(const std::string &identifier,
                               const ConstituentToken &return_type)
 {
   if (lookupFunction(identifier, parameters, return_type)) {
-    throw std::invalid_argument("error: function declaration already exists");
+    throw std::invalid_argument("error: function cannot have multiple declarations");
   }
   FunctionSymbol function;
   function.identifier = identifier;
@@ -83,7 +83,7 @@ void SymbolTable::addFunction(const std::string &identifier,
 void SymbolTable::addVariable(const std::string &identifier, const ConstituentToken &type)
 {
   if (lookupVariable(identifier, type)) {
-    throw std::invalid_argument("error: variable declaration already exists");
+    throw std::invalid_argument("error: variable cannot have multiple definitions");
   }
   VariableSymbol variable;
   variable.identifier = identifier;

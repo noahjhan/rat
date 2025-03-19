@@ -260,11 +260,17 @@ bool Lexer::advanceToken()
 
   if (is_identifier) {
     dequePush(GenericToken::IDENTIFIER, partial, line_num, col_num);
+    if (curr == '\n') {
+      dequePush(GenericToken::PUNCTUATOR, ";", 0, 0);
+    }
     return true;
   }
 
   if (is_numeric) {
     dequePush(GenericToken::NUMERIC_LITERAL, partial, line_num, col_num);
+    if (curr == '\n') {
+      dequePush(GenericToken::PUNCTUATOR, ";", 0, 0);
+    }
     return true;
   }
   debugLineCol(line_num, col_num);

@@ -4,6 +4,7 @@
 #include "test.hpp"
 // clang-format off
 
-int main() {
+int main() 
+{
   return (!TEST_ALL()); 
 }

@@ -13,6 +13,8 @@
 namespace Node
 {
 
+struct ConditionalStatement;
+struct FunctionDecl;
 struct VariableDecl;
 struct Identifier;
 struct NumericLiteral;
@@ -23,7 +25,8 @@ struct AST;
 
 struct AST
 {
-  std::unique_ptr<AST_VARIANT> ast;
+  std::unique_ptr<AST_VARIANT> curr;
+  std::unique_ptr<AST> next;
 };
 
 struct GenericExpr
@@ -67,7 +70,8 @@ struct FunctionDecl
 {
   Token token;                  // identifier + line + col
   ConstituentToken return_type; // return_type
-  // I think the actual parameters will be stored in the symbol table
+  std::unique_ptr<AST> body;
+  // parameters will be stored in the symbol table
 };
 
 struct ConditionalStatement
@@ -75,6 +79,7 @@ struct ConditionalStatement
   Token token; // type of expression
   std::unique_ptr<GenericExpr> expr;
   std::unique_ptr<ConditionalStatement> next; // if - else if - else
+  std::unique_ptr<AST> body;
 };
 
 } // namespace Node

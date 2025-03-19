@@ -23,9 +23,6 @@ class Parser
   std::unique_ptr<Node::VariableDecl> variableDeclaration();
   std::unique_ptr<Node::FunctionDecl> functionDeclaration();
 
-  std::unique_ptr<Node::ConditionalStatement> elseStatement(const Token &token);
-  std::unique_ptr<Node::ConditionalStatement> elseifStatement(const Token &token);
-  std::unique_ptr<Node::ConditionalStatement> ifStatement(const Token &token);
   std::unique_ptr<Node::ConditionalStatement> conditionalStatement();
 
   std::unique_ptr<Node::GenericExpr> recurseNumeric();

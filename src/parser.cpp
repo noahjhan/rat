@@ -24,6 +24,8 @@
  * @todo update grammar for new ops
  *
  * @todo add variable to symbol table
+ *
+ * @todo require unary operators on correct side
  */
 
 // this code is for debugging purposes...
@@ -81,6 +83,7 @@ std::unique_ptr<Node::AST> Parser::dispatch()
   // 2 - As Function Param
   // 3 - Conditional Expr
   // 4 - Return Values
+  return nullptr;
 }
 std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
@@ -88,7 +91,6 @@ std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
   while (tokens_.front().value == ";") {
     tokens_.pop_front();
   }
-
   if (tokens_.front().value != "let") throw std::invalid_argument("error: expected keyword in variable declaration");
 
   tokens_.pop_front();
@@ -125,6 +127,9 @@ std::unique_ptr<Node::VariableDecl> Parser::variableDeclaration()
 
   symbol_table_.addVariable(variable_decl.token.value, variable_decl.type);
 
+  if (!tokens_.empty() && tokens_.front().value != ";") {
+    throw std::invalid_argument("expected newline in expression");
+  }
   return std::make_unique<Node::VariableDecl>(std::move(variable_decl));
 }
 
@@ -167,12 +172,10 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 
   if (next.value == "(") {
     cond.expr = nullptr; // sentinal value for else statements
-    return elseStatement(token);
   }
   else if (next.value == "if") {
     tokens_.pop_front();
     cond.expr = recurseExpr();
-    return elseifStatement(token);
   }
   else {
     throw std::invalid_argument("error: expected keyword in conditional expression");
@@ -212,14 +215,30 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 {
   if (tokens_.empty()) return nullptr;
-  if (tokens_.front().value == "!" || tokens_.front().value == "~") {
+  if (tokens_.front().value == ";") {
+    throw std::invalid_argument("unexpectd newline in expression");
     tokens_.pop_front();
+    return nullptr;
+  }
+  if (tokens_.front().value == "!" || tokens_.front().value == "~") {
+    std::string op = tokens_.front().value;
+    tokens_.pop_front();
+
+    if (tokens_.empty()) {
+      std::cerr << "Error: Missing operand after unary operator '" << op << "'\n";
+      return nullptr;
+    }
+
     Node::UnaryExpr un_expr;
-    un_expr.op = (tokens_.front().value == "!") ? ConstituentToken::BITWISE_NEG : ConstituentToken::LOGICAL_NOT;
+    un_expr.op = (op == "!") ? ConstituentToken::LOGICAL_NOT : ConstituentToken::BITWISE_NEG;
+
     un_expr.expr = recurseFactor();
-    auto factor =
-    std::make_unique<Node::GenericExpr>(Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(un_expr))});
-    return factor;
+    if (!un_expr.expr) {
+      std::cerr << "Error: Invalid expression after unary operator '" << op << "'\n";
+      return nullptr;
+    }
+    return std::make_unique<Node::GenericExpr>(
+    Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(un_expr))});
   }
 
   if (tokens_.front().type == GenericToken::NUMERIC_LITERAL || tokens_.front().type == GenericToken::IDENTIFIER) {

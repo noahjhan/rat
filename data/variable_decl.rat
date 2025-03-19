@@ -1,2 +1,2 @@
 let should_throw: int = 10 + (12 + 13 * 2 >> 2) / 3.0
-let should_throw: float = 3.0f
+let should_throw: int = 10 + (12 + 13 * 2 >> 2) 
