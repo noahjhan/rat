@@ -2,4 +2,8 @@ let x: int = 10
 let y: float = 3.0f
 if (x > 10) {
     let z: int = 10
+} else if (x < 10) {
+    let z: int = 11
+} else {
+    let z: float = 1.2
 }

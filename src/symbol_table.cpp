@@ -4,7 +4,8 @@ SymbolTable::SymbolTable() {}
 
 void SymbolTable::enterScope()
 {
-  SYMBOL_VARIANT scope_marker = nullptr;
+  // there is definitely a safer way to do this, seeing as this is a sentinal value, not concerned about ptr safety
+  SYMBOL_VARIANT scope_marker = static_cast<void *>(nullptr);
   stack_.push_back(scope_marker);
 }
 void SymbolTable::exitScope()
@@ -25,7 +26,7 @@ void SymbolTable::exitScope()
     stack_.pop_back();
   }
 
-  if (std::holds_alternative<void *>(stack_.front())) {
+  if (std::holds_alternative<void *>(stack_.back())) {
     stack_.pop_back(); // remove end of scope marker
   }
 }
@@ -93,3 +94,5 @@ void SymbolTable::addVariable(const std::string &identifier, const ConstituentTo
   variable_table_.insert({identifier, variable});
   return;
 }
+
+void SymbolTable::debugSize() { std::cout << "current size: " << stack_.size() << std::endl; }

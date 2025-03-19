@@ -43,8 +43,10 @@ class Parser
 
   void debugPrintln(const unsigned int &line_num);
   void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
-  void debugASTPrinter(Node::GenericExpr &node);
-  void debugASTPrinterRecursive(const Node::GenericExpr &node, int depth);
+  void debugASTPrinter(Node::AST &node);
+  void debugExprPrinterRecursive(Node::GenericExpr &node, int depth);
+  void debugVariableDeclPrinter(Node::VariableDecl &node);
+  void debugConditionalStatment(Node::ConditionalStatement &node);
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;

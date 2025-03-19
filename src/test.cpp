@@ -53,7 +53,7 @@ bool TEST_EXPR_TYPES()
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto root_expr = parse.recurseExpr();
-    // parse.debugASTPrinter(*root_expr);
+    // parse.debugExprPrinterRecursive(*root_expr, 0);
     if (!root_expr) {
       throw std::runtime_error("Failed to parse the root expression");
     }
@@ -114,7 +114,7 @@ bool TEST_EXPR_AST()
         throw std::invalid_argument("error: multiple expressions");
       }
     }
-    // parse.debugASTPrinter(*root_expr);
+    parse.debugExprPrinterRecursive(*root_expr, 0);
 
     // auto &nodes = *root_expr;
     // auto &root = *nodes.expr;
@@ -188,6 +188,7 @@ bool TEST_DISPATCH_SIMPLE()
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto ast = parse.dispatch();
+    parse.debugASTPrinter(*ast);
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;

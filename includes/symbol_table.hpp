@@ -2,6 +2,7 @@
 #define SYMBOL_TABLE_HPP
 
 #include <cassert>
+#include <iostream>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -43,6 +44,8 @@ class SymbolTable
                    const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
                    const ConstituentToken &return_type);
   void addVariable(const std::string &identifier, const ConstituentToken &type);
+
+  void debugSize();
 
   private:
   std::vector<SYMBOL_VARIANT> stack_;

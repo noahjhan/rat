@@ -69,16 +69,14 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(toke
         break;
     }
   }
+  // may need a destructor just to clear out global scope
+  symbol_table_.enterScope();
 }
 /// @todo scopes
-///
-/// the point of this dispatch will be to pop a token
-/// peek the next token and use only that information
-/// to determine how to interpret them into AST
-/// the complete AST will represent one level of scope:
 std::unique_ptr<Node::AST> Parser::dispatch()
 {
   if (tokens_.empty()) {
+    symbol_table_.exitScope();
     return nullptr;
   }
 
@@ -86,12 +84,23 @@ std::unique_ptr<Node::AST> Parser::dispatch()
     tokens_.pop_front();
   }
 
-  const std::string &value = tokens_.front().value;
-
-  std::cout << "value " << value << std::endl;
-  if (value == "}" || value == "{") {
-    std::cout << "here: " << value << std::endl;
+  if (tokens_.empty()) {
+    symbol_table_.exitScope();
+    return nullptr;
   }
+
+  if (tokens_.front().value == "{") {
+    symbol_table_.enterScope();
+    tokens_.pop_front();
+    return dispatch();
+    /// @todo make this a child ast node
+  }
+  else if (tokens_.front().value == "}") {
+    symbol_table_.exitScope();
+    tokens_.pop_front();
+    return nullptr;
+  }
+  const std::string &value = tokens_.front().value;
 
   auto createASTNode = [&](auto parsingFunc, const char *errorMsg) -> std::unique_ptr<Node::AST> {
     auto ptr = parsingFunc();
@@ -116,7 +125,7 @@ std::unique_ptr<Node::AST> Parser::dispatch()
   if (value == "rev" || value == "ret") {
     return createASTNode([this] { return returnStatment(); }, "null return statement");
   }
-
+  symbol_table_.exitScope();
   return nullptr;
 }
 
@@ -176,10 +185,6 @@ std::unique_ptr<Node::FunctionDecl> Parser::functionDeclaration()
     tokens_.pop_front();
   }
 
-  // fn functionName(param: Type1, param: type2): Return_type {
-  //   body
-  //   return_value
-  // }
   return nullptr;
 }
 
@@ -207,13 +212,14 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 
   const Token &next = tokens_.front();
 
-  if (next.value == "(") {
+  if (next.value == "{") {
     cond.expr = nullptr; // sentinal value for else statements
     cond.body = dispatch();
     return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
   else if (next.value == "if") {
     tokens_.pop_front();
+    cond.token.value = "else if";
     cond.expr = recurseExpr();
     cond.body = dispatch();
     return std::make_unique<Node::ConditionalStatement>(std::move(cond));
@@ -221,7 +227,6 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
   else {
     throw std::invalid_argument("error: expected keyword in conditional expression");
   }
-
   return nullptr;
 }
 
@@ -460,12 +465,6 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
 
 std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
-  // lets assume for now the deque only contains valid expression tokens
-  // lets assume for now the deque only contains puctuators, literals,
-  // operators I guess currently this takes in a deque and pops a token, and
-  // processes it as if it is part of an expression
-  //
-  //
   Token token = tokens_.front();
   if (tokens_.empty()) {
     throw std::runtime_error("error: empty token deque");
@@ -577,9 +576,31 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 
 int Parser::numTokens() const { return tokens_.size(); }
 
-void Parser::debugASTPrinter(Node::GenericExpr &node) { debugASTPrinterRecursive(node, 0); }
+void Parser::debugASTPrinter(Node::AST &node)
+{
+  auto curr = node.curr.get();
+  if (!curr) {
+    return;
+  }
+  if (std::holds_alternative<Node::GenericExpr>(*curr)) {
+    auto variant = std::get<Node::GenericExpr>(std::move(*curr));
+    debugExprPrinterRecursive(variant, 0);
+  }
+  else if (std::holds_alternative<Node::VariableDecl>(*curr)) {
+    auto variant = std::get<Node::VariableDecl>(std::move(*curr));
+    debugVariableDeclPrinter(variant);
+  }
+  else if (std::holds_alternative<Node::ConditionalStatement>(*curr)) {
+    auto variant = std::get<Node::ConditionalStatement>(std::move(*curr));
+    debugConditionalStatment(variant);
+  }
 
-void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
+  if (node.next) {
+    debugASTPrinter(*node.next);
+  }
+}
+
+void Parser::debugExprPrinterRecursive(Node::GenericExpr &node, int depth)
 {
   // auto variant =
   // std::make_unique<EXPRESSION_VARIANT>(std::move(*(node.expr)));
@@ -592,7 +613,7 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
 
   if (std::holds_alternative<Node::GenericExpr>(*variant)) {
     std::cout << std::string(depth, ' ') << "recursively holds expression" << std::endl;
-    debugASTPrinterRecursive(std::get<Node::GenericExpr>(*variant), depth + 1);
+    debugExprPrinterRecursive(std::get<Node::GenericExpr>(*variant), depth + 1);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant)) {
     auto op = reverse_dictionary_.at(std::get<Node::BinaryExpr>(*variant).op); // validate that op is real
@@ -600,14 +621,14 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
     if (binaryExpr.lhs) {
       std::cout << std::string(depth * 4, ' ') << "lhs: ";
-      debugASTPrinterRecursive(*binaryExpr.lhs, depth + 1);
+      debugExprPrinterRecursive(*binaryExpr.lhs, depth + 1);
     }
     else {
       throw std::invalid_argument("error: expecting lhs for binary expression");
     }
     if (binaryExpr.rhs) {
       std::cout << std::string(depth * 4, ' ') << "rhs: ";
-      debugASTPrinterRecursive(*binaryExpr.rhs, depth + 1);
+      debugExprPrinterRecursive(*binaryExpr.rhs, depth + 1);
     }
     else {
       throw std::invalid_argument("error: expecting rhs for binary expression");
@@ -619,7 +640,7 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
     const auto &unaryExpr = std::get<Node::UnaryExpr>(*variant);
     if (unaryExpr.expr) {
       std::cout << std::string(depth * 4, ' ') << "expr: ";
-      debugASTPrinterRecursive(*unaryExpr.expr, depth + 1);
+      debugExprPrinterRecursive(*unaryExpr.expr, depth + 1);
     }
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*variant)) {
@@ -635,6 +656,36 @@ void Parser::debugASTPrinterRecursive(const Node::GenericExpr &node, int depth)
   }
 }
 
+void Parser::debugVariableDeclPrinter(Node::VariableDecl &node)
+{
+  std::cout << "holds variable declaration" << '\n';
+  std::cout << "identifier: " << node.token.value << '\n';
+  if (reverse_dictionary_.find(node.type) == reverse_dictionary_.end()) {
+    throw std::invalid_argument("error: type not found");
+  }
+  std::cout << "type: " << reverse_dictionary_.at(node.type) << '\n';
+  std::cout << "value:\n";
+  debugExprPrinterRecursive(*node.expr, 0);
+  std::cout << std::endl;
+  // more
+  // comment // comment // comment
+}
+
+void Parser::debugConditionalStatment(Node::ConditionalStatement &node)
+{
+  std::cout << "holds conditional statmeent" << '\n';
+  std::cout << "type of conditional: " << node.token.value << '\n';
+  if (node.expr) {
+    std::cout << "expression:\n";
+    debugExprPrinterRecursive(*node.expr, 0);
+  }
+  if (!node.body) {
+    throw std::invalid_argument("conditional statement must have a body");
+  }
+  std::cout << "body:\n";
+  debugASTPrinter(*node.body);
+  std::cout << std::endl;
+}
 void Parser::debugPrintln(const unsigned int &line_num)
 {
   source_file_.seekLine(line_num);
