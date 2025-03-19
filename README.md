@@ -52,4 +52,18 @@ fn/ specifies an anonymous or lambda function
         rev
     }
     
-    // expected output 0123456789
+    // expected output: "0123456789"
+
+**Conditional Statments**
+
+    let x: int = 10
+
+    if (x > 10) {
+        print("x is greater than 10")
+    } else if (x < 10) {
+        print("x is less than 10")
+    } else {
+        print("x is equal to 10")
+    }
+
+    // expected output: "x is equal to 10"
