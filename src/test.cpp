@@ -114,7 +114,7 @@ bool TEST_EXPR_AST()
         throw std::invalid_argument("error: multiple expressions");
       }
     }
-    parse.debugExprPrinterRecursive(*root_expr, 0);
+    // parse.debugExprPrinterRecursive(*root_expr, 0);
 
     // auto &nodes = *root_expr;
     // auto &root = *nodes.expr;
