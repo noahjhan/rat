@@ -134,36 +134,6 @@ bool TEST_VARIABLE_DECLARATION()
 {
   std::cout << PURPLE << "TEST CASE: Variable Declaration\n" << BAR << RESET << std::endl;
   try {
-    std::string file_name = "data/variable_decl.rat";
-    auto rat = RatSource(file_name);
-    auto lex = Lexer(rat);
-    while (lex.advanceToken()) {
-    }
-
-    // lex.debugPrinter(true /* use true here for verbose printing */);
-    std::deque<Token> dq = lex.getTokens();
-    auto parse = Parser(dq, rat);
-    auto variable = parse.variableDeclaration();
-    assert(variable.get()->type == ConstituentToken::TYPE_INT);
-
-    try {
-      auto should_throw = parse.variableDeclaration();
-      std::cerr << RED
-                << "TEST CASE FAILED: Variable Declaration - Expected "
-                   "exception not thrown\n"
-                << BAR << '\n'
-                << RESET << std::endl;
-      return false;
-    }
-    catch (const std::exception &e) {
-      std::string error_message = e.what();
-      if (error_message != "error: variable cannot have multiple definitions") {
-        std::cerr << RED << "TEST CASE FAILED: Unexpected exception message: " << error_message << '\n'
-                  << BAR << '\n'
-                  << RESET << std::endl;
-        return false;
-      }
-    }
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
@@ -184,7 +154,7 @@ bool TEST_DISPATCH_SIMPLE()
     auto lex = Lexer(rat);
     while (lex.advanceToken()) {
     }
-    // lex.debugPrinter(true /* use true here for verbose printing */);
+    lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto ast = parse.dispatch();

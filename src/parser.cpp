@@ -51,7 +51,7 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(toke
   symbol_table_.enterScope();
 }
 /// @todo scopes
-std::shared_ptr<Node::AST> Parser::dispatch()
+std::unique_ptr<Node::AST> Parser::dispatch()
 {
   if (tokens_.empty()) {
     symbol_table_.exitScope();
@@ -85,13 +85,13 @@ std::shared_ptr<Node::AST> Parser::dispatch()
 
   const std::string &value = tokens_.front().value;
 
-  auto createASTNode = [&](auto parsingFunction, const std::string error_message) -> std::shared_ptr<Node::AST> {
+  auto createASTNode = [&](auto parsingFunction, const std::string error_message) -> std::unique_ptr<Node::AST> {
     auto ptr = parsingFunction();
     if (!ptr) {
       throw std::invalid_argument(error_message);
     }
-    auto ast = std::make_shared<Node::AST>();
-    ast->curr = std::make_shared<AST_VARIANT>(std::move(*ptr));
+    auto ast = std::make_unique<Node::AST>();
+    ast->curr = std::make_unique<AST_VARIANT>(std::move(*ptr));
     ast->next = dispatch();
     return ast;
   };
@@ -125,7 +125,6 @@ std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
 
   if (tokens_.front().type != GenericToken::IDENTIFIER)
     throw std::invalid_argument("error: expected identifier in variable delcaration");
-
   Node::VariableDecl variable_decl;
   variable_decl.token = tokens_.front();
   tokens_.pop_front();
@@ -151,13 +150,13 @@ std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
   if (tokens_.empty()) throw std::invalid_argument("out of tokens");
 
   variable_decl.expr = recurseExpr();
-
-  symbol_table_.addVariable(variable_decl.token.value, variable_decl.type);
+  auto declaration = std::make_shared<Node::VariableDecl>(variable_decl);
+  symbol_table_.addVariable(variable_decl.token.value, declaration);
 
   if (!tokens_.empty() && tokens_.front().value != ";") {
     throw std::invalid_argument("expected newline in expression");
   }
-  return std::make_unique<Node::VariableDecl>(std::move(variable_decl));
+  return declaration;
 }
 
 /// @todo support for lambdas
@@ -172,7 +171,7 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
 }
 
 // calls statement such that the top of the tokens is the expression
-std::shared_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
+std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 {
 
   const Token token = tokens_.front();

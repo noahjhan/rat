@@ -13,22 +13,7 @@
 #include "ast.hpp"
 #include "token.hpp"
 
-#define SYMBOL_VARIANT std::variant<FunctionSymbol, VariableSymbol, void *>
-
-struct FunctionSymbol
-{
-  std::string identifier;
-  std::vector<std::pair<std::string, ConstituentToken>> parameters;
-  std::shared_ptr<Node::AST> body;
-  ConstituentToken return_type;
-};
-
-struct VariableSymbol
-{
-  std::string identifier;
-  ConstituentToken type;
-  std::string value;
-};
+#define SYMBOL_VARIANT std::variant<Node::VariableDecl, Node::FunctionDecl>
 
 class SymbolTable
 {
@@ -37,22 +22,18 @@ class SymbolTable
   void enterScope();
   void exitScope();
 
-  bool lookupFunction(const std::string &identifier,
-                      const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-                      const ConstituentToken &return_type);
-  bool lookupVariable(const std::string &identifier, const ConstituentToken &type);
+  std::shared_ptr<Node::FunctionDecl> lookupFunction(const std::string &identifier);
+  std::shared_ptr<Node::VariableDecl> lookupVariable(const std::string &identifier);
 
-  void addFunction(const std::string &identifier,
-                   const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-                   const std::shared_ptr<Node::AST> &body, const ConstituentToken &return_type);
-  void addVariable(const std::string &identifier, const ConstituentToken &type);
+  void addFunction(const std::string &identifier, const std::shared_ptr<Node::FunctionDecl> &declaration);
+  void addVariable(const std::string &identifier, const std::shared_ptr<Node::VariableDecl> &declaration);
 
   void debugSize();
 
   private:
-  std::vector<SYMBOL_VARIANT> stack_;
-  std::unordered_map<std::string, FunctionSymbol> function_table_;
-  std::unordered_map<std::string, VariableSymbol> variable_table_;
+  std::vector<std::shared_ptr<SYMBOL_VARIANT>> stack_;
+  std::unordered_map<std::string, std::shared_ptr<Node::FunctionDecl>> function_table_;
+  std::unordered_map<std::string, std::shared_ptr<Node::VariableDecl>> variable_table_;
 };
 
 #endif // SYMBOL_TABLE_HPP

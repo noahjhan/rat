@@ -2,97 +2,70 @@
 
 SymbolTable::SymbolTable() {}
 
-void SymbolTable::enterScope()
-{
-  // there is definitely a safer way to do this, seeing as this is a sentinal value, not concerned about ptr safety
-  SYMBOL_VARIANT scope_marker = static_cast<void *>(nullptr);
-  stack_.push_back(scope_marker);
-}
+void SymbolTable::enterScope() { stack_.push_back(nullptr); }
 void SymbolTable::exitScope()
 {
-  while (!std::holds_alternative<void *>(stack_.back())) {
+  while (stack_.back()) {
     if (stack_.empty()) {
       throw std::invalid_argument("error: stack should not be empty");
     }
-    if (std::holds_alternative<FunctionSymbol>(stack_.back())) {
-      FunctionSymbol function = std::get<FunctionSymbol>(stack_.back());
-      function_table_.erase(function.identifier);
+    if (std::holds_alternative<Node::FunctionDecl>(*stack_.back())) {
+      auto function_id = std::get<Node::FunctionDecl>(*stack_.back()).token.value;
+      function_table_.erase(function_id);
     }
     // this check is redundant
-    if (std::holds_alternative<VariableSymbol>(stack_.back())) {
-      VariableSymbol variable = std::get<VariableSymbol>(stack_.back());
-      variable_table_.erase(variable.identifier);
+    if (std::holds_alternative<Node::VariableDecl>(*stack_.back())) {
+      auto variable_id = std::get<Node::VariableDecl>(*stack_.back()).token.value;
+      variable_table_.erase(variable_id);
     }
     stack_.pop_back();
   }
 
-  if (std::holds_alternative<void *>(stack_.back())) {
+  if (!stack_.back()) {
     stack_.pop_back(); // remove end of scope marker
   }
 }
 
 /// @todo if reference matches only one category, throw
-bool SymbolTable::lookupFunction(const std::string &identifier,
-                                 const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-                                 const ConstituentToken &return_type)
+std::shared_ptr<Node::FunctionDecl> SymbolTable::lookupFunction(const std::string &identifier)
 {
-  if (function_table_.find(identifier) == function_table_.end()) {
-    return false;
+  auto it = function_table_.find(identifier);
+  if (it == function_table_.end()) {
+    return nullptr;
   }
-
-  FunctionSymbol variable = function_table_.at(identifier);
-
-  if (variable.identifier == identifier && variable.parameters == parameters && variable.return_type == return_type) {
-    return true;
-  }
-
-  throw std::invalid_argument("error: function cannot have multiple declarations");
+  return it->second;
 }
+
 /// @todo if reference matches only one category, throw
-bool SymbolTable::lookupVariable(const std::string &identifier, const ConstituentToken &type)
+std::shared_ptr<Node::VariableDecl> SymbolTable::lookupVariable(const std::string &identifier)
 {
-
-  if (variable_table_.find(identifier) == variable_table_.end()) {
-    return false;
+  auto it = variable_table_.find(identifier);
+  if (it == variable_table_.end()) {
+    return nullptr;
   }
-
-  VariableSymbol variable = variable_table_.at(identifier);
-
-  if (variable.identifier == identifier && variable.type == type) {
-    return true;
-  }
-
-  throw std::invalid_argument("error: variable cannot have multiple definitions");
+  return it->second;
 }
 
-void SymbolTable::addFunction(const std::string &identifier,
-                              const std::vector<std::pair<std::string, ConstituentToken>> &parameters,
-                              const std::shared_ptr<Node::AST> &body, const ConstituentToken &return_type)
+void SymbolTable::addFunction(const std::string &identifier, const std::shared_ptr<Node::FunctionDecl> &declaration)
 {
-  if (lookupFunction(identifier, parameters, return_type)) {
+  if (lookupFunction(identifier)) {
     throw std::invalid_argument("error: function cannot have multiple declarations");
   }
-  FunctionSymbol function;
-  function.identifier = identifier;
-  function.parameters = parameters;
-  function.body = std::make_unique<Node::AST>(std::move(*body));
-  function.return_type = return_type;
-  stack_.push_back(function);
-  function_table_.insert({identifier, function});
+  auto function_decl = SYMBOL_VARIANT(*declaration);
+  stack_.push_back(std::make_shared<SYMBOL_VARIANT>(function_decl));
+  function_table_.insert({identifier, declaration});
   return;
 }
 
-void SymbolTable::addVariable(const std::string &identifier, const ConstituentToken &type)
+void SymbolTable::addVariable(const std::string &identifier, const std::shared_ptr<Node::VariableDecl> &declaration)
 {
-  if (lookupVariable(identifier, type)) {
+  if (lookupVariable(identifier)) {
+    std::cerr << "received: '" << identifier << '\'' << std::endl;
     throw std::invalid_argument("error: variable cannot have multiple definitions");
   }
-  VariableSymbol variable;
-  variable.identifier = identifier;
-  variable.type = type;
-  stack_.push_back(variable);
-
-  variable_table_.insert({identifier, variable});
+  auto variable_decl = SYMBOL_VARIANT(*declaration);
+  stack_.push_back(std::make_shared<SYMBOL_VARIANT>(variable_decl));
+  variable_table_.insert({identifier, declaration});
   return;
 }
 
