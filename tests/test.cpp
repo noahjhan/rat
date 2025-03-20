@@ -157,7 +157,7 @@ bool TEST_DISPATCH_SIMPLE()
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto ast = parse.dispatch();
-    parse.debugASTPrinter(*ast);
+    // parse.debugASTPrinter(*ast);
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
@@ -166,6 +166,31 @@ bool TEST_DISPATCH_SIMPLE()
   }
 
   std::cout << GREEN << "TEST CASE PASSED: Dispatch Simple\n" << BAR << '\n' << RESET << std::endl;
+  return true;
+}
+
+bool TEST_FUNCTION_CALL()
+{
+  std::cout << PURPLE << "TEST CASE: Function Call\n" << BAR << RESET << std::endl;
+  try {
+    std::string file_name = "data/function_call.rat";
+    auto rat = RatSource(file_name);
+    auto lex = Lexer(rat);
+    while (lex.advanceToken()) {
+    }
+    // lex.debugPrinter(true /* use true here for verbose printing */);
+    std::deque<Token> dq = lex.getTokens();
+    auto parse = Parser(dq, rat);
+    auto ast = parse.dispatch();
+    parse.debugASTPrinter(*ast);
+  }
+  catch (const std::exception &e) {
+    std::cerr << e.what() << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Function Call\n" << BAR << '\n' << RESET << std::endl;
+    return false;
+  }
+
+  std::cout << GREEN << "TEST CASE PASSED: Function Call\n" << BAR << '\n' << RESET << std::endl;
   return true;
 }
 
@@ -189,6 +214,9 @@ bool TEST_ALL()
     failedTests++;
   }
   if (!TEST_DISPATCH_SIMPLE()) {
+    failedTests++;
+  }
+  if (!TEST_FUNCTION_CALL()) {
     failedTests++;
   }
 

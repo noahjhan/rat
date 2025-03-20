@@ -1,5 +1,5 @@
-fn nothing(x: int): int {
-    ret x
+fn nothing(num: int): int {
+    ret num
 }
 
 fn_ main () {

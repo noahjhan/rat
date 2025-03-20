@@ -44,12 +44,6 @@ std::unique_ptr<Node::AST> Parser::dispatch()
     return nullptr;
   }
 
-  if (peek().type != GenericToken::KEYWORD) {
-    throw std::invalid_argument("syntax error: unrecognized expression");
-  }
-
-  const std::string &value = peek().value;
-
   auto createASTNode = [&](auto parsingFunction, const std::string error_message) -> std::unique_ptr<Node::AST> {
     auto ptr = parsingFunction();
     if (!ptr) {
@@ -60,6 +54,23 @@ std::unique_ptr<Node::AST> Parser::dispatch()
     ast->next = dispatch();
     return ast;
   };
+
+  if (peek().type == GenericToken::IDENTIFIER) {
+    if (symbol_table_.findFunction(peek().value)) {
+      return createASTNode([this] { return functionCall(); }, "null function call");
+    }
+    else {
+      std::cerr << "received: '" << peek().value << '\'' << std::endl;
+      throw std::invalid_argument("syntax error: unrecognized literal in expression");
+    }
+  }
+
+  if (peek().type != GenericToken::KEYWORD) {
+    std::cerr << "received: '" << peek().value << '\'' << std::endl;
+    throw std::invalid_argument("syntax error: unrecognized expression");
+  }
+
+  const std::string &value = peek().value;
 
   /// @todo support for other function types
   if (value == "fn") {
@@ -164,6 +175,10 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
   std::vector<std::pair<std::string, ConstituentToken>> parameters = parameterlist();
   function_decl.parameters = parameters;
 
+  for (const auto &parameter : parameters) {
+    symbol_table_.addVariable(parameter.first, nullptr);
+  }
+
   require(pop().value == ":", "error: expected ':' in function declaraiton");
 
   require(peek().type == GenericToken::TYPE, "error: expected return type in function declaration");
@@ -194,6 +209,11 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
   require(peek().value == "(", "error: expected punctuator in function declaration");
   std::vector<std::pair<std::string, ConstituentToken>> parameters = parameterlist();
   function_decl.parameters = parameters;
+
+  for (const auto &parameter : parameters) {
+    symbol_table_.addVariable(parameter.first, nullptr);
+  }
+  function_decl.return_type = ConstituentToken::TYPE_VOID;
   function_decl.body = dispatch();
 
   auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
@@ -245,8 +265,13 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 {
-  if (!tokens_.empty() && (peek().type == GenericToken::NUMERIC_LITERAL || peek().type == GenericToken::IDENTIFIER)) {
-    return tokenToExpr();
+  if (!tokens_.empty() && (peek().type == GenericToken::NUMERIC_LITERAL || peek().type == GenericToken::IDENTIFIER ||
+                           peek().type == GenericToken::STRING_LITERAL)) {
+    auto expr = tokenToExpr();
+    if (!expr) {
+      return functionCall();
+    }
+    return expr;
   }
   return nullptr;
 }
@@ -487,10 +512,16 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
     /// @todo seperate functions maybe seperated struct for function and
     /// variable identifiers
     case GenericToken::IDENTIFIER: {
+      if (peek().value == "(") {
+        restore(token);
+        return nullptr;
+      }
+      if (!symbol_table_.findVariable(token.value)) {
+        throw std::invalid_argument("error: undeclared variable");
+      }
       Node::Identifier node;
       node.token = token;
-      node.type = ConstituentToken::VARIABLE_ID; // not exactly true -> does
-                                                 // not support functions
+      node.type = ConstituentToken::VARIABLE_ID;
       auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
@@ -560,7 +591,7 @@ std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
   return parameters;
 }
 
-std::shared_ptr<Node::FunctionCall> Parser::functionCall()
+std::unique_ptr<Node::GenericExpr> Parser::functionCall()
 {
   Node::FunctionCall call;
   if (peek().type != GenericToken::IDENTIFIER) {
@@ -569,7 +600,9 @@ std::shared_ptr<Node::FunctionCall> Parser::functionCall()
   call.token = pop();
   call.parameters = callParameters();
   call.function = symbol_table_.lookupFunction(call.token.value);
-  return std::make_shared<Node::FunctionCall>(std::move(call));
+  Node::GenericExpr expr;
+  expr.expr = std::make_unique<EXPRESSION_VARIANT>(std::move(call));
+  return std::make_unique<Node::GenericExpr>(std::move(expr));
 }
 
 std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
@@ -668,32 +701,51 @@ void Parser::debugExprPrinterRecursive(Node::GenericExpr &node, int depth)
     return;
   }
 
+  const std::string indent = std::string(depth * 4, ' ');
+
   if (std::holds_alternative<Node::GenericExpr>(*variant)) {
-    std::cout << std::string(depth, ' ') << "recursively holds expression" << std::endl;
+    std::cout << indent << "recursively holds expression" << std::endl;
     debugExprPrinterRecursive(std::get<Node::GenericExpr>(*variant), depth + 1);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant)) {
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
-    std::cout << "holds binary expression: " << reverse_dictionary_.at(binaryExpr.op) << std::endl;
-    if (!binaryExpr.lhs || !binaryExpr.rhs) throw std::invalid_argument("error: missing operand in binary expression");
-    std::cout << std::string(depth * 4, ' ') << "lhs: ";
+    std::cout << indent << "holds binary expression: " << reverse_dictionary_.at(binaryExpr.op) << std::endl;
+    if (!binaryExpr.lhs || !binaryExpr.rhs) {
+      throw std::invalid_argument("error: missing operand in binary expression");
+    }
+    std::cout << indent << "lhs:" << std::endl;
     debugExprPrinterRecursive(*binaryExpr.lhs, depth + 1);
-    std::cout << std::string(depth * 4, ' ') << "rhs: ";
+    std::cout << indent << "rhs:" << std::endl;
     debugExprPrinterRecursive(*binaryExpr.rhs, depth + 1);
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*variant)) {
     const auto &unaryExpr = std::get<Node::UnaryExpr>(*variant);
-    std::cout << "holds unary expression: " << reverse_dictionary_.at(unaryExpr.op) << std::endl;
-    if (unaryExpr.expr) debugExprPrinterRecursive(*unaryExpr.expr, depth + 1);
+    std::cout << indent << "holds unary expression: " << reverse_dictionary_.at(unaryExpr.op) << std::endl;
+    if (unaryExpr.expr) {
+      debugExprPrinterRecursive(*unaryExpr.expr, depth + 1);
+    }
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*variant)) {
-    std::cout << "holds numeric literal: " << std::get<Node::NumericLiteral>(*variant).token.value << std::endl;
+    std::cout << indent << "holds numeric literal: " << std::get<Node::NumericLiteral>(*variant).token.value
+              << std::endl;
   }
   else if (std::holds_alternative<Node::Identifier>(*variant)) {
-    std::cout << "holds identifier: " << std::get<Node::Identifier>(*variant).token.value << std::endl;
+    std::cout << indent << "holds identifier: " << std::get<Node::Identifier>(*variant).token.value << std::endl;
+  }
+  else if (std::holds_alternative<Node::StringLiteral>(*variant)) {
+    std::cout << indent << "holds string literal: \"" << std::get<Node::StringLiteral>(*variant).token.value << "\""
+              << std::endl;
+  }
+  else if (std::holds_alternative<Node::FunctionCall>(*variant)) {
+    const auto &functionCall = std::get<Node::FunctionCall>(*variant);
+    std::cout << indent << "holds function call: " << functionCall.token.value << std::endl;
+    std::cout << indent << "parameters:" << std::endl;
+    for (const auto &param : functionCall.parameters) {
+      debugExprPrinterRecursive(*param, depth + 1);
+    }
   }
   else {
-    std::cout << "holds ambiguous state" << std::endl;
+    std::cout << indent << "holds ambiguous state" << std::endl;
   }
 }
 
@@ -735,6 +787,7 @@ void Parser::debugFunctionDeclaration(Node::FunctionDecl &node)
     std::cout << "identifier: " << var.first << '\n';
     std::cout << "type: " << reverse_dictionary_.at(var.second) << '\n';
   }
+  std::cout << "return type: " << reverse_dictionary_.at(node.return_type) << '\n';
   if (!node.body) {
     throw std::invalid_argument("function must have a body");
   }
@@ -779,3 +832,5 @@ inline Token Parser::peek()
   }
   return tokens_.front();
 }
+
+inline void Parser::restore(const Token &token) { tokens_.push_back(token); }

@@ -7,7 +7,7 @@
 
 #define EXPRESSION_VARIANT                                                                                      \
   std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr, Node::NumericLiteral, Node::StringLiteral, \
-               Node::Identifier>
+               Node::Identifier, Node::FunctionCall>
 
 #define AST_VARIANT                                                                                       \
   std::variant<Node::FunctionDecl, Node::VariableDecl, Node::ConditionalStatement, Node::ReturnStatement, \
@@ -16,6 +16,7 @@
 namespace Node
 {
 
+struct FunctionCall;
 struct ReturnStatement;
 struct ConditionalStatement;
 struct FunctionDecl;

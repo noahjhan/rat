@@ -1,0 +1,10 @@
+fn concat(lhs: string, rhs: string): string {
+    ret lhs + rhs
+}
+
+fn_ main() {
+    let lhs: string = "Hello, "
+    let rhs: string = "World!"
+    concat(lhs, rhs)
+    rev
+} 

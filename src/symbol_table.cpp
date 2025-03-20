@@ -45,13 +45,36 @@ std::shared_ptr<Node::VariableDecl> SymbolTable::lookupVariable(const std::strin
   return it->second;
 }
 
+/// @todo if reference matches only one category, throw
+bool SymbolTable::findFunction(const std::string &identifier)
+{
+  auto it = function_table_.find(identifier);
+  if (it == function_table_.end()) {
+    return false;
+  }
+  return true;
+}
+
+/// @todo if reference matches only one category, throw
+bool SymbolTable::findVariable(const std::string &identifier)
+{
+  auto it = variable_table_.find(identifier);
+  if (it == variable_table_.end()) {
+    return false;
+  }
+  return true;
+  ;
+}
+
 void SymbolTable::addFunction(const std::string &identifier, const std::shared_ptr<Node::FunctionDecl> &declaration)
 {
   if (lookupFunction(identifier)) {
     throw std::invalid_argument("error: function cannot have multiple declarations");
   }
-  auto function_decl = SYMBOL_VARIANT(*declaration);
-  stack_.push_back(std::make_shared<SYMBOL_VARIANT>(function_decl));
+  if (declaration) {
+    auto function_decl = SYMBOL_VARIANT(*declaration);
+    stack_.push_back(std::make_shared<SYMBOL_VARIANT>(function_decl));
+  }
   function_table_.insert({identifier, declaration});
   return;
 }
@@ -62,8 +85,10 @@ void SymbolTable::addVariable(const std::string &identifier, const std::shared_p
     std::cerr << "received: '" << identifier << '\'' << std::endl;
     throw std::invalid_argument("error: variable cannot have multiple definitions");
   }
-  auto variable_decl = SYMBOL_VARIANT(*declaration);
-  stack_.push_back(std::make_shared<SYMBOL_VARIANT>(variable_decl));
+  if (declaration) {
+    auto variable_decl = SYMBOL_VARIANT(*declaration);
+    stack_.push_back(std::make_shared<SYMBOL_VARIANT>(variable_decl));
+  }
   variable_table_.insert({identifier, declaration});
   return;
 }

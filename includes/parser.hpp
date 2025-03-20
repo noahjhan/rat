@@ -40,7 +40,7 @@ class Parser
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
 
   std::vector<std::unique_ptr<Node::GenericExpr>> callParameters();
-  std::shared_ptr<Node::FunctionCall> functionCall();
+  std::unique_ptr<Node::GenericExpr> functionCall();
   std::unique_ptr<Node::ReturnStatement> returnStatment();
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
 
@@ -57,6 +57,7 @@ class Parser
 
   inline Token pop();
   inline Token peek();
+  inline void restore(const Token &token);
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;

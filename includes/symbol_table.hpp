@@ -25,6 +25,9 @@ class SymbolTable
   std::shared_ptr<Node::FunctionDecl> lookupFunction(const std::string &identifier);
   std::shared_ptr<Node::VariableDecl> lookupVariable(const std::string &identifier);
 
+  bool findVariable(const std::string &identifier);
+  bool findFunction(const std::string &identifier);
+
   void addFunction(const std::string &identifier, const std::shared_ptr<Node::FunctionDecl> &declaration);
   void addVariable(const std::string &identifier, const std::shared_ptr<Node::VariableDecl> &declaration);
 
