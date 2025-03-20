@@ -21,7 +21,12 @@ class Parser
   std::unique_ptr<Node::AST> dispatch();
 
   std::shared_ptr<Node::VariableDecl> variableDeclaration();
-  std::shared_ptr<Node::FunctionDecl> functionDeclaration();
+  // std::shared_ptr<Node::FunctionDecl> functionDeclaration();
+  std::shared_ptr<Node::FunctionDecl> voidfunctionDeclaration();
+  // std::shared_ptr<Node::FunctionDecl> optionalfunctionDeclaration();
+  // std::shared_ptr<Node::FunctionDecl> lambdafunctionDeclaration();
+  std::vector<std::pair<std::string, ConstituentToken>> voidParameterlist();
+
   std::unique_ptr<Node::ConditionalStatement> conditionalStatement();
 
   std::unique_ptr<Node::GenericExpr> recurseNumeric();
@@ -46,6 +51,7 @@ class Parser
   void debugExprPrinterRecursive(Node::GenericExpr &node, int depth);
   void debugVariableDeclPrinter(Node::VariableDecl &node);
   void debugConditionalStatment(Node::ConditionalStatement &node);
+  void debugFunctionDeclaration(Node::FunctionDecl &node);
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;

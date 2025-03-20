@@ -13,7 +13,6 @@ void SymbolTable::exitScope()
       auto function_id = std::get<Node::FunctionDecl>(*stack_.back()).token.value;
       function_table_.erase(function_id);
     }
-    // this check is redundant
     if (std::holds_alternative<Node::VariableDecl>(*stack_.back())) {
       auto variable_id = std::get<Node::VariableDecl>(*stack_.back()).token.value;
       variable_table_.erase(variable_id);

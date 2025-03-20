@@ -71,6 +71,7 @@ struct VariableDecl
 
 struct FunctionDecl
 {
+  ConstituentToken type;
   Token token; // identifier + line + col
   std::vector<std::pair<std::string, ConstituentToken>> parameters;
   ConstituentToken return_type; // return_type

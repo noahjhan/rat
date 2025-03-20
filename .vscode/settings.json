@@ -60,6 +60,7 @@
         "forward_list": "cpp",
         "list": "cpp",
         "map": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "__assertion_handler": "cpp"
     }
 }

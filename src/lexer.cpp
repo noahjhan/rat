@@ -54,7 +54,7 @@ bool Lexer::isAcceptableNumericSequence(const std::string &value)
 
 Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
-  punctuators_ = {':', '\'', '\"', '[', ']', '{', '}', '(', ')'};
+  punctuators_ = {':', '\'', '\"', '[', ']', '{', '}', '(', ')', ','};
 
   keywords_ = {"let", "op", "if", "else", "fn", "fn_", "fn?", "fn/", "null"};
 

@@ -96,8 +96,9 @@ std::unique_ptr<Node::AST> Parser::dispatch()
     return ast;
   };
 
+  /// @todo support for other function types
   if (value == "fn" || value == "fn_" || value == "fn/" || value == "fn?") {
-    return createASTNode([this] { return functionDeclaration(); }, "null function declaration");
+    return createASTNode([this] { return voidfunctionDeclaration(); }, "null function declaration");
   }
   if (value == "let" || value == "op") {
     return createASTNode([this] { return variableDeclaration(); }, "null variable declaration");
@@ -159,15 +160,94 @@ std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
   return declaration;
 }
 
+std::vector<std::pair<std::string, ConstituentToken>> Parser::voidParameterlist()
+{
+
+  if (tokens_.front().value != "(") {
+    throw std::invalid_argument("error expected '(' in function declaration");
+  }
+  tokens_.pop_front();
+
+  std::vector<std::pair<std::string, ConstituentToken>> params;
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  while (tokens_.front().value != ")") {
+    if (tokens_.front().type != GenericToken::IDENTIFIER) {
+      throw std::invalid_argument("error: expected identifier in function declaration");
+    }
+    std::string identifier = tokens_.front().value;
+    tokens_.pop_front();
+    if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+    if (tokens_.front().value != ":") {
+      throw std::invalid_argument("error: expected ':' in function declaration");
+    }
+    tokens_.pop_front();
+    if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+    if (tokens_.front().type != GenericToken::TYPE) {
+      throw std::invalid_argument("error: expected type in function declaration");
+    }
+    if (dictionary_.find(tokens_.front().value) == dictionary_.end()) {
+      throw std::invalid_argument("error: unknown type in function declaration");
+    }
+    ConstituentToken type = dictionary_.at(tokens_.front().value);
+    tokens_.pop_front();
+    if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+    params.push_back({identifier, type});
+    if (tokens_.front().value != "," && tokens_.front().value != ")") {
+      throw std::invalid_argument("syntax error in function declaration");
+    }
+    if (tokens_.front().value == ",") {
+      tokens_.pop_front();
+      if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+    }
+  }
+
+  if (tokens_.front().value != ")") {
+    throw std::invalid_argument("expecting ')' in function declaration");
+  }
+  tokens_.pop_front();
+
+  // if (tokens_.front().value != ":") {
+  //   throw std::invalid_argument("expecting ':' before return type");
+  // }
+  // tokens_.pop_front();
+
+  // if (tokens_.front().type != GenericToken::TYPE) {
+  //   throw std::invalid_argument("expecting return type")
+  // }
+  return params;
+}
 /// @todo support for lambdas
-std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
+std::shared_ptr<Node::FunctionDecl> Parser::voidfunctionDeclaration()
 {
   // remove me (i.e handle in dispatch)
   while (tokens_.front().value == ";") {
     tokens_.pop_front();
   }
+  if (tokens_.front().value != "fn_") throw std::invalid_argument("error: expected keyword in variable declaration");
 
-  return nullptr;
+  if (dictionary_.find(tokens_.front().value) == dictionary_.end()) {
+    throw std::invalid_argument("error: unrecognized keyword");
+  }
+  Node::FunctionDecl function_decl;
+  function_decl.type = dictionary_.at(tokens_.front().value);
+
+  tokens_.pop_front();
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+
+  if (tokens_.front().type != GenericToken::IDENTIFIER)
+    throw std::invalid_argument("error: expected identifier in variable delcaration");
+  auto identifier = tokens_.front().value;
+  function_decl.token = tokens_.front();
+  tokens_.pop_front();
+
+  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  if (tokens_.front().value != "(") throw std::invalid_argument("error: expected punctuator in variable declaration");
+  std::vector<std::pair<std::string, ConstituentToken>> paramss = voidParameterlist();
+  function_decl.body = dispatch();
+
+  auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
+  symbol_table_.addFunction(identifier, function);
+  return function;
 }
 
 // calls statement such that the top of the tokens is the expression
@@ -576,6 +656,10 @@ void Parser::debugASTPrinter(Node::AST &node)
     auto variant = std::get<Node::ConditionalStatement>(std::move(*curr));
     debugConditionalStatment(variant);
   }
+  else if (std::holds_alternative<Node::FunctionDecl>(*curr)) {
+    auto variant = std::get<Node::FunctionDecl>(*curr);
+    debugFunctionDeclaration(variant);
+  }
 
   if (node.next) {
     debugASTPrinter(*node.next);
@@ -668,6 +752,20 @@ void Parser::debugConditionalStatment(Node::ConditionalStatement &node)
   debugASTPrinter(*node.body);
   std::cout << std::endl;
 }
+
+void Parser::debugFunctionDeclaration(Node::FunctionDecl &node)
+{
+  std::cout << "holds function declaration" << '\n';
+  std::cout << "type of function: " << reverse_dictionary_.at(node.type) << '\n';
+  if (node.body) {
+    std::cout << "body:\n";
+    debugASTPrinter(*node.body);
+  }
+  if (!node.body) {
+    throw std::invalid_argument("function must have a body");
+  }
+}
+
 void Parser::debugPrintln(const unsigned int &line_num)
 {
   source_file_.seekLine(line_num);

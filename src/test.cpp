@@ -6,8 +6,8 @@
 #define BLUE "\033[34m"
 #define PURPLE "\033[1;35m"
 #define BAR "=============================="
-/*
 
+/*
 try
 {
   return true;
@@ -16,7 +16,6 @@ catch (const std::exception &e)
 {
   return false;
 }
-
 */
 
 bool TEST_LEXER()
@@ -154,7 +153,7 @@ bool TEST_DISPATCH_SIMPLE()
     auto lex = Lexer(rat);
     while (lex.advanceToken()) {
     }
-    lex.debugPrinter(true /* use true here for verbose printing */);
+    // lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto ast = parse.dispatch();
@@ -172,6 +171,8 @@ bool TEST_DISPATCH_SIMPLE()
 
 bool TEST_ALL()
 {
+  std::cout << std::endl;
+
   int totalTests = 5; // change per test
   int failedTests = 0;
 
