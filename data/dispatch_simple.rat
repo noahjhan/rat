@@ -8,4 +8,5 @@ fn_ main (number: float, age: int) {
     } else {
         let z: float = 1.2
     }
+    rev
 }
