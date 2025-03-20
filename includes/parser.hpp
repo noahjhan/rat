@@ -22,10 +22,10 @@ class Parser
 
   std::shared_ptr<Node::VariableDecl> variableDeclaration();
   // std::shared_ptr<Node::FunctionDecl> functionDeclaration();
+  std::vector<std::pair<std::string, ConstituentToken>> voidParameterlist();
   std::shared_ptr<Node::FunctionDecl> voidfunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> optionalfunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> lambdafunctionDeclaration();
-  std::vector<std::pair<std::string, ConstituentToken>> voidParameterlist();
 
   std::unique_ptr<Node::ConditionalStatement> conditionalStatement();
 
@@ -39,22 +39,22 @@ class Parser
   std::unique_ptr<Node::GenericExpr> recurseExpr();
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
 
-  inline Token pop();
-  inline Token peek();
-
   std::unique_ptr<Node::ReturnStatement> returnStatment();
-
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
 
   int numTokens() const;
 
-  void debugPrintln(const unsigned int &line_num);
-  void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
   void debugASTPrinter(Node::AST &node);
   void debugExprPrinterRecursive(Node::GenericExpr &node, int depth);
   void debugVariableDeclPrinter(Node::VariableDecl &node);
   void debugConditionalStatement(Node::ConditionalStatement &node);
   void debugFunctionDeclaration(Node::FunctionDecl &node);
+  void debugReturnStatement(Node::ReturnStatement &node);
+  void debugPrintln(const unsigned int &line_num);
+  void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
+
+  inline Token pop();
+  inline Token peek();
 
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;

@@ -56,7 +56,7 @@ Lexer::Lexer(const RatSource &source_file) : source_file_(source_file)
 {
   punctuators_ = {':', '\'', '\"', '[', ']', '{', '}', '(', ')', ','};
 
-  keywords_ = {"let", "op", "if", "else", "fn", "fn_", "fn?", "fn/", "null"};
+  keywords_ = {"let", "op", "if", "else", "fn", "fn_", "fn?", "fn/", "null", "ret", "rev"};
 
   operators_ = {"=",  "+",  "-", "*", "/", "%", "==", "!=", "<",  ">",  "<=", ">=",
                 "&&", "||", "!", "&", "|", "^", "~",  "<<", ">>", "->", "=>"};
@@ -205,7 +205,7 @@ bool Lexer::advanceToken()
     partial.push_back(curr);
 
     // check if keyword
-    if (keywords_.find(partial) != keywords_.end() && source_file_.peekChar() == ' ') {
+    if (keywords_.find(partial) != keywords_.end() && (source_file_.peekChar() == ' ' || partial == "rev")) {
       char peek = source_file_.peekChar();
       partial.push_back(peek);
       if (keywords_.find(partial) == keywords_.end()) {

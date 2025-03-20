@@ -558,7 +558,7 @@ void Parser::debugASTPrinter(Node::AST &node)
     debugExprPrinterRecursive(variant, 0);
   }
   else if (std::holds_alternative<Node::VariableDecl>(*curr)) {
-    auto variant = std::get<Node::VariableDecl>(std::move(*curr));
+    auto variant = std::get<Node::VariableDecl>(*curr);
     debugVariableDeclPrinter(variant);
   }
   else if (std::holds_alternative<Node::ConditionalStatement>(*curr)) {
@@ -569,7 +569,10 @@ void Parser::debugASTPrinter(Node::AST &node)
     auto variant = std::get<Node::FunctionDecl>(*curr);
     debugFunctionDeclaration(variant);
   }
-
+  else if (std::holds_alternative<Node::ReturnStatement>(*curr)) {
+    auto variant = std::get<Node::ReturnStatement>(std::move(*curr));
+    debugReturnStatement(variant);
+  }
   if (node.next) {
     debugASTPrinter(*node.next);
   }
@@ -651,6 +654,15 @@ void Parser::debugFunctionDeclaration(Node::FunctionDecl &node)
   }
   std::cout << "body:\n";
   debugASTPrinter(*node.body);
+}
+
+void Parser::debugReturnStatement(Node::ReturnStatement &node)
+{
+  std::cout << "holds return statement" << std::endl;
+  if (node.expr) {
+    std::cout << "expression: " << '\n';
+    debugExprPrinterRecursive(*node.expr, 0);
+  }
 }
 
 void Parser::debugPrintln(const unsigned int &line_num)
