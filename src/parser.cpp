@@ -1,5 +1,5 @@
-#include "parser.hpp"
 
+#include "parser.hpp"
 /**
  * @todo copy over the debug functions from lexer, maybe make a generic
  * debug.cpp file
@@ -174,7 +174,7 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
   require(peek().value == "(", "error: expected punctuator in function declaration");
   std::vector<std::pair<std::string, ConstituentToken>> parameters = parameterlist();
   function_decl.parameters = parameters;
-
+  symbol_table_.enterScope();
   for (const auto &parameter : parameters) {
     symbol_table_.addVariable(parameter.first, nullptr);
   }
@@ -186,6 +186,7 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
   require(dictionary_.find(return_type) != dictionary_.end(), "error: unrecognized type");
   function_decl.return_type = dictionary_.at(return_type);
   function_decl.body = dispatch();
+  symbol_table_.exitScope();
   auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
   symbol_table_.addFunction(identifier, function);
   return function;
@@ -209,13 +210,14 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
   require(peek().value == "(", "error: expected punctuator in function declaration");
   std::vector<std::pair<std::string, ConstituentToken>> parameters = parameterlist();
   function_decl.parameters = parameters;
-
+  symbol_table_.enterScope();
   for (const auto &parameter : parameters) {
     symbol_table_.addVariable(parameter.first, nullptr);
   }
   function_decl.return_type = ConstituentToken::TYPE_VOID;
   function_decl.body = dispatch();
 
+  symbol_table_.exitScope();
   auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
   symbol_table_.addFunction(identifier, function);
   return function;

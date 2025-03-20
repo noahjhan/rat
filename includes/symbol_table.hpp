@@ -13,7 +13,7 @@
 #include "ast.hpp"
 #include "token.hpp"
 
-#define SYMBOL_VARIANT std::variant<Node::VariableDecl, Node::FunctionDecl>
+#define SYMBOL_VARIANT std::variant<Node::VariableDecl, Node::FunctionDecl, std::string>
 
 class SymbolTable
 {

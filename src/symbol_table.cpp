@@ -5,10 +5,11 @@ SymbolTable::SymbolTable() {}
 void SymbolTable::enterScope() { stack_.push_back(nullptr); }
 void SymbolTable::exitScope()
 {
-  while (stack_.back()) {
-    if (stack_.empty()) {
-      throw std::invalid_argument("error: stack should not be empty");
-    }
+  if (stack_.empty()) {
+    throw std::runtime_error("error: cannot exit scope, stack is empty");
+  }
+
+  while (!stack_.empty() && stack_.back()) {
     if (std::holds_alternative<Node::FunctionDecl>(*stack_.back())) {
       auto function_id = std::get<Node::FunctionDecl>(*stack_.back()).token.value;
       function_table_.erase(function_id);
@@ -17,11 +18,16 @@ void SymbolTable::exitScope()
       auto variable_id = std::get<Node::VariableDecl>(*stack_.back()).token.value;
       variable_table_.erase(variable_id);
     }
+    if (std::holds_alternative<std::string>(*stack_.back())) {
+      auto variable_id = std::get<std::string>(*stack_.back());
+      variable_table_.erase(variable_id);
+    }
     stack_.pop_back();
   }
 
-  if (!stack_.back()) {
-    stack_.pop_back(); // remove end of scope marker
+  // Final check before popping the end-of-scope marker
+  if (!stack_.empty() && !stack_.back()) {
+    stack_.pop_back();
   }
 }
 
@@ -63,17 +69,21 @@ bool SymbolTable::findVariable(const std::string &identifier)
     return false;
   }
   return true;
-  ;
 }
 
 void SymbolTable::addFunction(const std::string &identifier, const std::shared_ptr<Node::FunctionDecl> &declaration)
 {
-  if (lookupFunction(identifier)) {
+  if (findFunction(identifier)) {
+    std::cerr << "received: '" << identifier << '\'' << std::endl;
     throw std::invalid_argument("error: function cannot have multiple declarations");
   }
   if (declaration) {
     auto function_decl = SYMBOL_VARIANT(*declaration);
     stack_.push_back(std::make_shared<SYMBOL_VARIANT>(function_decl));
+  }
+  else {
+    auto variable_decl = SYMBOL_VARIANT(identifier);
+    stack_.push_back(std::make_shared<SYMBOL_VARIANT>(variable_decl));
   }
   function_table_.insert({identifier, declaration});
   return;
@@ -81,7 +91,7 @@ void SymbolTable::addFunction(const std::string &identifier, const std::shared_p
 
 void SymbolTable::addVariable(const std::string &identifier, const std::shared_ptr<Node::VariableDecl> &declaration)
 {
-  if (lookupVariable(identifier)) {
+  if (findVariable(identifier)) {
     std::cerr << "received: '" << identifier << '\'' << std::endl;
     throw std::invalid_argument("error: variable cannot have multiple definitions");
   }
@@ -89,6 +99,11 @@ void SymbolTable::addVariable(const std::string &identifier, const std::shared_p
     auto variable_decl = SYMBOL_VARIANT(*declaration);
     stack_.push_back(std::make_shared<SYMBOL_VARIANT>(variable_decl));
   }
+  else {
+    auto variable_decl = SYMBOL_VARIANT(identifier);
+    stack_.push_back(std::make_shared<SYMBOL_VARIANT>(variable_decl));
+  }
+
   variable_table_.insert({identifier, declaration});
   return;
 }
