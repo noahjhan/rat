@@ -8,7 +8,7 @@
  *
  * @todo require proper control flow i.e. else after if only
  *
- * @todo support for function calls
+ * @todo support for function calls within expressions and function calls
  *
  */
 
@@ -597,6 +597,7 @@ std::unique_ptr<Node::GenericExpr> Parser::functionCall()
 {
   Node::FunctionCall call;
   if (peek().type != GenericToken::IDENTIFIER) {
+    std::cerr << "received: '" << peek().value << '\'' << std::endl;
     throw std::invalid_argument("expected identifier in function call");
   }
   call.token = pop();
@@ -835,4 +836,4 @@ inline Token Parser::peek()
   return tokens_.front();
 }
 
-inline void Parser::restore(const Token &token) { tokens_.push_back(token); }
+inline void Parser::restore(const Token &token) { tokens_.push_front(token); }
