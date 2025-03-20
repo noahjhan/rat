@@ -7,9 +7,9 @@
  * @todo update grammar for new ops
  *
  * @todo require proper control flow i.e. else after if only
- * 
- * @todo support for strings as expressions
- * 
+ *
+ * @todo support for function calls
+ *
  */
 
 Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(tokens), source_file_(source_file)
@@ -282,7 +282,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
     Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(un_expr))});
   }
 
-  if (peek().type == GenericToken::NUMERIC_LITERAL || peek().type == GenericToken::IDENTIFIER) {
+  if (peek().type == GenericToken::NUMERIC_LITERAL || peek().type == GenericToken::IDENTIFIER ||
+      peek().type == GenericToken::STRING_LITERAL) {
     return recurseNumeric();
   }
 
@@ -505,9 +506,15 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
     } break;
-    case GenericToken::STRING_LITERAL:
-      std::cerr << "recieved: '" << token.value << '\'' << std::endl;
-      throw std::runtime_error("string literal : @todo");
+    case GenericToken::STRING_LITERAL: {
+      Node::StringLiteral node;
+      node.token = token;
+      node.type = ConstituentToken::TYPE_STRING;
+      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
+      Node::GenericExpr gen_expr;
+      gen_expr.expr = std::move(ptr);
+      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+    } break;
     case GenericToken::CHAR_LITERAL: {
       Node::NumericLiteral node;
       node.token = token;
@@ -526,6 +533,43 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   }
   std::cerr << "received: '" << token.value << '\'' << std::endl;
   throw std::invalid_argument("error: unrecognized token in expression");
+}
+
+std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
+{
+  auto require = [&](bool condition, const std::string &error_message) {
+    if (!condition) throw std::invalid_argument(error_message);
+  };
+
+  require(pop().value == "(", "error expected '(' in function call");
+
+  std::vector<std::unique_ptr<Node::GenericExpr>> parameters;
+  while (peek().value != ")") {
+    auto expr = recurseExpr();
+    if (!expr) {
+      throw std::invalid_argument("expecting parameter in function call");
+    }
+    parameters.push_back(std::move(expr));
+    if (peek().value == ",") {
+      pop();
+    }
+  }
+
+  require(pop().value == ")", "expecting ')' in function declaration");
+
+  return parameters;
+}
+
+std::shared_ptr<Node::FunctionCall> Parser::functionCall()
+{
+  Node::FunctionCall call;
+  if (peek().type != GenericToken::IDENTIFIER) {
+    throw std::invalid_argument("expected identifier in function call");
+  }
+  call.token = pop();
+  call.parameters = callParameters();
+  call.function = symbol_table_.lookupFunction(call.token.value);
+  return std::make_shared<Node::FunctionCall>(std::move(call));
 }
 
 std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
