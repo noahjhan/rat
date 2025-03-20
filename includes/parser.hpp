@@ -50,7 +50,7 @@ class Parser
   void debugASTPrinter(Node::AST &node);
   void debugExprPrinterRecursive(Node::GenericExpr &node, int depth);
   void debugVariableDeclPrinter(Node::VariableDecl &node);
-  void debugConditionalStatment(Node::ConditionalStatement &node);
+  void debugConditionalStatement(Node::ConditionalStatement &node);
   void debugFunctionDeclaration(Node::FunctionDecl &node);
 
   private:

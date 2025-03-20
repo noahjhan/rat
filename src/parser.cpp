@@ -20,7 +20,7 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(toke
       case GenericToken::IDENTIFIER: break;
       case GenericToken::KEYWORD:
         if (dictionary_.find(token.value) == dictionary_.end()) {
-          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
+          std::cerr << "received: '" << token.value << '\'' << std::endl;
           throw std::invalid_argument("syntax error: unrecognized keyword");
         }
         break;
@@ -29,13 +29,13 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(toke
       case GenericToken::CHAR_LITERAL: break;
       case GenericToken::PUNCTUATOR:
         if (dictionary_.find(token.value) == dictionary_.end()) {
-          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
+          std::cerr << "received: '" << token.value << '\'' << std::endl;
           throw std::invalid_argument("syntax error: unrecognized punctuator");
         }
         break;
       case GenericToken::OPERATOR:
         if (dictionary_.find(token.value) == dictionary_.end()) {
-          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
+          std::cerr << "received: '" << token.value << '\'' << std::endl;
           throw std::invalid_argument("syntax error: unrecognized operator");
         }
         break;
@@ -125,7 +125,7 @@ std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
   if (tokens_.empty()) throw std::invalid_argument("out of tokens");
 
   if (tokens_.front().type != GenericToken::IDENTIFIER)
-    throw std::invalid_argument("error: expected identifier in variable delcaration");
+    throw std::invalid_argument("error: expected identifier in variable declaration");
   Node::VariableDecl variable_decl;
   variable_decl.token = tokens_.front();
   tokens_.pop_front();
@@ -139,7 +139,7 @@ std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
   if (tokens_.front().type != GenericToken::TYPE)
     throw std::invalid_argument("error: expected type in variable declaration");
   if (dictionary_.find(tokens_.front().value) == dictionary_.end())
-    throw std::invalid_argument("error: unrecognized type in variable declatation");
+    throw std::invalid_argument("error: unrecognized type in variable declaration");
 
   variable_decl.type = dictionary_.at(tokens_.front().value);
   tokens_.pop_front();
@@ -223,7 +223,7 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidfunctionDeclaration()
   while (tokens_.front().value == ";") {
     tokens_.pop_front();
   }
-  if (tokens_.front().value != "fn_") throw std::invalid_argument("error: expected keyword in variable declaration");
+  if (tokens_.front().value != "fn_") throw std::invalid_argument("error: expected keyword in function declaration");
 
   if (dictionary_.find(tokens_.front().value) == dictionary_.end()) {
     throw std::invalid_argument("error: unrecognized keyword");
@@ -305,7 +305,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 {
   if (tokens_.empty()) return nullptr;
   if (tokens_.front().value == ";") {
-    throw std::invalid_argument("unexpectd newline in expression");
+    throw std::invalid_argument("unexpected newline in expression");
     tokens_.pop_front();
     return nullptr;
   }
@@ -615,7 +615,7 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 
   // this is already checked in lexer.cpp
   if (is_u_type && is_f_type) {
-    throw std::invalid_argument("ambiguous numeric literal");
+    throw std::invalid_argument("ambiguous numeric literal: '" + value + "'");
   }
 
   // type inference default int
@@ -654,7 +654,7 @@ void Parser::debugASTPrinter(Node::AST &node)
   }
   else if (std::holds_alternative<Node::ConditionalStatement>(*curr)) {
     auto variant = std::get<Node::ConditionalStatement>(std::move(*curr));
-    debugConditionalStatment(variant);
+    debugConditionalStatement(variant);
   }
   else if (std::holds_alternative<Node::FunctionDecl>(*curr)) {
     auto variant = std::get<Node::FunctionDecl>(*curr);
@@ -682,7 +682,11 @@ void Parser::debugExprPrinterRecursive(Node::GenericExpr &node, int depth)
     debugExprPrinterRecursive(std::get<Node::GenericExpr>(*variant), depth + 1);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant)) {
-    auto op = reverse_dictionary_.at(std::get<Node::BinaryExpr>(*variant).op); // validate that op is real
+    auto bin_op = std::get<Node::BinaryExpr>(*variant).op;
+    if (reverse_dictionary_.find(bin_op) == reverse_dictionary_.end()) {
+      throw std::invalid_argument("error: invalid binary operator");
+    }
+    auto op = reverse_dictionary_.at(bin_op); // validate that op is real
     std::cout << "holds binary expression: " << op << std::endl;
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
     if (binaryExpr.lhs) {
@@ -736,10 +740,9 @@ void Parser::debugVariableDeclPrinter(Node::VariableDecl &node)
   // more
   // comment // comment // comment
 }
-
-void Parser::debugConditionalStatment(Node::ConditionalStatement &node)
+void Parser::debugConditionalStatement(Node::ConditionalStatement &node)
 {
-  std::cout << "holds conditional statmeent" << '\n';
+  std::cout << "holds conditional statement" << '\n';
   std::cout << "type of conditional: " << node.token.value << '\n';
   if (node.expr) {
     std::cout << "expression:\n";
@@ -757,13 +760,11 @@ void Parser::debugFunctionDeclaration(Node::FunctionDecl &node)
 {
   std::cout << "holds function declaration" << '\n';
   std::cout << "type of function: " << reverse_dictionary_.at(node.type) << '\n';
-  if (node.body) {
-    std::cout << "body:\n";
-    debugASTPrinter(*node.body);
-  }
   if (!node.body) {
     throw std::invalid_argument("function must have a body");
   }
+  std::cout << "body:\n";
+  debugASTPrinter(*node.body);
 }
 
 void Parser::debugPrintln(const unsigned int &line_num)
