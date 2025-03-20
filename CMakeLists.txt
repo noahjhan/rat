@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(Rat CXX)
 
+# set(CMAKE_GENERATOR "Ninja")
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER "clang++")
@@ -20,7 +22,6 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/${DATA_DIR})
 add_custom_target(data ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/${DATA_DIR} ${CMAKE_BINARY_DIR}/${DATA_DIR}
-    COMMENT "Copying data directory to build directory"
 )
 
 # Source Files
@@ -35,7 +36,6 @@ set(SOURCES
 
 include_directories(${INC_DIR})
 
-# Create executable for main project
 set(EXECUTABLE_NAME rat)
 set(EXECUTABLE ${BIN_DIR}/${EXECUTABLE_NAME})
 

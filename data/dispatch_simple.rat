@@ -1,4 +1,8 @@
-fn_ main (number: float, age: int) {
+fn nothing(x: int): int {
+    ret x
+}
+
+fn_ main () {
     let x: int = 10
     let y: float = 3.0f
     if (x > 10) {

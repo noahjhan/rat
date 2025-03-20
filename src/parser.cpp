@@ -7,6 +7,9 @@
  * @todo update grammar for new ops
  *
  * @todo require proper control flow i.e. else after if only
+ * 
+ * @todo support for strings as expressions
+ * 
  */
 
 Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(tokens), source_file_(source_file)
@@ -59,8 +62,11 @@ std::unique_ptr<Node::AST> Parser::dispatch()
   };
 
   /// @todo support for other function types
-  if (value == "fn" || value == "fn_" || value == "fn/" || value == "fn?") {
-    return createASTNode([this] { return voidfunctionDeclaration(); }, "null function declaration");
+  if (value == "fn") {
+    return createASTNode([this] { return functionDeclaration(); }, "null function declaration");
+  }
+  if (value == "fn_") {
+    return createASTNode([this] { return voidFunctionDeclaration(); }, "null function declaration");
   }
   if (value == "let" || value == "op") {
     return createASTNode([this] { return variableDeclaration(); }, "null variable declaration");
@@ -108,7 +114,7 @@ std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
   return declaration;
 }
 
-std::vector<std::pair<std::string, ConstituentToken>> Parser::voidParameterlist()
+std::vector<std::pair<std::string, ConstituentToken>> Parser::parameterlist()
 {
   auto require = [&](bool condition, const std::string &error_message) {
     if (!condition) throw std::invalid_argument(error_message);
@@ -116,7 +122,7 @@ std::vector<std::pair<std::string, ConstituentToken>> Parser::voidParameterlist(
 
   require(pop().value == "(", "error expected '(' in function declaration");
 
-  std::vector<std::pair<std::string, ConstituentToken>> params;
+  std::vector<std::pair<std::string, ConstituentToken>> parameters;
   while (peek().value != ")") {
     require(peek().type == GenericToken::IDENTIFIER, "error: expected identifier in function declaration");
     std::string identifier = pop().value;
@@ -127,7 +133,7 @@ std::vector<std::pair<std::string, ConstituentToken>> Parser::voidParameterlist(
     require(dictionary_.find(peek().value) != dictionary_.end(), "error: unknown type in function declaration");
     ConstituentToken type = dictionary_.at(pop().value);
 
-    params.push_back({identifier, type});
+    parameters.push_back({identifier, type});
     require(peek().value == "," || peek().value == ")", "syntax error in function declaration");
     if (peek().value == ",") {
       pop();
@@ -136,10 +142,41 @@ std::vector<std::pair<std::string, ConstituentToken>> Parser::voidParameterlist(
 
   require(pop().value == ")", "expecting ')' in function declaration");
 
-  return params;
+  return parameters;
 }
 /// @todo support for lambdas
-std::shared_ptr<Node::FunctionDecl> Parser::voidfunctionDeclaration()
+std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
+{
+  auto require = [&](bool condition, const std::string &error_message) {
+    if (!condition) throw std::invalid_argument(error_message);
+  };
+
+  require(peek().value == "fn", "error: expected keyword in function declaration");
+
+  require(dictionary_.find(peek().value) != dictionary_.end(), "error: unrecognized keyword");
+  Node::FunctionDecl function_decl;
+  function_decl.type = dictionary_.at(pop().value);
+  require(peek().type == GenericToken::IDENTIFIER, "error: expected identifier in function declaration");
+  auto identifier = peek().value;
+  function_decl.token = pop();
+
+  require(peek().value == "(", "error: expected punctuator in function declaration");
+  std::vector<std::pair<std::string, ConstituentToken>> parameters = parameterlist();
+  function_decl.parameters = parameters;
+
+  require(pop().value == ":", "error: expected ':' in function declaraiton");
+
+  require(peek().type == GenericToken::TYPE, "error: expected return type in function declaration");
+  auto return_type = pop().value;
+  require(dictionary_.find(return_type) != dictionary_.end(), "error: unrecognized type");
+  function_decl.return_type = dictionary_.at(return_type);
+  function_decl.body = dispatch();
+  auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
+  symbol_table_.addFunction(identifier, function);
+  return function;
+}
+
+std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
 {
   auto require = [&](bool condition, const std::string &error_message) {
     if (!condition) throw std::invalid_argument(error_message);
@@ -150,12 +187,13 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidfunctionDeclaration()
   require(dictionary_.find(peek().value) != dictionary_.end(), "error: unrecognized keyword");
   Node::FunctionDecl function_decl;
   function_decl.type = dictionary_.at(pop().value);
-  require(peek().type == GenericToken::IDENTIFIER, "error: expected identifier in variable declaration");
+  require(peek().type == GenericToken::IDENTIFIER, "error: expected identifier in function declaration");
   auto identifier = peek().value;
   function_decl.token = pop();
 
-  require(peek().value == "(", "error: expected punctuator in variable declaration");
-  std::vector<std::pair<std::string, ConstituentToken>> paramss = voidParameterlist();
+  require(peek().value == "(", "error: expected punctuator in function declaration");
+  std::vector<std::pair<std::string, ConstituentToken>> parameters = parameterlist();
+  function_decl.parameters = parameters;
   function_decl.body = dispatch();
 
   auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
@@ -649,6 +687,10 @@ void Parser::debugFunctionDeclaration(Node::FunctionDecl &node)
 {
   std::cout << "holds function declaration" << '\n';
   std::cout << "type of function: " << reverse_dictionary_.at(node.type) << '\n';
+  for (const auto &var : node.parameters) {
+    std::cout << "identifier: " << var.first << '\n';
+    std::cout << "type: " << reverse_dictionary_.at(var.second) << '\n';
+  }
   if (!node.body) {
     throw std::invalid_argument("function must have a body");
   }

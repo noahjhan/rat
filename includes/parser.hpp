@@ -21,9 +21,9 @@ class Parser
   std::unique_ptr<Node::AST> dispatch();
 
   std::shared_ptr<Node::VariableDecl> variableDeclaration();
-  // std::shared_ptr<Node::FunctionDecl> functionDeclaration();
-  std::vector<std::pair<std::string, ConstituentToken>> voidParameterlist();
-  std::shared_ptr<Node::FunctionDecl> voidfunctionDeclaration();
+  std::shared_ptr<Node::FunctionDecl> functionDeclaration();
+  std::vector<std::pair<std::string, ConstituentToken>> parameterlist();
+  std::shared_ptr<Node::FunctionDecl> voidFunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> optionalfunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> lambdafunctionDeclaration();
 
