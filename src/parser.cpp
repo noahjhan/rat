@@ -11,46 +11,9 @@
 
 Parser::Parser(std::deque<Token> &tokens, RatSource &source_file) : tokens_(tokens), source_file_(source_file)
 {
-
-  for (const auto &token : tokens_) {
-    if (token.value.empty()) {
-      throw std::invalid_argument("syntax error: empty token");
-    }
-    switch (token.type) {
-      case GenericToken::IDENTIFIER: break;
-      case GenericToken::KEYWORD:
-        if (dictionary_.find(token.value) == dictionary_.end()) {
-          std::cerr << "received: '" << token.value << '\'' << std::endl;
-          throw std::invalid_argument("syntax error: unrecognized keyword");
-        }
-        break;
-      case GenericToken::NUMERIC_LITERAL: break;
-      case GenericToken::STRING_LITERAL: break;
-      case GenericToken::CHAR_LITERAL: break;
-      case GenericToken::PUNCTUATOR:
-        if (dictionary_.find(token.value) == dictionary_.end()) {
-          std::cerr << "received: '" << token.value << '\'' << std::endl;
-          throw std::invalid_argument("syntax error: unrecognized punctuator");
-        }
-        break;
-      case GenericToken::OPERATOR:
-        if (dictionary_.find(token.value) == dictionary_.end()) {
-          std::cerr << "received: '" << token.value << '\'' << std::endl;
-          throw std::invalid_argument("syntax error: unrecognized operator");
-        }
-        break;
-      case GenericToken::TYPE:
-        if (dictionary_.find(token.value) == dictionary_.end()) {
-          std::cerr << "recieved: '" << token.value << '\'' << std::endl;
-          throw std::invalid_argument("syntax error: unrecognized type");
-        }
-        break;
-    }
-  }
-  // may need a destructor just to clear out global scope
   symbol_table_.enterScope();
 }
-/// @todo scopes
+
 std::unique_ptr<Node::AST> Parser::dispatch()
 {
   if (tokens_.empty()) {
@@ -58,8 +21,8 @@ std::unique_ptr<Node::AST> Parser::dispatch()
     return nullptr;
   }
 
-  while (tokens_.front().value == ";") {
-    tokens_.pop_front();
+  while (peek().value == ";") {
+    pop();
   }
 
   if (tokens_.empty()) {
@@ -67,23 +30,22 @@ std::unique_ptr<Node::AST> Parser::dispatch()
     return nullptr;
   }
 
-  if (tokens_.front().value == "{") {
+  if (peek().value == "{") {
     symbol_table_.enterScope();
-    tokens_.pop_front();
+    pop();
     return dispatch();
-    /// @todo make this a child ast node
   }
-  else if (tokens_.front().value == "}") {
+  else if (peek().value == "}") {
     symbol_table_.exitScope();
-    tokens_.pop_front();
+    pop();
     return nullptr;
   }
 
-  if (tokens_.front().type != GenericToken::KEYWORD) {
+  if (peek().type != GenericToken::KEYWORD) {
     throw std::invalid_argument("syntax error: unrecognized expression");
   }
 
-  const std::string &value = tokens_.front().value;
+  const std::string &value = peek().value;
 
   auto createASTNode = [&](auto parsingFunction, const std::string error_message) -> std::unique_ptr<Node::AST> {
     auto ptr = parsingFunction();
@@ -115,133 +77,84 @@ std::unique_ptr<Node::AST> Parser::dispatch()
 
 std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
-  // remove me (i.e handle in dispatch)
-  while (tokens_.front().value == ";") {
-    tokens_.pop_front();
-  }
-  if (tokens_.front().value != "let") throw std::invalid_argument("error: expected keyword in variable declaration");
+  auto require = [&](bool condition, const std::string &error_message) {
+    if (!condition) throw std::invalid_argument(error_message);
+  };
 
-  tokens_.pop_front();
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  require(peek().value == "let", "error: expected keyword in variable declaration");
 
-  if (tokens_.front().type != GenericToken::IDENTIFIER)
-    throw std::invalid_argument("error: expected identifier in variable declaration");
+  pop();
+
+  require(peek().type == GenericToken::IDENTIFIER, "error: expected identifier in variable declaration");
   Node::VariableDecl variable_decl;
-  variable_decl.token = tokens_.front();
-  tokens_.pop_front();
+  variable_decl.token = pop();
 
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-  if (tokens_.front().value != ":") throw std::invalid_argument("error: expected punctuator in variable declaration");
+  require(peek().value == ":", "error: expected punctuator in variable declaration");
 
-  tokens_.pop_front();
+  pop();
 
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-  if (tokens_.front().type != GenericToken::TYPE)
-    throw std::invalid_argument("error: expected type in variable declaration");
-  if (dictionary_.find(tokens_.front().value) == dictionary_.end())
-    throw std::invalid_argument("error: unrecognized type in variable declaration");
+  require(peek().type == GenericToken::TYPE, "error: expected type in variable declaration");
+  require(dictionary_.find(peek().value) != dictionary_.end(), "error: unrecognized type in variable declaration");
 
-  variable_decl.type = dictionary_.at(tokens_.front().value);
-  tokens_.pop_front();
+  variable_decl.type = dictionary_.at(pop().value);
 
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-  if (tokens_.front().value != "=") throw std::invalid_argument("error: expected assignment operator in expression");
-
-  tokens_.pop_front();
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  require(pop().value == "=", "error: expected assignment operator in expression");
 
   variable_decl.expr = recurseExpr();
   auto declaration = std::make_shared<Node::VariableDecl>(variable_decl);
   symbol_table_.addVariable(variable_decl.token.value, declaration);
 
-  if (!tokens_.empty() && tokens_.front().value != ";") {
-    throw std::invalid_argument("expected newline in expression");
-  }
+  require(tokens_.empty() || peek().value == ";", "expected newline in expression");
   return declaration;
 }
 
 std::vector<std::pair<std::string, ConstituentToken>> Parser::voidParameterlist()
 {
+  auto require = [&](bool condition, const std::string &error_message) {
+    if (!condition) throw std::invalid_argument(error_message);
+  };
 
-  if (tokens_.front().value != "(") {
-    throw std::invalid_argument("error expected '(' in function declaration");
-  }
-  tokens_.pop_front();
+  require(pop().value == "(", "error expected '(' in function declaration");
 
   std::vector<std::pair<std::string, ConstituentToken>> params;
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-  while (tokens_.front().value != ")") {
-    if (tokens_.front().type != GenericToken::IDENTIFIER) {
-      throw std::invalid_argument("error: expected identifier in function declaration");
-    }
-    std::string identifier = tokens_.front().value;
-    tokens_.pop_front();
-    if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-    if (tokens_.front().value != ":") {
-      throw std::invalid_argument("error: expected ':' in function declaration");
-    }
-    tokens_.pop_front();
-    if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-    if (tokens_.front().type != GenericToken::TYPE) {
-      throw std::invalid_argument("error: expected type in function declaration");
-    }
-    if (dictionary_.find(tokens_.front().value) == dictionary_.end()) {
-      throw std::invalid_argument("error: unknown type in function declaration");
-    }
-    ConstituentToken type = dictionary_.at(tokens_.front().value);
-    tokens_.pop_front();
-    if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+  while (peek().value != ")") {
+    require(peek().type == GenericToken::IDENTIFIER, "error: expected identifier in function declaration");
+    std::string identifier = pop().value;
+
+    require(pop().value == ":", "error: expected ':' in function declaration");
+
+    require(peek().type == GenericToken::TYPE, "error: expected type in function declaration");
+    require(dictionary_.find(peek().value) != dictionary_.end(), "error: unknown type in function declaration");
+    ConstituentToken type = dictionary_.at(pop().value);
+
     params.push_back({identifier, type});
-    if (tokens_.front().value != "," && tokens_.front().value != ")") {
-      throw std::invalid_argument("syntax error in function declaration");
-    }
-    if (tokens_.front().value == ",") {
-      tokens_.pop_front();
-      if (tokens_.empty()) throw std::invalid_argument("out of tokens");
+    require(peek().value == "," || peek().value == ")", "syntax error in function declaration");
+    if (peek().value == ",") {
+      pop();
     }
   }
 
-  if (tokens_.front().value != ")") {
-    throw std::invalid_argument("expecting ')' in function declaration");
-  }
-  tokens_.pop_front();
+  require(pop().value == ")", "expecting ')' in function declaration");
 
-  // if (tokens_.front().value != ":") {
-  //   throw std::invalid_argument("expecting ':' before return type");
-  // }
-  // tokens_.pop_front();
-
-  // if (tokens_.front().type != GenericToken::TYPE) {
-  //   throw std::invalid_argument("expecting return type")
-  // }
   return params;
 }
 /// @todo support for lambdas
 std::shared_ptr<Node::FunctionDecl> Parser::voidfunctionDeclaration()
 {
-  // remove me (i.e handle in dispatch)
-  while (tokens_.front().value == ";") {
-    tokens_.pop_front();
-  }
-  if (tokens_.front().value != "fn_") throw std::invalid_argument("error: expected keyword in function declaration");
+  auto require = [&](bool condition, const std::string &error_message) {
+    if (!condition) throw std::invalid_argument(error_message);
+  };
 
-  if (dictionary_.find(tokens_.front().value) == dictionary_.end()) {
-    throw std::invalid_argument("error: unrecognized keyword");
-  }
+  require(peek().value == "fn_", "error: expected keyword in function declaration");
+
+  require(dictionary_.find(peek().value) != dictionary_.end(), "error: unrecognized keyword");
   Node::FunctionDecl function_decl;
-  function_decl.type = dictionary_.at(tokens_.front().value);
+  function_decl.type = dictionary_.at(pop().value);
+  require(peek().type == GenericToken::IDENTIFIER, "error: expected identifier in variable declaration");
+  auto identifier = peek().value;
+  function_decl.token = pop();
 
-  tokens_.pop_front();
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-
-  if (tokens_.front().type != GenericToken::IDENTIFIER)
-    throw std::invalid_argument("error: expected identifier in variable delcaration");
-  auto identifier = tokens_.front().value;
-  function_decl.token = tokens_.front();
-  tokens_.pop_front();
-
-  if (tokens_.empty()) throw std::invalid_argument("out of tokens");
-  if (tokens_.front().value != "(") throw std::invalid_argument("error: expected punctuator in variable declaration");
+  require(peek().value == "(", "error: expected punctuator in variable declaration");
   std::vector<std::pair<std::string, ConstituentToken>> paramss = voidParameterlist();
   function_decl.body = dispatch();
 
@@ -254,25 +167,25 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidfunctionDeclaration()
 std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 {
 
-  const Token token = tokens_.front();
+  const Token token = peek();
   Node::ConditionalStatement cond;
   cond.token = token;
 
   if (token.value == "if") {
-    tokens_.pop_front();
+    pop();
     cond.expr = recurseExpr();
     cond.body = std::make_unique<Node::AST>(std::move(*dispatch()));
     return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
 
   if (token.value == "else") {
-    tokens_.pop_front();
+    pop();
   }
   else {
     throw std::invalid_argument("error: expected keyword in conditional expression");
   }
 
-  const Token &next = tokens_.front();
+  const Token &next = peek();
 
   if (next.value == "{") {
     cond.expr = nullptr; // sentinal value for else statements
@@ -280,7 +193,7 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
     return std::make_unique<Node::ConditionalStatement>(std::move(cond));
   }
   else if (next.value == "if") {
-    tokens_.pop_front();
+    pop();
     cond.token.value = "else if";
     cond.expr = recurseExpr();
     cond.body = std::make_unique<Node::AST>(std::move(*dispatch()));
@@ -294,8 +207,7 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 {
-  if (!tokens_.empty() &&
-      (tokens_.front().type == GenericToken::NUMERIC_LITERAL || tokens_.front().type == GenericToken::IDENTIFIER)) {
+  if (!tokens_.empty() && (peek().type == GenericToken::NUMERIC_LITERAL || peek().type == GenericToken::IDENTIFIER)) {
     return tokenToExpr();
   }
   return nullptr;
@@ -304,14 +216,14 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 {
   if (tokens_.empty()) return nullptr;
-  if (tokens_.front().value == ";") {
+  if (peek().value == ";") {
     throw std::invalid_argument("unexpected newline in expression");
-    tokens_.pop_front();
+    pop();
     return nullptr;
   }
-  if (tokens_.front().value == "!" || tokens_.front().value == "~") {
-    std::string op = tokens_.front().value;
-    tokens_.pop_front();
+  if (peek().value == "!" || peek().value == "~") {
+    std::string op = peek().value;
+    pop();
 
     if (tokens_.empty()) {
       std::cerr << "missing operand after unary operator '" << op << "'\n";
@@ -332,17 +244,17 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
     Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(un_expr))});
   }
 
-  if (tokens_.front().type == GenericToken::NUMERIC_LITERAL || tokens_.front().type == GenericToken::IDENTIFIER) {
+  if (peek().type == GenericToken::NUMERIC_LITERAL || peek().type == GenericToken::IDENTIFIER) {
     return recurseNumeric();
   }
 
-  if (tokens_.front().value == "(") {
-    tokens_.pop_front(); // Consume '('
+  if (peek().value == "(") {
+    pop(); // Consume '('
     auto expr = recurseExpr();
     if (tokens_.empty()) {
       throw std::invalid_argument("syntax error: invalid parentheses expression");
     }
-    tokens_.pop_front(); // Consume ')'
+    pop(); // Consume ')'
     return expr;
   }
   return nullptr;
@@ -351,22 +263,21 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
 {
   auto factor = recurseFactor();
-  while (!tokens_.empty() &&
-         (tokens_.front().value == "*" || tokens_.front().value == "/" || tokens_.front().value == "%")) {
+  while (!tokens_.empty() && (peek().value == "*" || peek().value == "/" || peek().value == "%")) {
     if (!factor) {
       throw std::invalid_argument("error: expecting lhs for binary expression");
     }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(factor);
 
-    if (tokens_.front().value == "*")
+    if (peek().value == "*")
       bin_expr.op = ConstituentToken::ARITHMETIC_MUL;
-    else if (tokens_.front().value == "/")
+    else if (peek().value == "/")
       bin_expr.op = ConstituentToken::ARITHMETIC_DIV;
-    else if (tokens_.front().value == "%")
+    else if (peek().value == "%")
       bin_expr.op = ConstituentToken::ARITHMETIC_MOD;
 
-    tokens_.pop_front();
+    pop();
     auto factor_rhs = recurseFactor();
     if (!factor_rhs) {
       throw std::invalid_argument("error: expecting rhs for binary expression");
@@ -381,14 +292,14 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
 std::unique_ptr<Node::GenericExpr> Parser::recurseAdditive()
 {
   auto term = recurseTerm();
-  while (!tokens_.empty() && (tokens_.front().value == "+" || tokens_.front().value == "-")) {
+  while (!tokens_.empty() && (peek().value == "+" || peek().value == "-")) {
     if (!term) {
       throw std::invalid_argument("error: expecting lhs for binary expression");
     }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(term);
-    bin_expr.op = (tokens_.front().value == "+") ? ConstituentToken::ARITHMETIC_ADD : ConstituentToken::ARITHMETIC_SUB;
-    tokens_.pop_front();
+    bin_expr.op = (peek().value == "+") ? ConstituentToken::ARITHMETIC_ADD : ConstituentToken::ARITHMETIC_SUB;
+    pop();
     auto term_rhs = recurseTerm();
     if (!term_rhs) {
       throw std::invalid_argument("error: expecting rhs for binary expression");
@@ -403,19 +314,19 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseAdditive()
 std::unique_ptr<Node::GenericExpr> Parser::recurseShift()
 {
   auto additive = recurseAdditive();
-  while (!tokens_.empty() && (tokens_.front().value == "<<" || tokens_.front().value == ">>")) {
+  while (!tokens_.empty() && (peek().value == "<<" || peek().value == ">>")) {
     if (!additive) {
       throw std::invalid_argument("error: expecting lhs for binary expression");
     }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(additive);
 
-    if (tokens_.front().value == "<<")
+    if (peek().value == "<<")
       bin_expr.op = ConstituentToken::BITWISE_SL;
-    else if (tokens_.front().value == ">>")
+    else if (peek().value == ">>")
       bin_expr.op = ConstituentToken::BITWISE_SR;
 
-    tokens_.pop_front();
+    pop();
     auto additive_rhs = recurseAdditive();
     if (!additive_rhs) {
       throw std::invalid_argument("error: expecting rhs for binary expression");
@@ -430,9 +341,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseShift()
 std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
 {
   auto shift = recurseShift();
-  while (!tokens_.empty() &&
-         (tokens_.front().value == "==" || tokens_.front().value == "!=" || tokens_.front().value == "<" ||
-          tokens_.front().value == "<=" || tokens_.front().value == ">" || tokens_.front().value == ">=")) {
+  while (!tokens_.empty() && (peek().value == "==" || peek().value == "!=" || peek().value == "<" ||
+                              peek().value == "<=" || peek().value == ">" || peek().value == ">=")) {
     if (!shift) {
       throw std::invalid_argument("error: expecting lhs for binary expression");
     }
@@ -440,20 +350,20 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(shift);
 
-    if (tokens_.front().value == "==")
+    if (peek().value == "==")
       bin_expr.op = ConstituentToken::COMPARISON_EQ;
-    else if (tokens_.front().value == "!=")
+    else if (peek().value == "!=")
       bin_expr.op = ConstituentToken::COMPARISON_NEQ;
-    else if (tokens_.front().value == "<")
+    else if (peek().value == "<")
       bin_expr.op = ConstituentToken::COMPARISON_LT;
-    else if (tokens_.front().value == "<=")
+    else if (peek().value == "<=")
       bin_expr.op = ConstituentToken::COMPARISON_LTE;
-    else if (tokens_.front().value == ">")
+    else if (peek().value == ">")
       bin_expr.op = ConstituentToken::COMPARISON_GT;
-    else if (tokens_.front().value == ">=")
+    else if (peek().value == ">=")
       bin_expr.op = ConstituentToken::COMPARISON_GTE;
 
-    tokens_.pop_front();
+    pop();
     auto shift_rhs = recurseShift();
     if (!shift_rhs) {
       throw std::invalid_argument("error: expecting rhs for binary expression");
@@ -468,27 +378,26 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
 std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
 {
   auto comparison = recurseComparison();
-  while (!tokens_.empty() &&
-         (tokens_.front().value == "&" || tokens_.front().value == "^" || tokens_.front().value == "|" ||
-          tokens_.front().value == "&&" || tokens_.front().value == "||")) {
+  while (!tokens_.empty() && (peek().value == "&" || peek().value == "^" || peek().value == "|" ||
+                              peek().value == "&&" || peek().value == "||")) {
     if (!comparison) {
       throw std::invalid_argument("error: expecting lhs for binary expression");
     }
     Node::BinaryExpr bin_expr;
     bin_expr.lhs = std::move(comparison);
 
-    if (tokens_.front().value == "&")
+    if (peek().value == "&")
       bin_expr.op = ConstituentToken::BITWISE_AND;
-    else if (tokens_.front().value == "^")
+    else if (peek().value == "^")
       bin_expr.op = ConstituentToken::BITWISE_XOR;
-    else if (tokens_.front().value == "|")
+    else if (peek().value == "|")
       bin_expr.op = ConstituentToken::BITWISE_OR;
-    else if (tokens_.front().value == "&&")
+    else if (peek().value == "&&")
       bin_expr.op = ConstituentToken::LOGICAL_AND;
-    else if (tokens_.front().value == "||")
+    else if (peek().value == "||")
       bin_expr.op = ConstituentToken::LOGICAL_OR;
 
-    tokens_.pop_front();
+    pop();
 
     auto comparison_rhs = recurseComparison();
     if (!comparison_rhs) {
@@ -508,7 +417,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
     if (tokens_.empty()) {
       throw std::runtime_error("token deque empty");
     }
-    Token token = tokens_.front();
+    Token token = peek();
     std::cerr << "received: '" << token.value << '\'' << std::endl;
     debugLineCol(token.line_num, token.col_num);
     debugPrintln(token.line_num);
@@ -527,13 +436,13 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
 
 std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
-  Token token = tokens_.front();
+  Token token = peek();
   if (tokens_.empty()) {
     throw std::runtime_error("error: empty token deque");
   }
 
   std::unique_ptr<Node::GenericExpr> gen_expr_ptr;
-  tokens_.pop_front(); // maybe here maybe at the end
+  pop(); // maybe here maybe at the end
 
   switch (token.type) {
     /// @todo seperate functions maybe seperated struct for function and
@@ -583,21 +492,21 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 
 std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
 {
-  if (tokens_.front().value == "rev") {
-    // check this?
+  if (peek().value == "rev") {
+    // require this?
     Node::ReturnStatement rev;
-    rev.token = tokens_.front();
-    tokens_.pop_front();
+    rev.token = peek();
+    pop();
     rev.type = ConstituentToken::TYPE_VOID;
     rev.expr = nullptr;
     return std::make_unique<Node::ReturnStatement>(std::move(rev));
   }
-  if (tokens_.front().value == "ret") {
-    // check this?
+  if (peek().value == "ret") {
+    // require this?
     Node::ReturnStatement ret;
-    ret.token = tokens_.front();
-    tokens_.pop_front();
-    /// @todo find proper return type for error checking
+    ret.token = peek();
+    pop();
+    /// @todo find proper return type for error requireing
     ret.type = ConstituentToken::TYPE_VOID;
     ret.expr = recurseExpr();
     return std::make_unique<Node::ReturnStatement>(std::move(ret));
@@ -613,7 +522,7 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
   bool is_f_type =
   value.find('f') != std::string::npos || value.find('d') != std::string::npos || value.find('.') != std::string::npos;
 
-  // this is already checked in lexer.cpp
+  // this is already requireed in lexer.cpp
   if (is_u_type && is_f_type) {
     throw std::invalid_argument("ambiguous numeric literal: '" + value + "'");
   }
@@ -668,9 +577,6 @@ void Parser::debugASTPrinter(Node::AST &node)
 
 void Parser::debugExprPrinterRecursive(Node::GenericExpr &node, int depth)
 {
-  // auto variant =
-  // std::make_unique<EXPRESSION_VARIANT>(std::move(*(node.expr)));
-
   auto variant = node.expr.get();
   if (!variant) {
     std::cout << std::string(depth, ' ') << "variant is null" << std::endl;
@@ -682,44 +588,24 @@ void Parser::debugExprPrinterRecursive(Node::GenericExpr &node, int depth)
     debugExprPrinterRecursive(std::get<Node::GenericExpr>(*variant), depth + 1);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*variant)) {
-    auto bin_op = std::get<Node::BinaryExpr>(*variant).op;
-    if (reverse_dictionary_.find(bin_op) == reverse_dictionary_.end()) {
-      throw std::invalid_argument("error: invalid binary operator");
-    }
-    auto op = reverse_dictionary_.at(bin_op); // validate that op is real
-    std::cout << "holds binary expression: " << op << std::endl;
     const auto &binaryExpr = std::get<Node::BinaryExpr>(*variant);
-    if (binaryExpr.lhs) {
-      std::cout << std::string(depth * 4, ' ') << "lhs: ";
-      debugExprPrinterRecursive(*binaryExpr.lhs, depth + 1);
-    }
-    else {
-      throw std::invalid_argument("error: expecting lhs for binary expression");
-    }
-    if (binaryExpr.rhs) {
-      std::cout << std::string(depth * 4, ' ') << "rhs: ";
-      debugExprPrinterRecursive(*binaryExpr.rhs, depth + 1);
-    }
-    else {
-      throw std::invalid_argument("error: expecting rhs for binary expression");
-    }
+    std::cout << "holds binary expression: " << reverse_dictionary_.at(binaryExpr.op) << std::endl;
+    if (!binaryExpr.lhs || !binaryExpr.rhs) throw std::invalid_argument("error: missing operand in binary expression");
+    std::cout << std::string(depth * 4, ' ') << "lhs: ";
+    debugExprPrinterRecursive(*binaryExpr.lhs, depth + 1);
+    std::cout << std::string(depth * 4, ' ') << "rhs: ";
+    debugExprPrinterRecursive(*binaryExpr.rhs, depth + 1);
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*variant)) {
-    auto op = reverse_dictionary_.at(std::get<Node::UnaryExpr>(*variant).op);
-    std::cout << "holds unary expression: " << op << std::endl;
     const auto &unaryExpr = std::get<Node::UnaryExpr>(*variant);
-    if (unaryExpr.expr) {
-      std::cout << std::string(depth * 4, ' ') << "expr: ";
-      debugExprPrinterRecursive(*unaryExpr.expr, depth + 1);
-    }
+    std::cout << "holds unary expression: " << reverse_dictionary_.at(unaryExpr.op) << std::endl;
+    if (unaryExpr.expr) debugExprPrinterRecursive(*unaryExpr.expr, depth + 1);
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*variant)) {
-    auto literal = std::get<Node::NumericLiteral>(*variant);
-    std::cout << "holds numeric literal: " << literal.token.value << std::endl;
+    std::cout << "holds numeric literal: " << std::get<Node::NumericLiteral>(*variant).token.value << std::endl;
   }
   else if (std::holds_alternative<Node::Identifier>(*variant)) {
-    auto id = std::get<Node::Identifier>(*variant);
-    std::cout << "holds identifier: " << id.token.value << std::endl;
+    std::cout << "holds identifier: " << std::get<Node::Identifier>(*variant).token.value << std::endl;
   }
   else {
     std::cout << "holds ambiguous state" << std::endl;
@@ -776,4 +662,22 @@ void Parser::debugPrintln(const unsigned int &line_num)
 void Parser::debugLineCol(const unsigned int &line_num, const unsigned int &col_num)
 {
   std::cerr << "at line: " << line_num << ", col: " << col_num << std::endl;
+}
+
+inline Token Parser::pop()
+{
+  if (tokens_.empty()) {
+    throw std::invalid_argument("out of tokens, cannot pop");
+  }
+  auto token = tokens_.front();
+  tokens_.pop_front();
+  return token;
+}
+
+inline Token Parser::peek()
+{
+  if (tokens_.empty()) {
+    throw std::invalid_argument("out of tokens, cannot peek");
+  }
+  return tokens_.front();
 }
