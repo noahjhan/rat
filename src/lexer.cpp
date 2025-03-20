@@ -84,7 +84,7 @@ void Lexer::advanceStringLiteral()
   std::string partial;
   if (curr != '\"') {
     debugLineCol(line_num, col_num);
-    std::cerr << "advanceStringLiteral: expected: \", recieved: " << curr << std::endl;
+    std::cerr << "advanceStringLiteral: expected: \", received: " << curr << std::endl;
     debugPrintln(line_num);
     throw std::invalid_argument("error: caller function did not align stream");
   }
@@ -114,7 +114,7 @@ void Lexer::advanceCharLiteral()
   if (curr != '\'') {
 
     debugLineCol(line_num, col_num);
-    std::cerr << "advanceCharLiteral: expected: \', recieved: " << curr << std::endl;
+    std::cerr << "advanceCharLiteral: expected: \', received: " << curr << std::endl;
     debugPrintln(line_num);
     throw std::invalid_argument("error: caller function did not align stream");
   }
@@ -131,7 +131,7 @@ void Lexer::advanceCharLiteral()
       if ((partial.size() != 3 && partial.size() != 4) || (partial.size() == 4 && partial[1] != '\\') ||
           (partial.size() == 3 && partial[1] == '\\') || (escape_chars.find(partial[2]) == escape_chars.end())) {
         debugLineCol(line_num, col_num);
-        std::cerr << "recieved: '" << partial << '\'' << std::endl;
+        std::cerr << "received: '" << partial << '\'' << std::endl;
         debugPrintln(line_num);
         throw std::invalid_argument("syntax error: unrecognized char literal");
       }
@@ -187,7 +187,7 @@ bool Lexer::advanceToken()
       if (!partial.empty()) {
 
         debugLineCol(line_num, col_num);
-        std::cerr << "expected empty partial, recieved: '" << partial << '\'' << std::endl;
+        std::cerr << "expected empty partial, received: '" << partial << '\'' << std::endl;
         debugPrintln(line_num);
         throw std::invalid_argument("failed to correctly process token before punctuator");
       }
@@ -251,7 +251,7 @@ bool Lexer::advanceToken()
 
   if ((is_numeric && is_identifier)) {
     debugLineCol(line_num, col_num);
-    std::cerr << "recieved: '" << partial << '\'' << std::endl;
+    std::cerr << "received: '" << partial << '\'' << std::endl;
     debugPrintln(line_num);
     throw std::invalid_argument("ambiguous token");
   }
@@ -272,7 +272,7 @@ bool Lexer::advanceToken()
     return true;
   }
   debugLineCol(line_num, col_num);
-  std::cerr << "recieved: '" << partial << '\'' << std::endl;
+  std::cerr << "received: '" << partial << '\'' << std::endl;
   debugPrintln(line_num);
   throw std::invalid_argument("unrecognized token");
 }
