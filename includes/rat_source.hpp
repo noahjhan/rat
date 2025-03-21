@@ -59,7 +59,7 @@ class RatSource
 
   private:
   std::string filename_;
-  std::fstream fs_;
+  std::ifstream fs_;
   unsigned int line_num_;
   unsigned int col_num_;
   unsigned int prev_line_num_;
