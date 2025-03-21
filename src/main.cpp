@@ -6,5 +6,5 @@
 
 int main() 
 {
-  return (!TEST_COMPILE()); 
+  return (!TEST_ALL()); 
 }

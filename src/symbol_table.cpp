@@ -84,6 +84,9 @@ void SymbolTable::addFunction(const std::string &identifier,
 {
   if (findFunction(identifier)) {
     std::cerr << "received: '" << identifier << '\'' << std::endl;
+    if (identifier == "print") {
+      throw std::invalid_argument("print cannot be a userdef function name");
+    }
     throw std::invalid_argument("error: function cannot have multiple declarations");
   }
   if (declaration) {

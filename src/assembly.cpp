@@ -135,14 +135,15 @@ void Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
 }
 void Compiler::stringGlobal(const std::string &str)
 {
+  std::string formatted(str.begin() + 1, str.end() - 1);
   read();
   std::stringstream buffer;
   buffer << fs_.rdbuf();
   std::string content = buffer.str();
   open();
   fs_.seekp(0, std::ios::beg);
-  fs_ << "@.str = private unnamed_addr constant [" << str.size() + 2 << " x i8] c\""
-      << str << "\\0A\\00\", align 1\n\n";
+  fs_ << "@.str = private unnamed_addr constant [" << formatted.size() + 2 << " x i8] c\""
+      << formatted << "\\0A\\00\", align 1\n\n";
   append();
   fs_ << content;
 }
