@@ -6,6 +6,8 @@
 
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "assembly.hpp"
+
 
 bool TEST_LEXER();
 bool TEST_EXPR_TYPES();
@@ -13,6 +15,7 @@ bool TEST_EXPR_AST();
 bool TEST_VARIABLE_DECLARATION();
 bool TEST_DISPATCH_SIMPLE();
 bool TEST_FUNCTION_CALL();
+bool TEST_COMPILE();
 
 bool TEST_ALL();
 

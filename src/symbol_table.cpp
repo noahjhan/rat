@@ -1,6 +1,6 @@
 #include "symbol_table.hpp"
 
-SymbolTable::SymbolTable() {}
+SymbolTable::SymbolTable() { function_table_.insert({"print", nullptr}); }
 
 void SymbolTable::enterScope() { stack_.push_back(nullptr); }
 void SymbolTable::exitScope()
