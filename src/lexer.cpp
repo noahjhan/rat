@@ -99,12 +99,13 @@ void Lexer::advanceStringLiteral()
     debugPrintln(line_num);
     throw std::invalid_argument("error: caller function did not align stream");
   }
+  curr = source_file_.advanceChar();
   while (isAcceptableStringLiteral(curr)) {
     partial.push_back(curr);
     curr = source_file_.advanceChar();
     if (curr == '\"') {
       // end of literal reached
-      partial.push_back(curr);
+      // partial.push_back(curr);
       dequePush(GenericToken::STRING_LITERAL, partial, line_num, col_num);
       return;
     }

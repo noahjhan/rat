@@ -1,11 +1,4 @@
 fn_ main() {
-    rev
-}
-
-fn_ foo() {
-    rev
-}
-
-fn_ bar() {
+    print("ratty ratty rat!")
     rev
 }
