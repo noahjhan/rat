@@ -28,8 +28,10 @@ class SymbolTable
   bool findVariable(const std::string &identifier);
   bool findFunction(const std::string &identifier);
 
-  void addFunction(const std::string &identifier, const std::shared_ptr<Node::FunctionDecl> &declaration);
-  void addVariable(const std::string &identifier, const std::shared_ptr<Node::VariableDecl> &declaration);
+  void addFunction(const std::string &identifier,
+                   const std::shared_ptr<Node::FunctionDecl> &declaration);
+  void addVariable(const std::string &identifier,
+                   const std::shared_ptr<Node::VariableDecl> &declaration);
 
   void debugSize();
 

@@ -2,7 +2,8 @@
 
 #define HERE std::cout << "here: " << __LINE__ << std::endl;
 
-Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &filename) : filename_(filename)
+Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &filename)
+: filename_(filename)
 {
   if (!ast) {
     throw std::invalid_argument("null ast");
@@ -29,7 +30,8 @@ void Compiler::dispatch(const std::shared_ptr<Node::AST> &tree)
   }
 
   if (std::holds_alternative<Node::FunctionDecl>(*tree->curr)) {
-    functionDeclaration(std::make_shared<Node::FunctionDecl>(std::move(std::get<Node::FunctionDecl>(*tree->curr))));
+    functionDeclaration(std::make_shared<Node::FunctionDecl>(
+    std::move(std::get<Node::FunctionDecl>(*tree->curr))));
   }
   if (tree->next) {
     dispatch(std::make_shared<Node::AST>(std::move(*tree->next))); // recursive call
@@ -47,8 +49,8 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     case ConstituentToken::FUNCTION_DECLARATION_F:
       break;
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
-      fs_ << "define i32 " << '@' << decl->token.value << declarationParameters(decl->parameters) << " {"
-          << '\n'; // put params here
+      fs_ << "define i32 " << '@' << decl->token.value
+          << declarationParameters(decl->parameters) << " {" << '\n'; // put params here
       functionBody(decl->body);
     } break;
     case ConstituentToken::FUNCTION_DECLARATION_F_OPTIONAL:
@@ -62,7 +64,8 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
 }
 
 /// @todo support for any return type (pass as param to this function)
-std::string Compiler::declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &paramters)
+std::string Compiler::declarationParameters(
+const std::vector<std::pair<std::string, ConstituentToken>> &paramters)
 {
   if (paramters.empty()) {
     return "()";

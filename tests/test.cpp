@@ -77,15 +77,20 @@ bool TEST_EXPR_TYPES()
     assert(lhs_rhs_numeric.type == ConstituentToken::TYPE_INT);
 
     assert(std::holds_alternative<Node::NumericLiteral>(*root_binary.rhs->expr));
-    auto &root_binary_rhs_numeric = std::get<Node::NumericLiteral>(*root_binary.rhs->expr);
+    auto &root_binary_rhs_numeric =
+    std::get<Node::NumericLiteral>(*root_binary.rhs->expr);
     assert(root_binary_rhs_numeric.type == ConstituentToken::TYPE_DOUBLE);
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << "TEST CASE FAILED: Expr Types\n" << BAR << '\n' << RESET << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Expr Types\n"
+              << BAR << '\n'
+              << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << "TEST CASE PASSED: Expr Types\n" << BAR << '\n' << RESET << std::endl;
+  std::cout << GREEN << "TEST CASE PASSED: Expr Types\n"
+            << BAR << '\n'
+            << RESET << std::endl;
   return true;
 }
 
@@ -122,10 +127,14 @@ bool TEST_EXPR_AST()
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << "TEST CASE FAILED: Expr AST\n" << BAR << '\n' << RESET << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Expr AST\n"
+              << BAR << '\n'
+              << RESET << std::endl;
     return false;
   }
-  std::cout << GREEN << "TEST CASE PASSED: Expr AST\n" << BAR << '\n' << RESET << std::endl;
+  std::cout << GREEN << "TEST CASE PASSED: Expr AST\n"
+            << BAR << '\n'
+            << RESET << std::endl;
   return true;
 }
 
@@ -136,11 +145,15 @@ bool TEST_VARIABLE_DECLARATION()
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << "TEST CASE FAILED: Variable Declaration\n" << BAR << '\n' << RESET << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Variable Declaration\n"
+              << BAR << '\n'
+              << RESET << std::endl;
     return false;
   }
 
-  std::cout << GREEN << "TEST CASE PASSED: Variable Declaration\n" << BAR << '\n' << RESET << std::endl;
+  std::cout << GREEN << "TEST CASE PASSED: Variable Declaration\n"
+            << BAR << '\n'
+            << RESET << std::endl;
   return true;
 }
 
@@ -161,11 +174,15 @@ bool TEST_DISPATCH_SIMPLE()
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << "TEST CASE FAILED: Dispatch Simple\n" << BAR << '\n' << RESET << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Dispatch Simple\n"
+              << BAR << '\n'
+              << RESET << std::endl;
     return false;
   }
 
-  std::cout << GREEN << "TEST CASE PASSED: Dispatch Simple\n" << BAR << '\n' << RESET << std::endl;
+  std::cout << GREEN << "TEST CASE PASSED: Dispatch Simple\n"
+            << BAR << '\n'
+            << RESET << std::endl;
   return true;
 }
 
@@ -186,11 +203,15 @@ bool TEST_FUNCTION_CALL()
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << "TEST CASE FAILED: Function Call\n" << BAR << '\n' << RESET << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Function Call\n"
+              << BAR << '\n'
+              << RESET << std::endl;
     return false;
   }
 
-  std::cout << GREEN << "TEST CASE PASSED: Function Call\n" << BAR << '\n' << RESET << std::endl;
+  std::cout << GREEN << "TEST CASE PASSED: Function Call\n"
+            << BAR << '\n'
+            << RESET << std::endl;
   return true;
 }
 
@@ -215,11 +236,15 @@ bool TEST_COMPILE()
   }
   catch (const std::exception &e) {
     std::cerr << e.what() << std::endl;
-    std::cerr << RED << "TEST CASE FAILED: Compile\n" << BAR << '\n' << RESET << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Compile\n"
+              << BAR << '\n'
+              << RESET << std::endl;
     return false;
   }
 
-  std::cout << GREEN << "TEST CASE PASSED: Compile\n" << BAR << '\n' << RESET << std::endl;
+  std::cout << GREEN << "TEST CASE PASSED: Compile\n"
+            << BAR << '\n'
+            << RESET << std::endl;
   return true;
 }
 
@@ -254,7 +279,9 @@ bool TEST_ALL()
 
   if (failedTests > 0) {
     std::cout << RED << "TOTAL TESTS: " << totalTests << std::endl;
-    std::cout << BAR << "\n" << failedTests << " test(s) failed!" << "\n" << BAR << RESET << std::endl;
+    std::cout << BAR << "\n"
+              << failedTests << " test(s) failed!" << "\n"
+              << BAR << RESET << std::endl;
   }
   else {
     std::cout << GREEN << "TOTAL TESTS: " << totalTests << std::endl;

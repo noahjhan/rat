@@ -38,7 +38,8 @@ void SymbolTable::exitScope()
 }
 
 /// @todo if reference matches only one category, throw
-std::shared_ptr<Node::FunctionDecl> SymbolTable::lookupFunction(const std::string &identifier)
+std::shared_ptr<Node::FunctionDecl>
+SymbolTable::lookupFunction(const std::string &identifier)
 {
   auto it = function_table_.find(identifier);
   if (it == function_table_.end()) {
@@ -48,7 +49,8 @@ std::shared_ptr<Node::FunctionDecl> SymbolTable::lookupFunction(const std::strin
 }
 
 /// @todo if reference matches only one category, throw
-std::shared_ptr<Node::VariableDecl> SymbolTable::lookupVariable(const std::string &identifier)
+std::shared_ptr<Node::VariableDecl>
+SymbolTable::lookupVariable(const std::string &identifier)
 {
   auto it = variable_table_.find(identifier);
   if (it == variable_table_.end()) {
@@ -77,7 +79,8 @@ bool SymbolTable::findVariable(const std::string &identifier)
   return true;
 }
 
-void SymbolTable::addFunction(const std::string &identifier, const std::shared_ptr<Node::FunctionDecl> &declaration)
+void SymbolTable::addFunction(const std::string &identifier,
+                              const std::shared_ptr<Node::FunctionDecl> &declaration)
 {
   if (findFunction(identifier)) {
     std::cerr << "received: '" << identifier << '\'' << std::endl;
@@ -95,7 +98,8 @@ void SymbolTable::addFunction(const std::string &identifier, const std::shared_p
   return;
 }
 
-void SymbolTable::addVariable(const std::string &identifier, const std::shared_ptr<Node::VariableDecl> &declaration)
+void SymbolTable::addVariable(const std::string &identifier,
+                              const std::shared_ptr<Node::VariableDecl> &declaration)
 {
   if (findVariable(identifier)) {
     std::cerr << "received: '" << identifier << '\'' << std::endl;

@@ -191,7 +191,8 @@ void RatSource::seekLine(const unsigned &idx)
       return;
     }
   }
-  std::cerr << "file length: '" << line_num_ << "' requested: '" << idx << '\'' << std::endl;
+  std::cerr << "file length: '" << line_num_ << "' requested: '" << idx << '\''
+            << std::endl;
   throw std::invalid_argument("error: index out of bounds");
 }
 

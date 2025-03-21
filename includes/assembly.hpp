@@ -16,7 +16,8 @@ class Compiler
   void dispatch(const std::shared_ptr<Node::AST> &tree);
 
   void functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &decl);
-  std::string declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &paramters);
+  std::string declarationParameters(
+  const std::vector<std::pair<std::string, ConstituentToken>> &paramters);
   void functionBody(const std::shared_ptr<Node::AST> &body);
   inline void open();
   inline void close();
