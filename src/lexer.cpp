@@ -16,10 +16,16 @@
  *
  */
 
-bool Lexer::isAcceptableIdentifier(const char &ch) { return std::isalnum(ch) || ch == '_'; }
+bool Lexer::isAcceptableIdentifier(const char &ch)
+{
+  return std::isalnum(ch) || ch == '_';
+}
 
 /// @todo: stricter string literal evaluation
-bool Lexer::isAcceptableStringLiteral(const char &ch) { return std::isprint(ch) || std::isspace(ch); }
+bool Lexer::isAcceptableStringLiteral(const char &ch)
+{
+  return std::isprint(ch) || std::isspace(ch);
+}
 
 /// @todo: add support for non-decimal base
 bool Lexer::isAcceptableNumericLiteral(const char &ch)
@@ -31,7 +37,10 @@ bool Lexer::isAcceptableNumericLiteral(const char &ch)
  * @todo: support for chars
  * this function may be redundant
  */
-bool Lexer::isAcceptableCharLiteral(const char &ch) { return isprint(ch); }
+bool Lexer::isAcceptableCharLiteral(const char &ch)
+{
+  return isprint(ch);
+}
 
 bool Lexer::isAcceptableNumericSequence(const std::string &value)
 {
@@ -291,7 +300,10 @@ void Lexer::dequePush(GenericToken type, const std::string &value, const unsigne
   tokens_.push_back(t);
 }
 
-std::deque<Token> &Lexer::getTokens() { return tokens_; }
+std::deque<Token> &Lexer::getTokens()
+{
+  return tokens_;
+}
 
 void Lexer::debugPrintln(const unsigned int &line_num)
 {

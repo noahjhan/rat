@@ -4,10 +4,9 @@
 #include <cassert>
 #include <variant>
 
+#include "assembly.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
-#include "assembly.hpp"
-
 
 bool TEST_LEXER();
 bool TEST_EXPR_TYPES();

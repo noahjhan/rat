@@ -18,7 +18,10 @@ RatSource::RatSource(const std::string &filename) : filename_(filename)
   prev_col_num_ = 1;
 }
 
-RatSource::~RatSource() { fs_.close(); }
+RatSource::~RatSource()
+{
+  fs_.close();
+}
 
 RatSource::RatSource(const RatSource &other)
 {
@@ -43,7 +46,10 @@ RatSource &RatSource::operator=(const RatSource &other)
   return *this;
 }
 
-void RatSource::destructor() { fs_.close(); }
+void RatSource::destructor()
+{
+  fs_.close();
+}
 
 void RatSource::seekReset()
 {
@@ -106,7 +112,10 @@ char RatSource::advanceChar()
   return EOF;
 }
 
-char RatSource::peekChar() { return fs_.peek(); }
+char RatSource::peekChar()
+{
+  return fs_.peek();
+}
 
 /**
  * @todo handle begin of file unget error for some reason the commented BOF
@@ -191,9 +200,15 @@ void RatSource::seekCol(const unsigned &idx)
   /// @todo
 }
 
-unsigned int RatSource::getLineNum() { return this->line_num_; }
+unsigned int RatSource::getLineNum()
+{
+  return this->line_num_;
+}
 
-unsigned int RatSource::getColNum() { return this->col_num_; }
+unsigned int RatSource::getColNum()
+{
+  return this->col_num_;
+}
 
 void RatSource::debugPrinter()
 {

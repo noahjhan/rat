@@ -1,8 +1,14 @@
 #include "symbol_table.hpp"
 
-SymbolTable::SymbolTable() { function_table_.insert({"print", nullptr}); }
+SymbolTable::SymbolTable()
+{
+  function_table_.insert({"print", nullptr});
+}
 
-void SymbolTable::enterScope() { stack_.push_back(nullptr); }
+void SymbolTable::enterScope()
+{
+  stack_.push_back(nullptr);
+}
 void SymbolTable::exitScope()
 {
   if (stack_.empty()) {
@@ -108,4 +114,7 @@ void SymbolTable::addVariable(const std::string &identifier, const std::shared_p
   return;
 }
 
-void SymbolTable::debugSize() { std::cout << "current size: " << stack_.size() << std::endl; }
+void SymbolTable::debugSize()
+{
+  std::cout << "current size: " << stack_.size() << std::endl;
+}

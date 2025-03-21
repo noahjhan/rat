@@ -103,7 +103,8 @@ std::unique_ptr<Node::AST> Parser::dispatch()
 std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
 {
   auto require = [&](bool condition, const std::string &error_message) {
-    if (!condition) throw std::invalid_argument(error_message);
+    if (!condition)
+      throw std::invalid_argument(error_message);
   };
 
   require(peek().value == "let", "error: expected keyword in variable declaration");
@@ -136,7 +137,8 @@ std::shared_ptr<Node::VariableDecl> Parser::variableDeclaration()
 std::vector<std::pair<std::string, ConstituentToken>> Parser::parameterlist()
 {
   auto require = [&](bool condition, const std::string &error_message) {
-    if (!condition) throw std::invalid_argument(error_message);
+    if (!condition)
+      throw std::invalid_argument(error_message);
   };
 
   require(pop().value == "(", "error expected '(' in function declaration");
@@ -167,7 +169,8 @@ std::vector<std::pair<std::string, ConstituentToken>> Parser::parameterlist()
 std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
 {
   auto require = [&](bool condition, const std::string &error_message) {
-    if (!condition) throw std::invalid_argument(error_message);
+    if (!condition)
+      throw std::invalid_argument(error_message);
   };
 
   require(peek().value == "fn", "error: expected keyword in function declaration");
@@ -203,7 +206,8 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
 std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
 {
   auto require = [&](bool condition, const std::string &error_message) {
-    if (!condition) throw std::invalid_argument(error_message);
+    if (!condition)
+      throw std::invalid_argument(error_message);
   };
 
   require(peek().value == "fn_", "error: expected keyword in function declaration");
@@ -295,7 +299,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
 
 std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
 {
-  if (tokens_.empty()) return nullptr;
+  if (tokens_.empty())
+    return nullptr;
   if (peek().value == ";") {
     throw std::invalid_argument("unexpected newline in expression");
     pop();
@@ -544,7 +549,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
     } break;
-    case GenericToken::KEYWORD: throw std::invalid_argument("error: keyword found in expression");
+    case GenericToken::KEYWORD:
+      throw std::invalid_argument("error: keyword found in expression");
     case GenericToken::NUMERIC_LITERAL: {
       Node::NumericLiteral node;
       node.token = token;
@@ -572,9 +578,12 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       gen_expr.expr = std::move(ptr);
       gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
     } break;
-    case GenericToken::PUNCTUATOR: break;
-    case GenericToken::OPERATOR: break;
-    case GenericToken::TYPE: throw std::invalid_argument("error: keyword found in expression");
+    case GenericToken::PUNCTUATOR:
+      break;
+    case GenericToken::OPERATOR:
+      break;
+    case GenericToken::TYPE:
+      throw std::invalid_argument("error: keyword found in expression");
   }
   if (gen_expr_ptr) {
     return gen_expr_ptr;
@@ -586,7 +595,8 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
 std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
 {
   auto require = [&](bool condition, const std::string &error_message) {
-    if (!condition) throw std::invalid_argument(error_message);
+    if (!condition)
+      throw std::invalid_argument(error_message);
   };
 
   require(pop().value == "(", "error expected '(' in function call");
@@ -666,15 +676,25 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
   }
 
   switch (value.back()) {
-    case 'u': return ConstituentToken::TYPE_UINT;
-    case 'i': return is_u_type ? ConstituentToken::TYPE_UINT : ConstituentToken::TYPE_INT;
-    case 'l': return is_u_type ? ConstituentToken::TYPE_ULONG : ConstituentToken::TYPE_LONG;
-    case 's': return is_u_type ? ConstituentToken::TYPE_USHORT : ConstituentToken::TYPE_SHORT;
-    case 'c': return is_u_type ? ConstituentToken::TYPE_UCHAR : ConstituentToken::TYPE_CHAR;
-    case 'f': return ConstituentToken::TYPE_FLOAT;
-    case 'd': return ConstituentToken::TYPE_DOUBLE;
-    case '\0': return is_u_type ? ConstituentToken::TYPE_UINT : ConstituentToken::TYPE_INT;
-    default: std::cerr << value << std::endl; throw std::invalid_argument("ambiguous numeric literal token");
+    case 'u':
+      return ConstituentToken::TYPE_UINT;
+    case 'i':
+      return is_u_type ? ConstituentToken::TYPE_UINT : ConstituentToken::TYPE_INT;
+    case 'l':
+      return is_u_type ? ConstituentToken::TYPE_ULONG : ConstituentToken::TYPE_LONG;
+    case 's':
+      return is_u_type ? ConstituentToken::TYPE_USHORT : ConstituentToken::TYPE_SHORT;
+    case 'c':
+      return is_u_type ? ConstituentToken::TYPE_UCHAR : ConstituentToken::TYPE_CHAR;
+    case 'f':
+      return ConstituentToken::TYPE_FLOAT;
+    case 'd':
+      return ConstituentToken::TYPE_DOUBLE;
+    case '\0':
+      return is_u_type ? ConstituentToken::TYPE_UINT : ConstituentToken::TYPE_INT;
+    default:
+      std::cerr << value << std::endl;
+      throw std::invalid_argument("ambiguous numeric literal token");
   }
 }
 
@@ -851,6 +871,12 @@ inline Token Parser::peek()
   return tokens_.front();
 }
 
-inline void Parser::restore(const Token &token) { tokens_.push_front(token); }
+inline void Parser::restore(const Token &token)
+{
+  tokens_.push_front(token);
+}
 
-int Parser::numTokens() const { return tokens_.size(); }
+int Parser::numTokens() const
+{
+  return tokens_.size();
+}

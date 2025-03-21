@@ -44,15 +44,19 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
   }
 
   switch (decl->type) {
-    case ConstituentToken::FUNCTION_DECLARATION_F: break;
+    case ConstituentToken::FUNCTION_DECLARATION_F:
+      break;
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
       fs_ << "define i32 " << '@' << decl->token.value << declarationParameters(decl->parameters) << " {"
           << '\n'; // put params here
       functionBody(decl->body);
     } break;
-    case ConstituentToken::FUNCTION_DECLARATION_F_OPTIONAL: break;
-    case ConstituentToken::FUNCTION_DECLARATION_F_LAMBDA: break;
-    default: throw std::invalid_argument("expected function type");
+    case ConstituentToken::FUNCTION_DECLARATION_F_OPTIONAL:
+      break;
+    case ConstituentToken::FUNCTION_DECLARATION_F_LAMBDA:
+      break;
+    default:
+      throw std::invalid_argument("expected function type");
   }
   close();
 }
@@ -89,7 +93,10 @@ inline void Compiler::open()
   }
 }
 
-inline void Compiler::close() { fs_.close(); }
+inline void Compiler::close()
+{
+  fs_.close();
+}
 
 inline void Compiler::append()
 {
