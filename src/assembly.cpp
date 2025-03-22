@@ -80,6 +80,9 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     default:
       throw std::invalid_argument("expected function type");
   }
+  fs_ << appendable_buffer_.str();
+  appendable_buffer_.str("");
+  appendable_buffer_.clear();
   fs_ << "}\n\n";
 }
 
@@ -122,7 +125,8 @@ void Compiler::functionCall(const std::unique_ptr<Node::FunctionCall> &call)
     return;
   }
   if (call->token.value == "print") {
-    fs_ << "\tcall i32 @printf(ptr @.str" << num_string_constants_ << ")\n";
+    appendable_buffer_ << "\tcall i32 @printf(ptr @.str" << num_string_constants_
+                       << ")\n";
   }
 
   expression(call->parameters[0]);
@@ -143,18 +147,18 @@ const ::std::unique_ptr<Node::ReturnStatement> &return_statement)
 
   if (return_type_token == ConstituentToken::TYPE_MAIN) {
 
-    fs_ << '\t' << "ret " << return_type_asm << " 0" << '\n';
+    appendable_buffer_ << '\t' << "ret " << return_type_asm << " 0" << '\n';
   }
   else if (return_statement->token.value == "ret") {
-    fs_ << '\t' << "ret " << return_type_asm << ' '
-        << scoped_registers_.at(identifier).first << '\n';
+    appendable_buffer_ << '\t' << "ret " << return_type_asm << ' '
+                       << scoped_registers_.at(identifier).first << '\n';
   }
   else if (return_statement->token.value == "rev") {
     // return_type_asm can be hardcoded -> better it throws
     if (return_type_asm != "void") {
       throw std::invalid_argument("error: invalid return type for void function");
     }
-    fs_ << '\t' << "ret " << return_type_asm << '\n';
+    appendable_buffer_ << '\t' << "ret " << return_type_asm << '\n';
   }
 }
 
@@ -208,8 +212,8 @@ void Compiler::variableDeclaration(const std::unique_ptr<Node::VariableDecl> &de
   // identifier -> "%reg_num, type"
   scoped_registers_.insert({decl->token.value, {register_num, type_asm}});
 
-  fs_ << "\tstore " << type_asm << ' ' << expr << ", ptr " << register_num << ", "
-      << alignment << '\n';
+  appendable_buffer_ << "\tstore " << type_asm << ' ' << expr << ", ptr " << register_num
+                     << ", " << alignment << '\n';
 
   num_registers_++;
 }

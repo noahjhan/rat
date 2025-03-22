@@ -50,6 +50,8 @@ class Compiler
   function_table_; // identifier -> "return_type @identifier"
   unsigned num_string_constants_ = 1;
   unsigned num_registers_ = 1;
+
+  std::stringstream appendable_buffer_;
 };
 
 #endif // ASSEMBLY_HPP
