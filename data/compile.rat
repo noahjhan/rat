@@ -6,6 +6,6 @@ fn_ main() {
     rev
 }
 
-fn_ foo() {
+fn_ foo(x: int, y: int) {
     rev
 }

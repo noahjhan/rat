@@ -17,7 +17,7 @@ define i32 @main() {
 	ret i32 0
 }
 
-define void @foo() {
+define void @foo(i32 noundef %0, i32 noundef %1) {
 	ret void
 }
 

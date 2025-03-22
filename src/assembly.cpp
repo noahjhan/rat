@@ -2,8 +2,7 @@
 
 #define HERE std::cout << "here: " << __LINE__ << std::endl
 
-/// @todo a good way to format the document would be store each function or module in its
-/// own buffer and paste as necessary for easier manipulation
+/// @todo create a stack implementation of the current symbol table
 
 Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &filename)
 : filename_(filename)
@@ -77,16 +76,33 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
   appendable_buffer_.str("");
   appendable_buffer_.clear();
   file_buffer_ << "}\n\n";
+  num_registers_ = 0;
 }
 
 /// @todo support for any return type (pass as param to this function)
 std::string Compiler::declarationParameters(
-const std::vector<std::pair<std::string, ConstituentToken>> &paramters)
+const std::vector<std::pair<std::string, ConstituentToken>> &parameters)
 {
-  if (paramters.empty()) {
+  if (parameters.empty()) {
+    num_registers_ = 1;
     return "()";
   }
-  return ")(";
+
+  std::string str = "(";
+  for (const auto &[id, tok] : parameters) {
+    std::string register_num = "%" + std::to_string(num_registers_);
+    str += TYPE_ASM.at(tok) + " noundef " + register_num + ", ";
+    num_registers_++;
+  }
+  if (str.size() > 2) {
+    str.pop_back();
+    str.pop_back();
+  }
+  if (num_registers_ == 0) {
+    num_registers_ = 1;
+  }
+  str += ")";
+  return str;
 }
 
 void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)

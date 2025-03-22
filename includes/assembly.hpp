@@ -22,7 +22,7 @@ class Compiler
   void dispatch(const std::shared_ptr<Node::AST> &tree);
 
   void functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &decl);
-  std::string declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &paramters);
+  std::string declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &parameters);
   void functionBody(const std::shared_ptr<Node::AST> &body);
   void functionCall(const std::unique_ptr<Node::FunctionCall> &call);
   void returnStatement(const ::std::unique_ptr<Node::ReturnStatement> &return_statement);
@@ -44,12 +44,15 @@ class Compiler
   std::shared_ptr<Node::AST> ast_;
   std::string filename_;
   std::fstream fs_;
+
   std::unordered_map<std::string, std::pair<std::string, std::string>>
   scoped_registers_; // identifier -> "%reg_num, type"
+
   std::unordered_map<std::string, std::string>
   function_table_; // identifier -> "return_type @identifier"
   unsigned num_string_constants_ = 1;
-  unsigned num_registers_ = 1;
+  /// @todo unsigned num_numeric_globals_;
+  unsigned num_registers_ = 0;
 
   std::stringstream file_buffer_;
   std::stringstream appendable_buffer_;
