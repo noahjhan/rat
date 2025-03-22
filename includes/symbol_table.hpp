@@ -15,6 +15,7 @@
 
 #define SYMBOL_VARIANT std::variant<Node::VariableDecl, Node::FunctionDecl, std::string>
 
+// clang-format off
 class SymbolTable
 {
   public:

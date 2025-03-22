@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <regex>
+#include <stack>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
@@ -13,6 +14,7 @@
 #include "symbol_table.hpp"
 #include "token.hpp"
 
+// clang-format off
 class Parser
 {
   public:
@@ -65,6 +67,7 @@ class Parser
   std::deque<Token> tokens_;
   RatSource source_file_;
   SymbolTable symbol_table_;
+  std::stack<ConstituentToken> local_return_type_;
 };
 
 #endif // PARSER_HPP

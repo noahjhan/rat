@@ -212,7 +212,9 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
           "error: expected return type in function declaration");
   auto return_type = pop().value;
   require(dictionary_.find(return_type) != dictionary_.end(), "error: unrecognized type");
-  function_decl.return_type = dictionary_.at(return_type);
+  ConstituentToken return_type_token = dictionary_.at(return_type);
+  function_decl.return_type = return_type_token;
+  local_return_type_.push(return_type_token);
   function_decl.body = dispatch();
   symbol_table_.exitScope();
   auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
@@ -245,7 +247,16 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
   for (const auto &parameter : parameters) {
     symbol_table_.addVariable(parameter.first, nullptr);
   }
-  function_decl.return_type = ConstituentToken::TYPE_VOID;
+
+  if (function_decl.token.value == "main") {
+    function_decl.return_type = ConstituentToken::TYPE_MAIN;
+    local_return_type_.push(ConstituentToken::TYPE_MAIN);
+  }
+  else {
+    function_decl.return_type = ConstituentToken::TYPE_VOID;
+    local_return_type_.push(ConstituentToken::TYPE_VOID);
+  }
+
   function_decl.body = dispatch();
 
   symbol_table_.exitScope();
@@ -666,7 +677,14 @@ std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
     Node::ReturnStatement rev;
     rev.token = peek();
     pop();
-    rev.type = ConstituentToken::TYPE_VOID;
+    rev.type = local_return_type_.top();
+    local_return_type_.pop();
+
+    if (peek().value != ";") {
+      std::cerr << "received '" << peek().value << '\'' << std::endl; 
+      throw std::invalid_argument("error: expecting newline after return statement");
+    }
+
     rev.expr = nullptr;
     return std::make_unique<Node::ReturnStatement>(std::move(rev));
   }
@@ -675,8 +693,8 @@ std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
     Node::ReturnStatement ret;
     ret.token = peek();
     pop();
-    /// @todo find proper return type for error requireing
-    ret.type = ConstituentToken::TYPE_VOID;
+    ret.type = local_return_type_.top();
+    local_return_type_.pop();
     ret.expr = recurseExpr();
     return std::make_unique<Node::ReturnStatement>(std::move(ret));
   }

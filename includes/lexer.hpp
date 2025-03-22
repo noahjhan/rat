@@ -13,6 +13,7 @@
 // be able to prcoess each word in a given file
 // convert each word to a token and return a dequeue of tokens
 
+// clang-format off
 class Lexer
 {
   public:

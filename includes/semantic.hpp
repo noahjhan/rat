@@ -1,6 +1,7 @@
 #ifndef SEMANTIC_HPP
 #define SEMANTIC_HPP
 
+// clang-format off
 class Analyzer
 {
 };

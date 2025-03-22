@@ -14,6 +14,7 @@
   std::variant<Node::FunctionDecl, Node::VariableDecl, Node::ConditionalStatement, \
                Node::ReturnStatement, Node::GenericExpr>
 
+// clang-format off
 namespace Node
 {
 

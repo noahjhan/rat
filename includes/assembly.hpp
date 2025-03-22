@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -12,7 +13,7 @@
 #include "ast.hpp"
 #include "dictionary.hpp"
 #include "token.hpp"
-
+// clang-format off
 class Compiler
 {
   public:
@@ -21,16 +22,16 @@ class Compiler
   void dispatch(const std::shared_ptr<Node::AST> &tree);
 
   void functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &decl);
-  std::string declarationParameters(
-  const std::vector<std::pair<std::string, ConstituentToken>> &paramters);
+  std::string declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &paramters);
   void functionBody(const std::shared_ptr<Node::AST> &body);
   void functionCall(const std::unique_ptr<Node::FunctionCall> &call);
+  void returnStatement(const ::std::unique_ptr<Node::ReturnStatement> &return_statement);
 
   void expression(const std::unique_ptr<Node::GenericExpr> &expr);
 
   void stringGlobal(const std::string &str);
 
-  void variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl); 
+  void variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl);
 
   inline void open();
   inline void close();
@@ -43,7 +44,12 @@ class Compiler
   std::shared_ptr<Node::AST> ast_;
   std::string filename_;
   std::fstream fs_;
-  unsigned num_string_constants;
+  std::unordered_map<std::string, std::pair<std::string, std::string>>
+  scoped_registers_; // identifier -> "%reg_num, type"
+  std::unordered_map<std::string, std::string>
+  function_table_; // identifier -> "return_type @identifier"
+  unsigned num_string_constants_ = 1;
+  unsigned num_registers_ = 1;
 };
 
 #endif // ASSEMBLY_HPP

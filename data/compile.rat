@@ -1,6 +1,9 @@
 fn_ main() {
-    print("ratty ratty rat faced rat!")
-    print("hello, world!")
-    print("wordle")
+    let x: long = 134513451
+    print("here!")
+    rev
+}
+
+fn_ foo() {
     rev
 }

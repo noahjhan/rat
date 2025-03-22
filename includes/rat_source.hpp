@@ -32,6 +32,7 @@
 #define PREV_LINE (line_num_ = prev_line_num_)
 #define PREV_COL (col_num_ = prev_col_num_)
 
+// clang-format off
 class RatSource
 {
   public:

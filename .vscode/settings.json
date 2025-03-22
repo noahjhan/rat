@@ -61,6 +61,7 @@
         "list": "cpp",
         "map": "cpp",
         "set": "cpp",
-        "__assertion_handler": "cpp"
+        "__assertion_handler": "cpp",
+        "stdio.h": "c"
     }
 }

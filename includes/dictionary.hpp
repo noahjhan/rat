@@ -142,8 +142,9 @@ const std::unordered_map<ConstituentToken, std::string> TYPE_ASM = {
 {ConstituentToken::TYPE_SHORT, "i16"},     {ConstituentToken::TYPE_POINTER, "ptr"},
 {ConstituentToken::TYPE_UINT, "i32"},      {ConstituentToken::TYPE_ULONG, "ulong"},
 {ConstituentToken::TYPE_USHORT, "i16"},    {ConstituentToken::TYPE_UCHAR, "i8"},
-};
+{ConstituentToken::TYPE_VOID, "void"},     {ConstituentToken::TYPE_MAIN, "i32"}};
 
+// check aligns for void ?
 const std::unordered_map<ConstituentToken, std::string> ALIGN_ASM = {
 {ConstituentToken::TYPE_INT, "align 4"},    {ConstituentToken::TYPE_FLOAT, "align 4"},
 {ConstituentToken::TYPE_DOUBLE, "align 8"}, {ConstituentToken::TYPE_BOOL, "align 1"},

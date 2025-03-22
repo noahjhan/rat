@@ -2,6 +2,9 @@
 
 #define HERE std::cout << "here: " << __LINE__ << std::endl
 
+/// @todo a good way to format the document would be store each function or module in its
+/// own buffer and paste as necessary for easier manipulation
+
 Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &filename)
 : filename_(filename)
 {
@@ -9,7 +12,6 @@ Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &fil
     throw std::invalid_argument("null ast");
   }
   ast_ = std::make_shared<Node::AST>(std::move(*ast));
-  num_string_constants = 0;
   trunc();
   append();
   dispatch(ast_);
@@ -59,12 +61,16 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     throw std::invalid_argument("null function declaration");
   }
 
+  std::string asm_define = TYPE_ASM.at(decl->return_type);
+  asm_define.append(" @" + decl->token.value);
+  function_table_.insert({decl->token.value, asm_define});
+
   switch (decl->type) {
     case ConstituentToken::FUNCTION_DECLARATION_F:
       break;
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
-      fs_ << "define i32 " << '@' << decl->token.value
-          << declarationParameters(decl->parameters) << " {" << '\n'; // put params here
+      fs_ << "define " << asm_define << declarationParameters(decl->parameters) << " {"
+          << '\n'; // put params here
       functionBody(decl->body);
     } break;
     case ConstituentToken::FUNCTION_DECLARATION_F_OPTIONAL:
@@ -93,17 +99,16 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
     return;
   }
   if (std::holds_alternative<Node::ReturnStatement>(*body->curr)) {
-    auto return_statement = std::get<Node::ReturnStatement>(std::move(*body->curr));
-    if (return_statement.token.value == "ret") {
-      fs_ << '\t' << "ret i32 0" << '\n';
-    }
-    else if (return_statement.token.value == "rev") {
-      fs_ << '\t' << "ret i32 0" << '\n';
-    }
+    returnStatement(std::make_unique<Node::ReturnStatement>(
+    std::get<Node::ReturnStatement>(std::move(*body->curr))));
   }
   if (std::holds_alternative<Node::GenericExpr>(*body->curr)) {
     expression(std::make_unique<Node::GenericExpr>(
-    std::move(std::get<Node::GenericExpr>(*body->curr))));
+    std::get<Node::GenericExpr>(std::move(*body->curr))));
+  }
+  if (std::holds_alternative<Node::VariableDecl>(*body->curr)) {
+    variableDeclaration(std::make_unique<Node::VariableDecl>(
+    std::get<Node::VariableDecl>(std::move(*body->curr))));
   }
 
   if (body->next) {
@@ -117,10 +122,40 @@ void Compiler::functionCall(const std::unique_ptr<Node::FunctionCall> &call)
     return;
   }
   if (call->token.value == "print") {
-    fs_ << "\tcall i32 @printf(ptr @.str" << num_string_constants << ")\n";
+    fs_ << "\tcall i32 @printf(ptr @.str" << num_string_constants_ << ")\n";
   }
 
   expression(call->parameters[0]);
+}
+
+void Compiler::returnStatement(
+const ::std::unique_ptr<Node::ReturnStatement> &return_statement)
+{
+  if (!return_statement) {
+    throw std::invalid_argument("null return statement");
+  }
+
+  /// @todo figure out the associated register with the finalized return expression
+  std::string identifier = "x";
+
+  ConstituentToken return_type_token = return_statement->type;
+  std::string return_type_asm = TYPE_ASM.at(return_type_token);
+
+  if (return_type_token == ConstituentToken::TYPE_MAIN) {
+
+    fs_ << '\t' << "ret " << return_type_asm << " 0" << '\n';
+  }
+  else if (return_statement->token.value == "ret") {
+    fs_ << '\t' << "ret " << return_type_asm << ' '
+        << scoped_registers_.at(identifier).first << '\n';
+  }
+  else if (return_statement->token.value == "rev") {
+    // return_type_asm can be hardcoded -> better it throws
+    if (return_type_asm != "void") {
+      throw std::invalid_argument("error: invalid return type for void function");
+    }
+    fs_ << '\t' << "ret " << return_type_asm << '\n';
+  }
 }
 
 void Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
@@ -143,21 +178,41 @@ void Compiler::stringGlobal(const std::string &str)
   std::string content = buffer.str();
   open();
   fs_.seekp(0, std::ios::beg);
-  fs_ << "@.str" << num_string_constants << " = private unnamed_addr constant ["
+  fs_ << "@.str" << num_string_constants_ << " = private unnamed_addr constant ["
       << formatted.size() + 2 << " x i8] c\"" << formatted << "\\0A\\00\", align 1\n";
   append();
   fs_ << content;
-  num_string_constants++;
+  ++num_string_constants_;
 }
 
-void variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl)
+void Compiler::variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl)
 {
+
+  if (!decl) {
+    throw std::invalid_argument("null variable declaration");
+  }
+
   // find top of relevant function
   // add allocation for memory
-
   // at declaration store those bytes
-}
+  /// @todo eval expressions
+  std::string expr = "10";
 
+  std::string type_asm = TYPE_ASM.at(decl->type);
+  std::string alignment = ALIGN_ASM.at(decl->type);
+  std::string register_num = "%";
+  register_num.append(std::to_string(num_registers_));
+
+  fs_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment << '\n';
+
+  // identifier -> "%reg_num, type"
+  scoped_registers_.insert({decl->token.value, {register_num, type_asm}});
+
+  fs_ << "\tstore " << type_asm << ' ' << expr << ", ptr " << register_num << ", "
+      << alignment << '\n';
+
+  num_registers_++;
+}
 inline void Compiler::open()
 {
   fs_.close();

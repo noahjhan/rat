@@ -54,6 +54,7 @@ enum class ConstituentToken
   TYPE_OP_STRING,
 
   TYPE_VOID,
+  TYPE_MAIN,
 
   NULL_LITERAL,
 
