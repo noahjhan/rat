@@ -12,27 +12,20 @@ Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &fil
     throw std::invalid_argument("null ast");
   }
   ast_ = std::make_shared<Node::AST>(std::move(*ast));
-  trunc();
-  append();
-  dispatch(ast_);
+  // trunc();
   initializeLocal();
+  dispatch(ast_);
+  open();
+  fs_ << globals_buffer_.str() << '\n' << file_buffer_.str();
 }
 
 void Compiler::initializeLocal()
 {
 
-  read();
-  std::stringstream buffer;
-  buffer << fs_.rdbuf();
-  std::string content = buffer.str();
-  open();
-  fs_.seekp(0, std::ios::beg);
-  fs_ << '\n' << "; ModuleID = '" << filename_ << "'\n";
-  fs_ << "target triple = \"arm64-apple-macosx15.0.0\"" << "\n\n"; // for local system
-  fs_ << "declare i32 @printf(ptr)\n\n";                           // enable logging
-  append();
-  fs_ << content;
-  close();
+  globals_buffer_ << '\n' << "; ModuleID = '" << filename_ << "'\n";
+  globals_buffer_ << "target triple = \"arm64-apple-macosx15.0.0\""
+                  << "\n\n";                         // for local system
+  globals_buffer_ << "declare i32 @printf(ptr)\n\n"; // enable logging
 }
 
 void Compiler::dispatch(const std::shared_ptr<Node::AST> &tree)
@@ -69,8 +62,8 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     case ConstituentToken::FUNCTION_DECLARATION_F:
       break;
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
-      fs_ << "define " << asm_define << declarationParameters(decl->parameters) << " {"
-          << '\n'; // put params here
+      file_buffer_ << "define " << asm_define << declarationParameters(decl->parameters)
+                   << " {" << '\n'; // put params here
       functionBody(decl->body);
     } break;
     case ConstituentToken::FUNCTION_DECLARATION_F_OPTIONAL:
@@ -80,10 +73,10 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     default:
       throw std::invalid_argument("expected function type");
   }
-  fs_ << appendable_buffer_.str();
+  file_buffer_ << appendable_buffer_.str();
   appendable_buffer_.str("");
   appendable_buffer_.clear();
-  fs_ << "}\n\n";
+  file_buffer_ << "}\n\n";
 }
 
 /// @todo support for any return type (pass as param to this function)
@@ -176,16 +169,11 @@ void Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
 void Compiler::stringGlobal(const std::string &str)
 {
   std::string formatted(str.begin() + 1, str.end() - 1);
-  read();
-  std::stringstream buffer;
-  buffer << fs_.rdbuf();
-  std::string content = buffer.str();
-  open();
-  fs_.seekp(0, std::ios::beg);
-  fs_ << "@.str" << num_string_constants_ << " = private unnamed_addr constant ["
-      << formatted.size() + 2 << " x i8] c\"" << formatted << "\\0A\\00\", align 1\n";
-  append();
-  fs_ << content;
+
+  globals_buffer_ << "@.str" << num_string_constants_
+                  << " = private unnamed_addr constant [" << formatted.size() + 2
+                  << " x i8] c\"" << formatted << "\\0A\\00\", align 1\n";
+
   ++num_string_constants_;
 }
 
@@ -207,7 +195,8 @@ void Compiler::variableDeclaration(const std::unique_ptr<Node::VariableDecl> &de
   std::string register_num = "%";
   register_num.append(std::to_string(num_registers_));
 
-  fs_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment << '\n';
+  file_buffer_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment
+               << '\n';
 
   // identifier -> "%reg_num, type"
   scoped_registers_.insert({decl->token.value, {register_num, type_asm}});

@@ -51,7 +51,9 @@ class Compiler
   unsigned num_string_constants_ = 1;
   unsigned num_registers_ = 1;
 
+  std::stringstream file_buffer_;
   std::stringstream appendable_buffer_;
+  std::stringstream globals_buffer_;
 };
 
 #endif // ASSEMBLY_HPP
