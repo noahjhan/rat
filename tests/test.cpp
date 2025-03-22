@@ -220,7 +220,7 @@ bool TEST_COMPILE()
   std::cout << PURPLE << "TEST CASE: Compile\n" << BAR << RESET << std::endl;
   try {
     std::string in_filename = "data/compile.rat";
-    std::string out_filename = "data/output.ll";
+    std::string out_filename = "data/compile.ll";
 
     auto rat = RatSource(in_filename);
     auto lex = Lexer(rat);

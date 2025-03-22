@@ -6,7 +6,7 @@
 
 #include "token.hpp"
 
-const std::unordered_map<std::string, ConstituentToken> DICT_INIT = {
+const std::unordered_map<std::string, ConstituentToken> DICT = {
 {"int", ConstituentToken::TYPE_INT},
 {"float", ConstituentToken::TYPE_FLOAT},
 {"double", ConstituentToken::TYPE_DOUBLE},
@@ -135,4 +135,21 @@ const std::unordered_map<ConstituentToken, std::string> REVERSE_DICT = {
 {ConstituentToken::BITWISE_SR, ">>"},
 {ConstituentToken::ARROW, "->"}};
 
+const std::unordered_map<ConstituentToken, std::string> TYPE_ASM = {
+{ConstituentToken::TYPE_INT, "i32"},       {ConstituentToken::TYPE_FLOAT, "float"},
+{ConstituentToken::TYPE_DOUBLE, "double"}, {ConstituentToken::TYPE_BOOL, "i8"},
+{ConstituentToken::TYPE_CHAR, "i8"},       {ConstituentToken::TYPE_LONG, "i64"},
+{ConstituentToken::TYPE_SHORT, "i16"},     {ConstituentToken::TYPE_POINTER, "ptr"},
+{ConstituentToken::TYPE_UINT, "i32"},      {ConstituentToken::TYPE_ULONG, "ulong"},
+{ConstituentToken::TYPE_USHORT, "i16"},    {ConstituentToken::TYPE_UCHAR, "i8"},
+};
+
+const std::unordered_map<ConstituentToken, std::string> ALIGN_ASM = {
+{ConstituentToken::TYPE_INT, "align 4"},    {ConstituentToken::TYPE_FLOAT, "align 4"},
+{ConstituentToken::TYPE_DOUBLE, "align 8"}, {ConstituentToken::TYPE_BOOL, "align 1"},
+{ConstituentToken::TYPE_CHAR, "align 1"},   {ConstituentToken::TYPE_LONG, "align 8"},
+{ConstituentToken::TYPE_SHORT, "align 2"},  {ConstituentToken::TYPE_POINTER, "align 8"},
+{ConstituentToken::TYPE_UINT, "align 4"},   {ConstituentToken::TYPE_ULONG, "ulong"},
+{ConstituentToken::TYPE_USHORT, "align 2"}, {ConstituentToken::TYPE_UCHAR, "i8"},
+};
 #endif // DICTIONARY_HPP

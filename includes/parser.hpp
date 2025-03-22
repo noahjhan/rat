@@ -60,7 +60,7 @@ class Parser
   inline void restore(const Token &token);
 
   private:
-  std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT_INIT;
+  std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT;
   std::unordered_map<ConstituentToken, std::string> reverse_dictionary_ = REVERSE_DICT;
   std::deque<Token> tokens_;
   RatSource source_file_;

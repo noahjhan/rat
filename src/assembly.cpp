@@ -9,6 +9,7 @@ Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &fil
     throw std::invalid_argument("null ast");
   }
   ast_ = std::make_shared<Node::AST>(std::move(*ast));
+  num_string_constants = 0;
   trunc();
   append();
   dispatch(ast_);
@@ -116,7 +117,7 @@ void Compiler::functionCall(const std::unique_ptr<Node::FunctionCall> &call)
     return;
   }
   if (call->token.value == "print") {
-    fs_ << "\tcall i32 @printf(ptr @.str)\n";
+    fs_ << "\tcall i32 @printf(ptr @.str" << num_string_constants << ")\n";
   }
 
   expression(call->parameters[0]);
@@ -142,10 +143,19 @@ void Compiler::stringGlobal(const std::string &str)
   std::string content = buffer.str();
   open();
   fs_.seekp(0, std::ios::beg);
-  fs_ << "@.str = private unnamed_addr constant [" << formatted.size() + 2 << " x i8] c\""
-      << formatted << "\\0A\\00\", align 1\n\n";
+  fs_ << "@.str" << num_string_constants << " = private unnamed_addr constant ["
+      << formatted.size() + 2 << " x i8] c\"" << formatted << "\\0A\\00\", align 1\n";
   append();
   fs_ << content;
+  num_string_constants++;
+}
+
+void variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl)
+{
+  // find top of relevant function
+  // add allocation for memory
+
+  // at declaration store those bytes
 }
 
 inline void Compiler::open()

@@ -35,14 +35,15 @@ fn/ specifies an anonymous or lambda function
 
 **Loops**: Recursion
 
+Rat is a functional programming language, which means no conventional for-loops. 
 
     fn_ printer(start: uint, end: uint) {
-        if (start >= end) {
+        if (start >= end) {                 // base case
             rev
         }
 
         print(start)
-        printer(start + 1, end)
+        printer(start + 1, end)             // recursive step 
         rev
     }
 

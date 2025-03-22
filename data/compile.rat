@@ -1,4 +1,6 @@
 fn_ main() {
-    print("ratty ratty rat!")
+    print("ratty ratty rat faced rat!")
+    print("hello, world!")
+    print("wordle")
     rev
 }

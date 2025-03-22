@@ -12,6 +12,7 @@
 #include "ast.hpp"
 #include "dictionary.hpp"
 #include "token.hpp"
+
 class Compiler
 {
   public:
@@ -29,6 +30,8 @@ class Compiler
 
   void stringGlobal(const std::string &str);
 
+  void variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl); 
+
   inline void open();
   inline void close();
   inline void append();
@@ -40,6 +43,7 @@ class Compiler
   std::shared_ptr<Node::AST> ast_;
   std::string filename_;
   std::fstream fs_;
+  unsigned num_string_constants;
 };
 
 #endif // ASSEMBLY_HPP
