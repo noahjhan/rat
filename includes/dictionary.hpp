@@ -150,7 +150,13 @@ const std::unordered_map<ConstituentToken, std::string> ALIGN_ASM = {
 {ConstituentToken::TYPE_DOUBLE, "align 8"}, {ConstituentToken::TYPE_BOOL, "align 1"},
 {ConstituentToken::TYPE_CHAR, "align 1"},   {ConstituentToken::TYPE_LONG, "align 8"},
 {ConstituentToken::TYPE_SHORT, "align 2"},  {ConstituentToken::TYPE_POINTER, "align 8"},
-{ConstituentToken::TYPE_UINT, "align 4"},   {ConstituentToken::TYPE_ULONG, "ulong"},
-{ConstituentToken::TYPE_USHORT, "align 2"}, {ConstituentToken::TYPE_UCHAR, "i8"},
+{ConstituentToken::TYPE_UINT, "align 4"},   {ConstituentToken::TYPE_ULONG, "align 8"},
+{ConstituentToken::TYPE_USHORT, "align 2"}, {ConstituentToken::TYPE_UCHAR, "align 1"},
+};
+
+const std::unordered_map<std::string, std::string> STRING_TYPE_ALIGN = {
+{"i32", "align 4"}, {"float", "align 4"}, {"double", "align 8"}, {"i8", "align 1"},
+{"i8", "align 1"},  {"i64", "align 8"},   {"i16", "align 2"},    {"ptr", "align 8"},
+{"i32", "align 4"}, {"i64", "align 8"},   {"i16", "align 2"},    {"i8", "align 1"},
 };
 #endif // DICTIONARY_HPP

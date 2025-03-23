@@ -23,14 +23,17 @@ class Parser
   std::unique_ptr<Node::AST> dispatch();
 
   std::shared_ptr<Node::VariableDecl> variableDeclaration();
-  std::shared_ptr<Node::FunctionDecl> functionDeclaration();
   std::vector<std::pair<std::string, ConstituentToken>> parameterlist();
+  std::shared_ptr<Node::FunctionDecl> functionDeclaration();
   std::shared_ptr<Node::FunctionDecl> voidFunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> optionalfunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> lambdafunctionDeclaration();
-
+  std::unique_ptr<Node::ReturnStatement> returnStatment();
+  std::vector<std::unique_ptr<Node::GenericExpr>> callParameters();
+  std::unique_ptr<Node::GenericExpr> functionCall();
+  
   std::unique_ptr<Node::ConditionalStatement> conditionalStatement();
-
+  
   std::unique_ptr<Node::GenericExpr> recurseNumeric();
   std::unique_ptr<Node::GenericExpr> recurseFactor();
   std::unique_ptr<Node::GenericExpr> recurseTerm();
@@ -40,14 +43,8 @@ class Parser
   std::unique_ptr<Node::GenericExpr> recurseLogical();
   std::unique_ptr<Node::GenericExpr> recurseExpr();
   std::unique_ptr<Node::GenericExpr> tokenToExpr();
-
-  std::vector<std::unique_ptr<Node::GenericExpr>> callParameters();
-  std::unique_ptr<Node::GenericExpr> functionCall();
-  std::unique_ptr<Node::ReturnStatement> returnStatment();
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
-
-  int numTokens() const;
-
+  
   void debugASTPrinter(Node::AST &node);
   void debugExprPrinterRecursive(Node::GenericExpr &node, int depth);
   void debugVariableDeclPrinter(Node::VariableDecl &node);
@@ -56,11 +53,12 @@ class Parser
   void debugReturnStatement(Node::ReturnStatement &node);
   void debugPrintln(const unsigned int &line_num);
   void debugLineCol(const unsigned int &line_num, const unsigned int &col_num);
-
+  
   inline Token pop();
   inline Token peek();
   inline void restore(const Token &token);
-
+  int numTokens() const;
+  
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT;
   std::unordered_map<ConstituentToken, std::string> reverse_dictionary_ = REVERSE_DICT;

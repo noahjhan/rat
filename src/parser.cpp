@@ -265,6 +265,78 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
   return function;
 }
 
+std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
+{
+  auto require = [&](bool condition, const std::string &error_message) {
+    if (!condition)
+      throw std::invalid_argument(error_message);
+  };
+
+  require(pop().value == "(", "error expected '(' in function call");
+
+  std::vector<std::unique_ptr<Node::GenericExpr>> parameters;
+  while (peek().value != ")") {
+    auto expr = recurseExpr();
+    if (!expr) {
+      throw std::invalid_argument("expecting parameter in function call");
+    }
+    parameters.push_back(std::move(expr));
+    if (peek().value == ",") {
+      pop();
+    }
+  }
+
+  require(pop().value == ")", "expecting ')' in function declaration");
+
+  return parameters;
+}
+
+std::unique_ptr<Node::GenericExpr> Parser::functionCall()
+{
+  Node::FunctionCall call;
+  if (peek().type != GenericToken::IDENTIFIER) {
+    std::cerr << "received: '" << peek().value << '\'' << std::endl;
+    throw std::invalid_argument("expected identifier in function call");
+  }
+  call.token = pop();
+  call.parameters = callParameters();
+  call.function = symbol_table_.lookupFunction(call.token.value);
+  Node::GenericExpr expr;
+  expr.expr = std::make_unique<EXPRESSION_VARIANT>(std::move(call));
+  return std::make_unique<Node::GenericExpr>(std::move(expr));
+}
+
+std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
+{
+  if (peek().value == "rev") {
+    // require this?
+    Node::ReturnStatement rev;
+    rev.token = peek();
+    pop();
+    rev.type = local_return_type_.top();
+    local_return_type_.pop();
+
+    if (peek().value != ";") {
+      std::cerr << "received '" << peek().value << '\'' << std::endl;
+      throw std::invalid_argument("error: expecting newline after return statement");
+    }
+
+    rev.expr = nullptr;
+    return std::make_unique<Node::ReturnStatement>(std::move(rev));
+  }
+  if (peek().value == "ret") {
+    // require this?
+    Node::ReturnStatement ret;
+    ret.token = peek();
+    pop();
+    ret.type = local_return_type_.top();
+    local_return_type_.pop();
+    ret.expr = recurseExpr();
+    return std::make_unique<Node::ReturnStatement>(std::move(ret));
+  }
+  throw std::invalid_argument("unrecognized keyword in return statement");
+}
+
 // calls statement such that the top of the tokens is the expression
 std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 {
@@ -629,77 +701,6 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
   throw std::invalid_argument("error: unrecognized token in expression");
 }
 
-std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
-{
-  auto require = [&](bool condition, const std::string &error_message) {
-    if (!condition)
-      throw std::invalid_argument(error_message);
-  };
-
-  require(pop().value == "(", "error expected '(' in function call");
-
-  std::vector<std::unique_ptr<Node::GenericExpr>> parameters;
-  while (peek().value != ")") {
-    auto expr = recurseExpr();
-    if (!expr) {
-      throw std::invalid_argument("expecting parameter in function call");
-    }
-    parameters.push_back(std::move(expr));
-    if (peek().value == ",") {
-      pop();
-    }
-  }
-
-  require(pop().value == ")", "expecting ')' in function declaration");
-
-  return parameters;
-}
-
-std::unique_ptr<Node::GenericExpr> Parser::functionCall()
-{
-  Node::FunctionCall call;
-  if (peek().type != GenericToken::IDENTIFIER) {
-    std::cerr << "received: '" << peek().value << '\'' << std::endl;
-    throw std::invalid_argument("expected identifier in function call");
-  }
-  call.token = pop();
-  call.parameters = callParameters();
-  call.function = symbol_table_.lookupFunction(call.token.value);
-  Node::GenericExpr expr;
-  expr.expr = std::make_unique<EXPRESSION_VARIANT>(std::move(call));
-  return std::make_unique<Node::GenericExpr>(std::move(expr));
-}
-
-std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
-{
-  if (peek().value == "rev") {
-    // require this?
-    Node::ReturnStatement rev;
-    rev.token = peek();
-    pop();
-    rev.type = local_return_type_.top();
-    local_return_type_.pop();
-
-    if (peek().value != ";") {
-      std::cerr << "received '" << peek().value << '\'' << std::endl; 
-      throw std::invalid_argument("error: expecting newline after return statement");
-    }
-
-    rev.expr = nullptr;
-    return std::make_unique<Node::ReturnStatement>(std::move(rev));
-  }
-  if (peek().value == "ret") {
-    // require this?
-    Node::ReturnStatement ret;
-    ret.token = peek();
-    pop();
-    ret.type = local_return_type_.top();
-    local_return_type_.pop();
-    ret.expr = recurseExpr();
-    return std::make_unique<Node::ReturnStatement>(std::move(ret));
-  }
-  throw std::invalid_argument("unrecognized keyword in return statement");
-}
 /// @todo suppport for optional
 /// @todo move some of this to lexer
 /// @todo create usuable regex

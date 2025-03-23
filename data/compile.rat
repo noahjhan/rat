@@ -1,11 +1,5 @@
 fn_ main() {
-    let x: long = 134513451
-    let y: int = 15
-    print("here!")
-    print("there")
-    rev
-}
-
-fn_ foo(x: int, y: int) {
+    let x: int = 2
+    let y: int = x + 5
     rev
 }
