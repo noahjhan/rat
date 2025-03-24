@@ -28,21 +28,21 @@ struct Expression {
 class Compiler
 {
   public:
-  Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &filename);
+  Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename);
   void initializeLocal();
   void dispatch(const std::shared_ptr<Node::AST> &tree);
 
   void functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &decl);
   std::string declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &parameters);
   void functionBody(const std::shared_ptr<Node::AST> &body);
-  void functionCall(const std::unique_ptr<Node::FunctionCall> &call);
-  void returnStatement(const ::std::unique_ptr<Node::ReturnStatement> &return_statement);
-  std::unique_ptr<Node::VariableDecl> allocateVariables(const std::unique_ptr<Node::VariableDecl> &decl);
-  std::unique_ptr<Expression> expression(const std::unique_ptr<Node::GenericExpr> &expr);
+  void functionCall(const std::shared_ptr<Node::FunctionCall> &call);
+  void returnStatement(const ::std::shared_ptr<Node::ReturnStatement> &return_statement);
+  std::shared_ptr<Node::VariableDecl> allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl);
+  std::shared_ptr<Expression> expression(const std::shared_ptr<Node::GenericExpr> &expr);
 
   std::string stringGlobal(const std::string &str);
 
-  void variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl);
+  void variableDeclaration(const std::shared_ptr<Node::VariableDecl> &decl);
 
   inline void open();
   inline void close();

@@ -34,26 +34,26 @@ struct AST;
 
 struct AST
 {
-  std::unique_ptr<AST_VARIANT> curr;
-  std::unique_ptr<AST> next;
+  std::shared_ptr<AST_VARIANT> curr;
+  std::shared_ptr<AST> next;
 };
 
 struct GenericExpr
 {
-  std::unique_ptr<EXPRESSION_VARIANT> expr;
+  std::shared_ptr<EXPRESSION_VARIANT> expr;
 };
 
 struct BinaryExpr
 {
   ConstituentToken op;
-  std::unique_ptr<GenericExpr> lhs;
-  std::unique_ptr<GenericExpr> rhs;
+  std::shared_ptr<GenericExpr> lhs;
+  std::shared_ptr<GenericExpr> rhs;
 };
 
 struct UnaryExpr
 {
   ConstituentToken op;
-  std::unique_ptr<GenericExpr> expr;
+  std::shared_ptr<GenericExpr> expr;
 };
 
 struct NumericLiteral
@@ -94,22 +94,22 @@ struct FunctionDecl
 struct ConditionalStatement
 {
   Token token; // type of expression
-  std::unique_ptr<GenericExpr> expr;
-  std::unique_ptr<ConditionalStatement> next; // if - else if - else
-  std::unique_ptr<AST> body;
+  std::shared_ptr<GenericExpr> expr;
+  std::shared_ptr<ConditionalStatement> next; // if - else if - else
+  std::shared_ptr<AST> body;
 };
 
 struct ReturnStatement
 {
   Token token;
   ConstituentToken type;
-  std::unique_ptr<GenericExpr> expr;
+  std::shared_ptr<GenericExpr> expr;
 };
 
 struct FunctionCall
 {
   Token token; // identifier + line + col
-  std::vector<std::unique_ptr<GenericExpr>> parameters;
+  std::vector<std::shared_ptr<GenericExpr>> parameters;
   std::shared_ptr<FunctionDecl> function;
 };
 

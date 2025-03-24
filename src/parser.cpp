@@ -9,8 +9,8 @@
  * @todo require proper control flow i.e. else after if only
  *
  * @todo marker for end of function
- * 
- * @todo support for unary operator + and - 
+ *
+ * @todo support for unary operator + and -
  */
 
 Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)
@@ -19,7 +19,7 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)
   symbol_table_.enterScope();
 }
 
-std::unique_ptr<Node::AST> Parser::dispatch()
+std::shared_ptr<Node::AST> Parser::dispatch()
 {
   if (tokens_.empty()) {
     symbol_table_.exitScope();
@@ -48,13 +48,13 @@ std::unique_ptr<Node::AST> Parser::dispatch()
 
   auto createASTNode =
   [&](auto parsingFunction,
-      const std::string error_message) -> std::unique_ptr<Node::AST> {
+      const std::string error_message) -> std::shared_ptr<Node::AST> {
     auto ptr = parsingFunction();
     if (!ptr) {
       throw std::invalid_argument(error_message);
     }
-    auto ast = std::make_unique<Node::AST>();
-    ast->curr = std::make_unique<AST_VARIANT>(std::move(*ptr));
+    auto ast = std::make_shared<Node::AST>();
+    ast->curr = std::make_shared<AST_VARIANT>(std::move(*ptr));
     if (!tokens_.empty() && peek().value != ";" && peek().value != "else") {
       throw std::invalid_argument("expected newline");
     }
@@ -267,7 +267,7 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
   return function;
 }
 
-std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
+std::vector<std::shared_ptr<Node::GenericExpr>> Parser::callParameters()
 {
   auto require = [&](bool condition, const std::string &error_message) {
     if (!condition)
@@ -276,7 +276,7 @@ std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
 
   require(pop().value == "(", "error expected '(' in function call");
 
-  std::vector<std::unique_ptr<Node::GenericExpr>> parameters;
+  std::vector<std::shared_ptr<Node::GenericExpr>> parameters;
   while (peek().value != ")") {
     auto expr = recurseExpr();
     if (!expr) {
@@ -293,7 +293,7 @@ std::vector<std::unique_ptr<Node::GenericExpr>> Parser::callParameters()
   return parameters;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::functionCall()
+std::shared_ptr<Node::GenericExpr> Parser::functionCall()
 {
   Node::FunctionCall call;
   if (peek().type != GenericToken::IDENTIFIER) {
@@ -304,11 +304,11 @@ std::unique_ptr<Node::GenericExpr> Parser::functionCall()
   call.parameters = callParameters();
   call.function = symbol_table_.lookupFunction(call.token.value);
   Node::GenericExpr expr;
-  expr.expr = std::make_unique<EXPRESSION_VARIANT>(std::move(call));
-  return std::make_unique<Node::GenericExpr>(std::move(expr));
+  expr.expr = std::make_shared<EXPRESSION_VARIANT>(std::move(call));
+  return std::make_shared<Node::GenericExpr>(std::move(expr));
 }
 
-std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
+std::shared_ptr<Node::ReturnStatement> Parser::returnStatment()
 {
   if (peek().value == "rev") {
     // require this?
@@ -324,7 +324,7 @@ std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
     }
 
     rev.expr = nullptr;
-    return std::make_unique<Node::ReturnStatement>(std::move(rev));
+    return std::make_shared<Node::ReturnStatement>(std::move(rev));
   }
   if (peek().value == "ret") {
     // require this?
@@ -334,13 +334,13 @@ std::unique_ptr<Node::ReturnStatement> Parser::returnStatment()
     ret.type = local_return_type_.top();
     local_return_type_.pop();
     ret.expr = recurseExpr();
-    return std::make_unique<Node::ReturnStatement>(std::move(ret));
+    return std::make_shared<Node::ReturnStatement>(std::move(ret));
   }
   throw std::invalid_argument("unrecognized keyword in return statement");
 }
 
 // calls statement such that the top of the tokens is the expression
-std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
+std::shared_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
 {
   const Token token = peek();
   Node::ConditionalStatement cond;
@@ -350,11 +350,11 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
   if (token.value == "if") {
     pop();
     cond.expr = recurseExpr();
-    cond.body = dispatch(); // Move unique_ptr directly
+    cond.body = dispatch(); // Move shared_ptr directly
     if (peek().value == "else") {
       cond.next = conditionalStatement();
     }
-    return std::make_unique<Node::ConditionalStatement>(std::move(cond));
+    return std::make_shared<Node::ConditionalStatement>(std::move(cond));
   }
 
   if (token.value == "else") {
@@ -369,7 +369,7 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
   if (next.value == "{") {
     cond.expr = nullptr; // Sentinel value for else statements
     cond.body = dispatch();
-    return std::make_unique<Node::ConditionalStatement>(std::move(cond));
+    return std::make_shared<Node::ConditionalStatement>(std::move(cond));
   }
   else if (next.value == "if") {
     pop();
@@ -379,7 +379,7 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
     if (peek().value == "else") {
       cond.next = conditionalStatement();
     }
-    return std::make_unique<Node::ConditionalStatement>(std::move(cond));
+    return std::make_shared<Node::ConditionalStatement>(std::move(cond));
   }
   else {
     throw std::invalid_argument("error: expected keyword in conditional expression");
@@ -388,7 +388,7 @@ std::unique_ptr<Node::ConditionalStatement> Parser::conditionalStatement()
   return nullptr;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
+std::shared_ptr<Node::GenericExpr> Parser::recurseNumeric()
 {
   if (!tokens_.empty() && (peek().type == GenericToken::NUMERIC_LITERAL ||
                            peek().type == GenericToken::IDENTIFIER ||
@@ -402,7 +402,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseNumeric()
   return nullptr;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
+std::shared_ptr<Node::GenericExpr> Parser::recurseFactor()
 {
   if (tokens_.empty())
     return nullptr;
@@ -431,8 +431,8 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
       throw std::invalid_argument("syntax error");
       return nullptr;
     }
-    return std::make_unique<Node::GenericExpr>(
-    Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(un_expr))});
+    return std::make_shared<Node::GenericExpr>(
+    Node::GenericExpr{std::make_shared<EXPRESSION_VARIANT>(std::move(un_expr))});
   }
 
   if (peek().type == GenericToken::NUMERIC_LITERAL ||
@@ -453,7 +453,7 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseFactor()
   return nullptr;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
+std::shared_ptr<Node::GenericExpr> Parser::recurseTerm()
 {
   auto factor = recurseFactor();
   while (!tokens_.empty() &&
@@ -477,13 +477,13 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseTerm()
       throw std::invalid_argument("error: expecting rhs for binary expression");
     }
     bin_expr.rhs = std::move(factor_rhs);
-    factor = std::make_unique<Node::GenericExpr>(
-    Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+    factor = std::make_shared<Node::GenericExpr>(
+    Node::GenericExpr{std::make_shared<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
   return factor;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseAdditive()
+std::shared_ptr<Node::GenericExpr> Parser::recurseAdditive()
 {
   auto term = recurseTerm();
   while (!tokens_.empty() && (peek().value == "+" || peek().value == "-")) {
@@ -500,13 +500,13 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseAdditive()
       throw std::invalid_argument("error: expecting rhs for binary expression");
     }
     bin_expr.rhs = std::move(term_rhs);
-    term = std::make_unique<Node::GenericExpr>(
-    Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+    term = std::make_shared<Node::GenericExpr>(
+    Node::GenericExpr{std::make_shared<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
   return term;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseShift()
+std::shared_ptr<Node::GenericExpr> Parser::recurseShift()
 {
   auto additive = recurseAdditive();
   while (!tokens_.empty() && (peek().value == "<<" || peek().value == ">>")) {
@@ -527,13 +527,13 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseShift()
       throw std::invalid_argument("error: expecting rhs for binary expression");
     }
     bin_expr.rhs = std::move(additive_rhs);
-    additive = std::make_unique<Node::GenericExpr>(
-    Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+    additive = std::make_shared<Node::GenericExpr>(
+    Node::GenericExpr{std::make_shared<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
   return additive;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
+std::shared_ptr<Node::GenericExpr> Parser::recurseComparison()
 {
   auto shift = recurseShift();
   while (!tokens_.empty() &&
@@ -565,13 +565,13 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseComparison()
       throw std::invalid_argument("error: expecting rhs for binary expression");
     }
     bin_expr.rhs = std::move(shift_rhs);
-    shift = std::make_unique<Node::GenericExpr>(
-    Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+    shift = std::make_shared<Node::GenericExpr>(
+    Node::GenericExpr{std::make_shared<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
   return shift;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
+std::shared_ptr<Node::GenericExpr> Parser::recurseLogical()
 {
   auto comparison = recurseComparison();
   while (!tokens_.empty() &&
@@ -601,13 +601,13 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseLogical()
       throw std::invalid_argument("error: expecting rhs for binary expression");
     }
     bin_expr.rhs = std::move(comparison_rhs);
-    comparison = std::make_unique<Node::GenericExpr>(
-    Node::GenericExpr{std::make_unique<EXPRESSION_VARIANT>(std::move(bin_expr))});
+    comparison = std::make_shared<Node::GenericExpr>(
+    Node::GenericExpr{std::make_shared<EXPRESSION_VARIANT>(std::move(bin_expr))});
   }
   return comparison;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
+std::shared_ptr<Node::GenericExpr> Parser::recurseExpr()
 {
   auto logical = recurseLogical();
   if (!logical) {
@@ -631,14 +631,14 @@ std::unique_ptr<Node::GenericExpr> Parser::recurseExpr()
   return logical;
 }
 
-std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
+std::shared_ptr<Node::GenericExpr> Parser::tokenToExpr()
 {
   Token token = peek();
   if (tokens_.empty()) {
     throw std::runtime_error("error: empty token deque");
   }
 
-  std::unique_ptr<Node::GenericExpr> gen_expr_ptr;
+  std::shared_ptr<Node::GenericExpr> gen_expr_ptr;
   pop(); // maybe here maybe at the end
 
   switch (token.type) {
@@ -655,10 +655,10 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       Node::Identifier node;
       node.token = token;
       node.type = ConstituentToken::VARIABLE_ID;
-      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
+      auto ptr = std::make_shared<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
-      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+      gen_expr_ptr = std::make_shared<Node::GenericExpr>(std::move(gen_expr));
     } break;
     case GenericToken::KEYWORD:
       throw std::invalid_argument("error: keyword found in expression");
@@ -666,28 +666,28 @@ std::unique_ptr<Node::GenericExpr> Parser::tokenToExpr()
       Node::NumericLiteral node;
       node.token = token;
       node.type = inferTypeNumericLiteral(token.value);
-      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
+      auto ptr = std::make_shared<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
-      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+      gen_expr_ptr = std::make_shared<Node::GenericExpr>(std::move(gen_expr));
     } break;
     case GenericToken::STRING_LITERAL: {
       Node::StringLiteral node;
       node.token = token;
       node.type = ConstituentToken::TYPE_STRING;
-      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
+      auto ptr = std::make_shared<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
-      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+      gen_expr_ptr = std::make_shared<Node::GenericExpr>(std::move(gen_expr));
     } break;
     case GenericToken::CHAR_LITERAL: {
       Node::NumericLiteral node;
       node.token = token;
       node.type = ConstituentToken::TYPE_CHAR;
-      auto ptr = std::make_unique<EXPRESSION_VARIANT>(node);
+      auto ptr = std::make_shared<EXPRESSION_VARIANT>(node);
       Node::GenericExpr gen_expr;
       gen_expr.expr = std::move(ptr);
-      gen_expr_ptr = std::make_unique<Node::GenericExpr>(std::move(gen_expr));
+      gen_expr_ptr = std::make_shared<Node::GenericExpr>(std::move(gen_expr));
     } break;
     case GenericToken::PUNCTUATOR:
       break;

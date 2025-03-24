@@ -1,7 +1,6 @@
 #include "semantic.hpp"
 
-/// @todo support searching all varaints of AST for expression
-
+/// @todo create type setters for all AST variants
 /// @todo interpret result of conditionals as boolean
 /// bools are stored as chars but represented until asm as bool
 
@@ -17,12 +16,12 @@ void Analyzer::dispatch(const std::shared_ptr<Node::AST> &ast)
   }
 
   if (std::holds_alternative<Node::GenericExpr>(*ast->curr)) {
-    auto variant = std::make_unique<Node::GenericExpr>(
+    auto variant = std::make_shared<Node::GenericExpr>(
     std::get<Node::GenericExpr>(std::move(*ast->curr)));
     exprTypeSetter(variant);
   }
   else if (std::holds_alternative<Node::FunctionDecl>(*ast->curr)) {
-    auto variant = std::make_unique<Node::FunctionDecl>(
+    auto variant = std::make_shared<Node::FunctionDecl>(
     std::get<Node::FunctionDecl>(std::move(*ast->curr)));
 
     if (variant->body) {
@@ -30,22 +29,22 @@ void Analyzer::dispatch(const std::shared_ptr<Node::AST> &ast)
     }
   }
   else if (std::holds_alternative<Node::VariableDecl>(*ast->curr)) {
-    auto variant = std::make_unique<Node::VariableDecl>(
+    auto variant = std::make_shared<Node::VariableDecl>(
     std::get<Node::VariableDecl>(std::move(*ast->curr)));
     if (variant->expr) {
-      varTypeSetter(std::make_unique<Node::GenericExpr>(std::move(*variant->expr)),
+      varTypeSetter(std::make_shared<Node::GenericExpr>(std::move(*variant->expr)),
                     variant->type);
     }
   }
   else if (std::holds_alternative<Node::ConditionalStatement>(*ast->curr)) {
-    auto variant = std::make_unique<Node::ConditionalStatement>(
+    auto variant = std::make_shared<Node::ConditionalStatement>(
     std::get<Node::ConditionalStatement>(std::move(*ast->curr)));
     if (variant->expr) {
       exprTypeSetter(variant->expr);
     }
   }
   else if (std::holds_alternative<Node::ReturnStatement>(*ast->curr)) {
-    auto variant = std::make_unique<Node::ReturnStatement>(
+    auto variant = std::make_shared<Node::ReturnStatement>(
     std::get<Node::ReturnStatement>(std::move(*ast->curr)));
     if (variant->expr) {
       exprTypeSetter(variant->expr);
@@ -57,20 +56,20 @@ void Analyzer::dispatch(const std::shared_ptr<Node::AST> &ast)
   }
 }
 
-void Analyzer::varTypeSetter(const std::unique_ptr<Node::GenericExpr> &expr,
+void Analyzer::varTypeSetter(const std::shared_ptr<Node::GenericExpr> &expr,
                              const ConstituentToken &curr)
 {
   auto ptr = std::make_shared<ConstituentToken>(curr);
   exprTypeChecker(expr, ptr);
 }
 
-void Analyzer::exprTypeSetter(const std::unique_ptr<Node::GenericExpr> &expr)
+void Analyzer::exprTypeSetter(const std::shared_ptr<Node::GenericExpr> &expr)
 {
   std::shared_ptr<ConstituentToken> ptr = nullptr;
   exprTypeChecker(expr, ptr);
 }
 
-void Analyzer::exprTypeChecker(const std::unique_ptr<Node::GenericExpr> &expr,
+void Analyzer::exprTypeChecker(const std::shared_ptr<Node::GenericExpr> &expr,
                                std::shared_ptr<ConstituentToken> &ptr)
 {
   if (!expr || !expr->expr) {
@@ -198,7 +197,8 @@ void Analyzer::setTypeOrThrow(std::shared_ptr<ConstituentToken> &ptr,
     ptr = std::make_shared<ConstituentToken>(next);
   }
   else if (*ptr != next) {
-    std::cout << "lhs: " << int(*ptr) << " rhs: " << int(next) << std::endl;
+    std::cerr << "received: '" << REVERSE_DICT.at(next) << "' expected : '"
+              << REVERSE_DICT.at(*ptr) << '\'' << std::endl;
     throw std::invalid_argument("error: expression cannot contain multiple types");
   }
 }

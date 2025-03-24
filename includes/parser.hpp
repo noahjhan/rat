@@ -20,7 +20,7 @@ class Parser
   public:
   Parser(std::deque<Token> &tokens, RatSource &source_file);
 
-  std::unique_ptr<Node::AST> dispatch();
+  std::shared_ptr<Node::AST> dispatch();
 
   std::shared_ptr<Node::VariableDecl> variableDeclaration();
   std::vector<std::pair<std::string, ConstituentToken>> parameterlist();
@@ -28,21 +28,21 @@ class Parser
   std::shared_ptr<Node::FunctionDecl> voidFunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> optionalfunctionDeclaration();
   // std::shared_ptr<Node::FunctionDecl> lambdafunctionDeclaration();
-  std::unique_ptr<Node::ReturnStatement> returnStatment();
-  std::vector<std::unique_ptr<Node::GenericExpr>> callParameters();
-  std::unique_ptr<Node::GenericExpr> functionCall();
+  std::shared_ptr<Node::ReturnStatement> returnStatment();
+  std::vector<std::shared_ptr<Node::GenericExpr>> callParameters();
+  std::shared_ptr<Node::GenericExpr> functionCall();
   
-  std::unique_ptr<Node::ConditionalStatement> conditionalStatement();
+  std::shared_ptr<Node::ConditionalStatement> conditionalStatement();
   
-  std::unique_ptr<Node::GenericExpr> recurseNumeric();
-  std::unique_ptr<Node::GenericExpr> recurseFactor();
-  std::unique_ptr<Node::GenericExpr> recurseTerm();
-  std::unique_ptr<Node::GenericExpr> recurseAdditive();
-  std::unique_ptr<Node::GenericExpr> recurseShift();
-  std::unique_ptr<Node::GenericExpr> recurseComparison();
-  std::unique_ptr<Node::GenericExpr> recurseLogical();
-  std::unique_ptr<Node::GenericExpr> recurseExpr();
-  std::unique_ptr<Node::GenericExpr> tokenToExpr();
+  std::shared_ptr<Node::GenericExpr> recurseNumeric();
+  std::shared_ptr<Node::GenericExpr> recurseFactor();
+  std::shared_ptr<Node::GenericExpr> recurseTerm();
+  std::shared_ptr<Node::GenericExpr> recurseAdditive();
+  std::shared_ptr<Node::GenericExpr> recurseShift();
+  std::shared_ptr<Node::GenericExpr> recurseComparison();
+  std::shared_ptr<Node::GenericExpr> recurseLogical();
+  std::shared_ptr<Node::GenericExpr> recurseExpr();
+  std::shared_ptr<Node::GenericExpr> tokenToExpr();
   ConstituentToken inferTypeNumericLiteral(const std::string &value);
   
   void debugASTPrinter(Node::AST &node);

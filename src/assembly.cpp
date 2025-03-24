@@ -8,7 +8,7 @@
 /// @todo do not allocate for literals
 /// @todo support floating point operations and support for unsigned operations
 
-Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &filename)
+Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : filename_(filename)
 {
   if (!ast) {
@@ -42,7 +42,7 @@ void Compiler::dispatch(const std::shared_ptr<Node::AST> &tree)
     std::get<Node::FunctionDecl>(std::move(*tree->curr))));
   }
   else if (std::holds_alternative<Node::GenericExpr>(*tree->curr)) {
-    expression(std::make_unique<Node::GenericExpr>(
+    expression(std::make_shared<Node::GenericExpr>(
     std::move(std::get<Node::GenericExpr>(*tree->curr))));
   }
 
@@ -70,7 +70,7 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
       auto statement = decl->body.get();
       while (statement) {
         if (std::holds_alternative<Node::VariableDecl>(*statement->curr)) {
-          *statement->curr = *allocateVariables(std::make_unique<Node::VariableDecl>(
+          *statement->curr = *allocateVariables(std::make_shared<Node::VariableDecl>(
           std::get<Node::VariableDecl>(std::move(*statement->curr))));
         }
         statement = (statement->next).get(); // this will cause issues
@@ -123,15 +123,15 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
     return;
   }
   if (std::holds_alternative<Node::ReturnStatement>(*body->curr)) {
-    returnStatement(std::make_unique<Node::ReturnStatement>(
+    returnStatement(std::make_shared<Node::ReturnStatement>(
     std::get<Node::ReturnStatement>(std::move(*body->curr))));
   }
   else if (std::holds_alternative<Node::GenericExpr>(*body->curr)) {
-    expression(std::make_unique<Node::GenericExpr>(
+    expression(std::make_shared<Node::GenericExpr>(
     std::get<Node::GenericExpr>(std::move(*body->curr))));
   }
   else if (std::holds_alternative<Node::VariableDecl>(*body->curr)) {
-    variableDeclaration(std::make_unique<Node::VariableDecl>(
+    variableDeclaration(std::make_shared<Node::VariableDecl>(
     std::get<Node::VariableDecl>(std::move(*body->curr))));
   }
 
@@ -140,7 +140,7 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
   }
 }
 
-void Compiler::functionCall(const std::unique_ptr<Node::FunctionCall> &call)
+void Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
 {
   if (!call) {
     return;
@@ -154,7 +154,7 @@ void Compiler::functionCall(const std::unique_ptr<Node::FunctionCall> &call)
 }
 
 void Compiler::returnStatement(
-const ::std::unique_ptr<Node::ReturnStatement> &return_statement)
+const ::std::shared_ptr<Node::ReturnStatement> &return_statement)
 {
   if (!return_statement) {
     throw std::invalid_argument("null return statement");
@@ -196,8 +196,8 @@ std::variant< Node::GenericExpr,
 // I think expressions recurisvely call which return a string representation of the
 // pointer to the returned operation
 
-std::unique_ptr<Node::VariableDecl>
-Compiler::allocateVariables(const std::unique_ptr<Node::VariableDecl> &decl)
+std::shared_ptr<Node::VariableDecl>
+Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl)
 {
   if (!decl) {
     throw std::invalid_argument("null variable declaration");
@@ -213,11 +213,11 @@ Compiler::allocateVariables(const std::unique_ptr<Node::VariableDecl> &decl)
   file_buffer_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment
                << '\n';
 
-  return std::make_unique<Node::VariableDecl>(std::move(*decl));
+  return std::make_shared<Node::VariableDecl>(std::move(*decl));
 }
 
-std::unique_ptr<Expression>
-Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
+std::shared_ptr<Expression>
+Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
 {
   if (!call) {
     throw std::invalid_argument("expression is null");
@@ -242,7 +242,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::ARITHMETIC_SUB: {
         // <result> = sub <ty> <op1>, <op2>
@@ -250,7 +250,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::ARITHMETIC_MUL: {
         // <result> = mul <ty> <op1>, <op2>
@@ -258,7 +258,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::ARITHMETIC_DIV: {
         // <result> = sdiv <ty> <op1>, <op2>
@@ -266,7 +266,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::ARITHMETIC_MOD: {
         // <result> = srem <ty> <op1>, <op2>
@@ -274,7 +274,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::COMPARISON_EQ: {
         // <result> = icmp eq <ty> <op1>, <op2>
@@ -282,7 +282,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::COMPARISON_LT: {
         // <result> = icmp slt <ty> <op1>, <op2>
@@ -290,7 +290,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::COMPARISON_GT: {
         // <result> = icmp sgt <ty> <op1>, <op2>
@@ -298,7 +298,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::COMPARISON_LTE: {
         // <result> = icmp sle <ty> <op1>, <op2>
@@ -306,7 +306,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::COMPARISON_GTE: {
         // <result> = icmp sge <ty> <op1>, <op2>
@@ -314,7 +314,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::LOGICAL_AND: {
         throw std::invalid_argument("logical AND not implemented");
@@ -331,7 +331,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::BITWISE_OR: {
         // <result> = or <ty> <op1>, <op2>
@@ -339,7 +339,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::BITWISE_XOR: {
         // <result> = xor <ty> <op1>, <op2>
@@ -347,7 +347,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::BITWISE_SL: {
         // <result> = shl <ty> <op1>, <op2>
@@ -355,7 +355,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       case ConstituentToken::BITWISE_SR: {
         // <result> = ashr <ty> <op1>, <op2>
@@ -363,7 +363,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
-        return std::make_unique<Expression>(std::move(expr_struct));
+        return std::make_shared<Expression>(std::move(expr_struct));
       }
       default:
         throw std::invalid_argument("unrecognized operator");
@@ -388,7 +388,7 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
 
     Expression expr_struct(std::nullopt, curr_expr_type, literal.token.value);
     // scoped_registers_.insert({register_num, type_asm});
-    return std::make_unique<Expression>(std::move(expr_struct));
+    return std::make_shared<Expression>(std::move(expr_struct));
   }
   else if (std::holds_alternative<Node::StringLiteral>(*call->expr)) {
     auto node = std::get<Node::StringLiteral>(*call->expr);
@@ -411,17 +411,17 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
     scoped_registers_.insert({register_num, type_asm});
 
     Expression expr_struct(identifier.token.value, type_asm, register_num);
-    return std::make_unique<Expression>(std::move(expr_struct));
+    return std::make_shared<Expression>(std::move(expr_struct));
   }
   else if (std::holds_alternative<Node::FunctionCall>(*call->expr)) {
-    functionCall(std::make_unique<Node::FunctionCall>(
+    functionCall(std::make_shared<Node::FunctionCall>(
     std::get<Node::FunctionCall>(std::move(*call->expr))));
   }
   else {
     throw std::invalid_argument("unrecognized expression variant");
   }
 
-  return std::make_unique<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
+  return std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
 }
 
 std::string Compiler::stringGlobal(const std::string &str)
@@ -436,7 +436,7 @@ std::string Compiler::stringGlobal(const std::string &str)
   return identifier;
 }
 
-void Compiler::variableDeclaration(const std::unique_ptr<Node::VariableDecl> &decl)
+void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &decl)
 {
   if (!decl) {
     throw std::invalid_argument("null variable declaration");
@@ -457,7 +457,7 @@ void Compiler::variableDeclaration(const std::unique_ptr<Node::VariableDecl> &de
   // else {
 
   Expression expr_struct =
-  *expression(std::make_unique<Node::GenericExpr>(std::move(*decl->expr)));
+  *expression(std::make_shared<Node::GenericExpr>(std::move(*decl->expr)));
   // store i32 %temp, ptr %x, align 4
   appendable_buffer_ << '\t' << "store " << expr_struct.type << ' '
                      << expr_struct.register_number << ", ptr " << register_num << ", "
