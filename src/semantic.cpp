@@ -16,43 +16,42 @@ void Analyzer::dispatch(const std::shared_ptr<Node::AST> &ast)
   }
 
   if (std::holds_alternative<Node::GenericExpr>(*ast->curr)) {
-    auto variant = std::make_shared<Node::GenericExpr>(
-    std::get<Node::GenericExpr>(std::move(*ast->curr)));
+    auto variant =
+    std::make_shared<Node::GenericExpr>(std::get<Node::GenericExpr>(*ast->curr));
     exprTypeSetter(variant);
   }
   else if (std::holds_alternative<Node::FunctionDecl>(*ast->curr)) {
-    auto variant = std::make_shared<Node::FunctionDecl>(
-    std::get<Node::FunctionDecl>(std::move(*ast->curr)));
+    auto variant =
+    std::make_shared<Node::FunctionDecl>(std::get<Node::FunctionDecl>(*ast->curr));
 
     if (variant->body) {
       dispatch(variant->body);
     }
   }
   else if (std::holds_alternative<Node::VariableDecl>(*ast->curr)) {
-    auto variant = std::make_shared<Node::VariableDecl>(
-    std::get<Node::VariableDecl>(std::move(*ast->curr)));
+    auto variant =
+    std::make_shared<Node::VariableDecl>(std::get<Node::VariableDecl>(*ast->curr));
     if (variant->expr) {
-      varTypeSetter(std::make_shared<Node::GenericExpr>(std::move(*variant->expr)),
-                    variant->type);
+      varTypeSetter(std::make_shared<Node::GenericExpr>(*variant->expr), variant->type);
     }
   }
   else if (std::holds_alternative<Node::ConditionalStatement>(*ast->curr)) {
     auto variant = std::make_shared<Node::ConditionalStatement>(
-    std::get<Node::ConditionalStatement>(std::move(*ast->curr)));
+    std::get<Node::ConditionalStatement>(*ast->curr));
     if (variant->expr) {
       exprTypeSetter(variant->expr);
     }
   }
   else if (std::holds_alternative<Node::ReturnStatement>(*ast->curr)) {
-    auto variant = std::make_shared<Node::ReturnStatement>(
-    std::get<Node::ReturnStatement>(std::move(*ast->curr)));
+    auto variant =
+    std::make_shared<Node::ReturnStatement>(std::get<Node::ReturnStatement>(*ast->curr));
     if (variant->expr) {
       exprTypeSetter(variant->expr);
     }
   }
 
   if (ast_->next) {
-    dispatch(std::make_shared<Node::AST>(std::move(*ast_->next)));
+    dispatch(std::make_shared<Node::AST>(*ast_->next));
   }
 }
 
@@ -80,7 +79,7 @@ void Analyzer::exprTypeChecker(const std::shared_ptr<Node::GenericExpr> &expr,
     // auto &variant = std::get<Node::GenericExpr>(*expr->expr);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*expr->expr)) {
-    auto variant = std::move(std::get<Node::BinaryExpr>(std::move(*expr->expr)));
+    auto variant = std::get<Node::BinaryExpr>(*expr->expr);
     exprTypeChecker(variant.lhs, ptr);
     exprTypeChecker(variant.rhs, ptr);
     if (*ptr == ConstituentToken::TYPE_STRING) {
@@ -106,7 +105,7 @@ void Analyzer::exprTypeChecker(const std::shared_ptr<Node::GenericExpr> &expr,
     return;
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*expr->expr)) {
-    auto variant = std::move(std::get<Node::UnaryExpr>(std::move(*expr->expr)));
+    auto variant = std::get<Node::UnaryExpr>(*expr->expr);
     exprTypeChecker(variant.expr, ptr);
     if (*ptr == ConstituentToken::TYPE_STRING) {
       throw std::invalid_argument("invalid operation for string literal @todo []");
@@ -122,23 +121,23 @@ void Analyzer::exprTypeChecker(const std::shared_ptr<Node::GenericExpr> &expr,
     return;
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*expr->expr)) {
-    auto variant = std::move(std::get<Node::NumericLiteral>(*expr->expr));
+    auto variant = std::get<Node::NumericLiteral>(*expr->expr);
     setTypeOrThrow(ptr, variant.type);
     return;
   }
   else if (std::holds_alternative<Node::StringLiteral>(*expr->expr)) {
-    auto variant = std::move(std::get<Node::StringLiteral>(*expr->expr));
+    auto variant = std::get<Node::StringLiteral>(*expr->expr);
     auto next = ConstituentToken::TYPE_STRING;
     setTypeOrThrow(ptr, next);
     return;
   }
   else if (std::holds_alternative<Node::Identifier>(*expr->expr)) {
-    auto variant = std::move(std::get<Node::Identifier>(*expr->expr));
+    auto variant = std::get<Node::Identifier>(*expr->expr);
     setTypeOrThrow(ptr, variant.type);
     return;
   }
   else if (std::holds_alternative<Node::FunctionCall>(*expr->expr)) {
-    auto variant = std::move(std::get<Node::FunctionCall>(*expr->expr));
+    auto variant = std::get<Node::FunctionCall>(*expr->expr);
     if (!variant.function) {
       throw std::invalid_argument("null function");
     }

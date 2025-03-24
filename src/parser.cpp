@@ -11,6 +11,9 @@
  * @todo marker for end of function
  *
  * @todo support for unary operator + and -
+ *
+ * @todo keep the same move semantics because at this point there should be ONE ast,
+ * however, as it gets passed to semantic and assembly it gets split off
  */
 
 Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)
