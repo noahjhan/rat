@@ -1,5 +1,6 @@
 fn_ main() {
-    let x: int = 2
-    let y: int = x + 5
+    let x: int = 2 + 5
+    let y: int = (x + 5) % (5 * 5) * x
+    print("ratiel")
     rev
 }

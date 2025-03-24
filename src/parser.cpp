@@ -9,6 +9,8 @@
  * @todo require proper control flow i.e. else after if only
  *
  * @todo marker for end of function
+ * 
+ * @todo support for unary operator + and - 
  */
 
 Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)

@@ -6,6 +6,7 @@
 /// @todo evaluate expressions
 /// @todo optimize expressions
 /// @todo do not allocate for literals
+/// @todo support floating point operations and support for unsigned operations
 
 Compiler::Compiler(const std::unique_ptr<Node::AST> &ast, const std::string &filename)
 : filename_(filename)
@@ -243,26 +244,131 @@ Compiler::expression(const std::unique_ptr<Node::GenericExpr> &call)
         Expression expr_struct(std::nullopt, curr_expr_type, register_num);
         return std::make_unique<Expression>(std::move(expr_struct));
       }
-      case ConstituentToken::ARITHMETIC_SUB:
-      case ConstituentToken::ARITHMETIC_MUL:
-      case ConstituentToken::ARITHMETIC_DIV:
-      case ConstituentToken::ARITHMETIC_MOD:
-      case ConstituentToken::COMPARISON_EQ:
-      case ConstituentToken::COMPARISON_LT:
-      case ConstituentToken::COMPARISON_GT:
-      case ConstituentToken::COMPARISON_LTE:
-      case ConstituentToken::COMPARISON_GTE:
-      case ConstituentToken::LOGICAL_AND:
-      case ConstituentToken::LOGICAL_OR:
-      case ConstituentToken::LOGICAL_NOT:
-      case ConstituentToken::BITWISE_AND:
-      case ConstituentToken::BITWISE_OR:
-      case ConstituentToken::BITWISE_XOR:
-      case ConstituentToken::BITWISE_SL:
-      case ConstituentToken::BITWISE_SR:
+      case ConstituentToken::ARITHMETIC_SUB: {
+        // <result> = sub <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = sub " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::ARITHMETIC_MUL: {
+        // <result> = mul <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = mul " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::ARITHMETIC_DIV: {
+        // <result> = sdiv <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = sdiv " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::ARITHMETIC_MOD: {
+        // <result> = srem <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = srem " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::COMPARISON_EQ: {
+        // <result> = icmp eq <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = icmp eq " << curr_expr_type
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, "i1", register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::COMPARISON_LT: {
+        // <result> = icmp slt <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = icmp slt " << curr_expr_type
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, "i1", register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::COMPARISON_GT: {
+        // <result> = icmp sgt <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = icmp sgt " << curr_expr_type
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, "i1", register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::COMPARISON_LTE: {
+        // <result> = icmp sle <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = icmp sle " << curr_expr_type
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, "i1", register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::COMPARISON_GTE: {
+        // <result> = icmp sge <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = icmp sge " << curr_expr_type
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, "i1", register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::LOGICAL_AND: {
+        throw std::invalid_argument("logical AND not implemented");
+      }
+      case ConstituentToken::LOGICAL_OR: {
+        throw std::invalid_argument("logical OR not implemented");
+      }
+      case ConstituentToken::LOGICAL_NOT: {
+        throw std::invalid_argument("logical NOT not implemented");
+      }
+      case ConstituentToken::BITWISE_AND: {
+        // <result> = and <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = and " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::BITWISE_OR: {
+        // <result> = or <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = or " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::BITWISE_XOR: {
+        // <result> = xor <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = xor " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::BITWISE_SL: {
+        // <result> = shl <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = shl " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
+      case ConstituentToken::BITWISE_SR: {
+        // <result> = ashr <ty> <op1>, <op2>
+        appendable_buffer_ << '\t' << register_num << " = ashr " << curr_expr_type << ' '
+                           << lhs->register_number << ", " << rhs->register_number
+                           << '\n';
+        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        return std::make_unique<Expression>(std::move(expr_struct));
+      }
       default:
         throw std::invalid_argument("unrecognized operator");
     }
+    throw std::invalid_argument("unrecognized operator");
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*call->expr)) {
   }
