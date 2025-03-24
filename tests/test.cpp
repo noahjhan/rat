@@ -18,6 +18,8 @@ catch (const std::exception &e)
 }
 */
 
+/// @todo test semantic analyzer
+
 bool TEST_LEXER()
 {
   std::cout << PURPLE << "TEST CASE: Lexer\n" << BAR << RESET << std::endl;
@@ -248,11 +250,42 @@ bool TEST_COMPILE()
   return true;
 }
 
+bool TEST_SEMANTIC()
+{
+  std::cout << PURPLE << "TEST CASE: Semantic\n" << BAR << RESET << std::endl;
+  try {
+    std::string filename = "data/semantic.rat";
+
+    auto rat = RatSource(filename);
+    auto lex = Lexer(rat);
+    while (lex.advanceToken()) {
+    }
+    // lex.debugPrinter(true /* use true here for verbose printing */);
+    std::deque<Token> dq = lex.getTokens();
+    auto parse = Parser(dq, rat);
+    auto ast = parse.dispatch();
+    // parse.debugASTPrinter(*ast);
+    auto analyzer = Analyzer(std::move(ast));
+  }
+  catch (const std::exception &e) {
+    std::cerr << e.what() << std::endl;
+    std::cerr << RED << "TEST CASE FAILED: Semantic\n"
+              << BAR << '\n'
+              << RESET << std::endl;
+    return false;
+  }
+
+  std::cout << GREEN << "TEST CASE PASSED: Semantic\n"
+            << BAR << '\n'
+            << RESET << std::endl;
+  return true;
+}
+
 bool TEST_ALL()
 {
   std::cout << std::endl;
 
-  int totalTests = 7; // change per test
+  int totalTests = 8; // change per test
   int failedTests = 0;
 
   if (!TEST_LEXER()) {
@@ -274,6 +307,9 @@ bool TEST_ALL()
     failedTests++;
   }
   if (!TEST_COMPILE()) {
+    failedTests++;
+  }
+  if (!TEST_SEMANTIC()) {
     failedTests++;
   }
 

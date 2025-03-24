@@ -62,6 +62,8 @@
         "map": "cpp",
         "set": "cpp",
         "__assertion_handler": "cpp",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "__tree": "cpp",
+        "charconv": "cpp"
     }
 }

@@ -1,29 +1,87 @@
 #include "semantic.hpp"
 
+/// @todo support searching all varaints of AST for expression
+
+/// @todo interpret result of conditionals as boolean
+/// bools are stored as chars but represented until asm as bool
+
 Analyzer::Analyzer(const std::shared_ptr<Node::AST> &ast) : ast_(ast)
 {
+  dispatch(ast_);
+}
+
+void Analyzer::dispatch(const std::shared_ptr<Node::AST> &ast)
+{
+  if (!ast_) {
+    return;
+  }
+
+  if (std::holds_alternative<Node::GenericExpr>(*ast->curr)) {
+    auto variant = std::make_unique<Node::GenericExpr>(
+    std::get<Node::GenericExpr>(std::move(*ast->curr)));
+    exprTypeSetter(variant);
+  }
+  else if (std::holds_alternative<Node::FunctionDecl>(*ast->curr)) {
+    auto variant = std::make_unique<Node::FunctionDecl>(
+    std::get<Node::FunctionDecl>(std::move(*ast->curr)));
+
+    if (variant->body) {
+      dispatch(variant->body);
+    }
+  }
+  else if (std::holds_alternative<Node::VariableDecl>(*ast->curr)) {
+    auto variant = std::make_unique<Node::VariableDecl>(
+    std::get<Node::VariableDecl>(std::move(*ast->curr)));
+    if (variant->expr) {
+      varTypeSetter(std::make_unique<Node::GenericExpr>(std::move(*variant->expr)),
+                    variant->type);
+    }
+  }
+  else if (std::holds_alternative<Node::ConditionalStatement>(*ast->curr)) {
+    auto variant = std::make_unique<Node::ConditionalStatement>(
+    std::get<Node::ConditionalStatement>(std::move(*ast->curr)));
+    if (variant->expr) {
+      exprTypeSetter(variant->expr);
+    }
+  }
+  else if (std::holds_alternative<Node::ReturnStatement>(*ast->curr)) {
+    auto variant = std::make_unique<Node::ReturnStatement>(
+    std::get<Node::ReturnStatement>(std::move(*ast->curr)));
+    if (variant->expr) {
+      exprTypeSetter(variant->expr);
+    }
+  }
+
+  if (ast_->next) {
+    dispatch(std::make_shared<Node::AST>(std::move(*ast_->next)));
+  }
+}
+
+void Analyzer::varTypeSetter(const std::unique_ptr<Node::GenericExpr> &expr,
+                             const ConstituentToken &curr)
+{
+  auto ptr = std::make_shared<ConstituentToken>(curr);
+  exprTypeChecker(expr, ptr);
 }
 
 void Analyzer::exprTypeSetter(const std::unique_ptr<Node::GenericExpr> &expr)
 {
-  std::shared_ptr<ConstituentToken> ptr;
+  std::shared_ptr<ConstituentToken> ptr = nullptr;
   exprTypeChecker(expr, ptr);
 }
 
 void Analyzer::exprTypeChecker(const std::unique_ptr<Node::GenericExpr> &expr,
                                std::shared_ptr<ConstituentToken> &ptr)
 {
-
   if (!expr || !expr->expr) {
     return;
   }
-
   if (std::holds_alternative<Node::GenericExpr>(*expr->expr)) {
     throw std::invalid_argument("expressions cannot hold expression type");
     // auto &variant = std::get<Node::GenericExpr>(*expr->expr);
   }
   else if (std::holds_alternative<Node::BinaryExpr>(*expr->expr)) {
-    auto &variant = std::get<Node::BinaryExpr>(*expr->expr);
+    auto variant = std::move(std::get<Node::BinaryExpr>(std::move(*expr->expr)));
     exprTypeChecker(variant.lhs, ptr);
     exprTypeChecker(variant.rhs, ptr);
     if (*ptr == ConstituentToken::TYPE_STRING) {
@@ -49,7 +107,7 @@ void Analyzer::exprTypeChecker(const std::unique_ptr<Node::GenericExpr> &expr,
     return;
   }
   else if (std::holds_alternative<Node::UnaryExpr>(*expr->expr)) {
-    auto &variant = std::get<Node::UnaryExpr>(*expr->expr);
+    auto variant = std::move(std::get<Node::UnaryExpr>(std::move(*expr->expr)));
     exprTypeChecker(variant.expr, ptr);
     if (*ptr == ConstituentToken::TYPE_STRING) {
       throw std::invalid_argument("invalid operation for string literal @todo []");
@@ -65,23 +123,23 @@ void Analyzer::exprTypeChecker(const std::unique_ptr<Node::GenericExpr> &expr,
     return;
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*expr->expr)) {
-    auto &variant = std::get<Node::NumericLiteral>(*expr->expr);
+    auto variant = std::move(std::get<Node::NumericLiteral>(*expr->expr));
     setTypeOrThrow(ptr, variant.type);
     return;
   }
   else if (std::holds_alternative<Node::StringLiteral>(*expr->expr)) {
-    auto &variant = std::get<Node::StringLiteral>(*expr->expr);
+    auto variant = std::move(std::get<Node::StringLiteral>(*expr->expr));
     auto next = ConstituentToken::TYPE_STRING;
     setTypeOrThrow(ptr, next);
     return;
   }
   else if (std::holds_alternative<Node::Identifier>(*expr->expr)) {
-    auto &variant = std::get<Node::Identifier>(*expr->expr);
+    auto variant = std::move(std::get<Node::Identifier>(*expr->expr));
     setTypeOrThrow(ptr, variant.type);
     return;
   }
   else if (std::holds_alternative<Node::FunctionCall>(*expr->expr)) {
-    auto &variant = std::get<Node::FunctionCall>(*expr->expr);
+    auto variant = std::move(std::get<Node::FunctionCall>(*expr->expr));
     if (!variant.function) {
       throw std::invalid_argument("null function");
     }
@@ -133,12 +191,14 @@ ConstituentToken Analyzer::inferTypeNumericLiteral(const std::string &value)
   }
 }
 
-void setTypeOrThrow(std::shared_ptr<ConstituentToken> &ptr, const ConstituentToken &next)
+void Analyzer::setTypeOrThrow(std::shared_ptr<ConstituentToken> &ptr,
+                              const ConstituentToken &next)
 {
   if (!ptr) {
-    *ptr = next;
+    ptr = std::make_shared<ConstituentToken>(next);
   }
   else if (*ptr != next) {
+    std::cout << "lhs: " << int(*ptr) << " rhs: " << int(next) << std::endl;
     throw std::invalid_argument("error: expression cannot contain multiple types");
   }
 }

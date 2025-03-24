@@ -4,6 +4,7 @@
 #include "token.hpp"
 #include <memory>
 #include <variant>
+#include <vector>
 
 #define EXPRESSION_VARIANT                                                  \
   std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,        \
