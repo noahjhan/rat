@@ -4,11 +4,10 @@ target triple = "arm64-apple-macosx15.0.0"
 
 declare i32 @printf(ptr)
 
-@.str.1 = private unnamed_addr constant [9 x i8] c"help me\0A\00", align 1
+@.str.1 = private unnamed_addr constant [7 x i8] c"hello\0A\00", align 1
 
 define void @printer() {
 	call i32 @printf(ptr @.str.1)
-	call void @printer()
 	ret void
 }
 
