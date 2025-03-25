@@ -14,6 +14,9 @@
  *
  * @todo keep the same move semantics because at this point there should be ONE ast,
  * however, as it gets passed to semantic and assembly it gets split off
+ *
+ * the reason for the std::make_shared & std::move is to maintain a unique reference until
+ * we exit the scope of the parser class
  */
 
 Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)

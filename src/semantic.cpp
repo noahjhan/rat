@@ -32,7 +32,7 @@ void Analyzer::dispatch(const std::shared_ptr<Node::AST> &ast)
     auto variant =
     std::make_shared<Node::VariableDecl>(std::get<Node::VariableDecl>(*ast->curr));
     if (variant->expr) {
-      varTypeSetter(std::make_shared<Node::GenericExpr>(*variant->expr), variant->type);
+      varTypeSetter(variant->expr, variant->type);
     }
   }
   else if (std::holds_alternative<Node::ConditionalStatement>(*ast->curr)) {
@@ -51,7 +51,7 @@ void Analyzer::dispatch(const std::shared_ptr<Node::AST> &ast)
   }
 
   if (ast_->next) {
-    dispatch(std::make_shared<Node::AST>(*ast_->next));
+    dispatch(ast_->next);
   }
 }
 

@@ -9,12 +9,11 @@
 /// @todo support floating point operations and support for unsigned operations
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
-: filename_(filename)
+: ast_(ast), filename_(filename)
 {
-  if (!ast) {
+  if (!ast_) {
     throw std::invalid_argument("null ast");
   }
-  ast_ = std::make_shared<Node::AST>(*ast);
   // trunc();
   initializeLocal();
   dispatch(ast_);
@@ -47,7 +46,7 @@ void Compiler::dispatch(const std::shared_ptr<Node::AST> &tree)
   }
 
   if (tree->next) {
-    dispatch(std::make_shared<Node::AST>(*tree->next)); // recursive call
+    dispatch(tree->next); // recursive call
   }
 }
 
@@ -70,7 +69,7 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
       auto statement = decl->body.get();
       while (statement) {
         if (std::holds_alternative<Node::VariableDecl>(*statement->curr)) {
-          *statement->curr = *allocateVariables(std::make_shared<Node::VariableDecl>(
+          allocateVariables(std::make_shared<Node::VariableDecl>(
           std::get<Node::VariableDecl>(*statement->curr)));
         }
         statement = (statement->next).get(); // this will cause issues
@@ -136,7 +135,7 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
   }
 
   if (body->next) {
-    functionBody(std::make_shared<Node::AST>(*body->next));
+    functionBody(body->next);
   }
 }
 
@@ -196,8 +195,7 @@ std::variant< Node::GenericExpr,
 // I think expressions recurisvely call which return a string representation of the
 // pointer to the returned operation
 
-std::shared_ptr<Node::VariableDecl>
-Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl)
+void Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl)
 {
   if (!decl) {
     throw std::invalid_argument("null variable declaration");
@@ -212,8 +210,6 @@ Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl)
 
   file_buffer_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment
                << '\n';
-
-  return std::make_shared<Node::VariableDecl>(*decl);
 }
 
 std::shared_ptr<Expression>
@@ -456,7 +452,7 @@ void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &de
   // }
   // else {
 
-  Expression expr_struct = *expression(std::make_shared<Node::GenericExpr>(*decl->expr));
+  Expression expr_struct = *expression(decl->expr);
   // store i32 %temp, ptr %x, align 4
   appendable_buffer_ << '\t' << "store " << expr_struct.type << ' '
                      << expr_struct.register_number << ", ptr " << register_num << ", "

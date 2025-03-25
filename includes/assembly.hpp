@@ -37,7 +37,7 @@ class Compiler
   void functionBody(const std::shared_ptr<Node::AST> &body);
   void functionCall(const std::shared_ptr<Node::FunctionCall> &call);
   void returnStatement(const ::std::shared_ptr<Node::ReturnStatement> &return_statement);
-  std::shared_ptr<Node::VariableDecl> allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl);
+  void allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl);
   std::shared_ptr<Expression> expression(const std::shared_ptr<Node::GenericExpr> &expr);
 
   std::string stringGlobal(const std::string &str);
