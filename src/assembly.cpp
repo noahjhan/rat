@@ -66,13 +66,13 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
       file_buffer_ << "define " << asm_define << declarationParameters(decl->parameters)
                    << " {" << '\n'; // put params here
-      auto statement = decl->body.get();
+      auto statement = decl->body;
       while (statement) {
         if (std::holds_alternative<Node::VariableDecl>(*statement->curr)) {
           allocateVariables(std::make_shared<Node::VariableDecl>(
           std::get<Node::VariableDecl>(*statement->curr)));
         }
-        statement = (statement->next).get(); // this will cause issues
+        statement = (statement->next);
       }
       functionBody(decl->body);
     } break;

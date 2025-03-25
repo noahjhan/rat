@@ -754,7 +754,7 @@ ConstituentToken Parser::inferTypeNumericLiteral(const std::string &value)
 
 void Parser::debugASTPrinter(Node::AST &node)
 {
-  auto curr = node.curr.get();
+  auto curr = node.curr;
   if (!curr) {
     return;
   }
@@ -785,7 +785,7 @@ void Parser::debugASTPrinter(Node::AST &node)
 
 void Parser::debugExprPrinterRecursive(Node::GenericExpr &node, int depth)
 {
-  auto variant = node.expr.get();
+  auto variant = node.expr;
   if (!variant) {
     std::cout << std::string(depth, ' ') << "variant is null" << std::endl;
     return;
