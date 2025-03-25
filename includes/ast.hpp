@@ -109,8 +109,9 @@ struct ReturnStatement
 struct FunctionCall
 {
   Token token; // identifier + line + col
+  ConstituentToken type;
   std::vector<std::shared_ptr<GenericExpr>> parameters;
-  std::shared_ptr<FunctionDecl> function;
+  // std::shared_ptr<FunctionDecl> function; // cannot store due to recursion 
 };
 
 } // namespace Node

@@ -3,6 +3,7 @@
 /// @todo create type setters for all AST variants
 /// @todo interpret result of conditionals as boolean
 /// @todo type check booleans -> bools are stored as chars but represented until asm as bool
+/// @todo type check return type 
 
 Analyzer::Analyzer(const std::shared_ptr<Node::AST> &ast) : ast_(ast)
 {
@@ -138,10 +139,7 @@ void Analyzer::exprTypeChecker(const std::shared_ptr<Node::GenericExpr> &expr,
   }
   else if (std::holds_alternative<Node::FunctionCall>(*expr->expr)) {
     auto variant = std::get<Node::FunctionCall>(*expr->expr);
-    if (!variant.function) {
-      throw std::invalid_argument("null function");
-    }
-    setTypeOrThrow(ptr, variant.function->type);
+    setTypeOrThrow(ptr, variant.type);
     return;
   }
   else {

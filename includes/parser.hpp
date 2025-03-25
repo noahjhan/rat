@@ -62,6 +62,7 @@ class Parser
   private:
   std::unordered_map<std::string, ConstituentToken> dictionary_ = DICT;
   std::unordered_map<ConstituentToken, std::string> reverse_dictionary_ = REVERSE_DICT;
+  std::unordered_map<std::string, ConstituentToken> function_dictionary_;
   std::deque<Token> tokens_;
   RatSource source_file_;
   SymbolTable symbol_table_;

@@ -152,6 +152,7 @@ const std::unordered_map<ConstituentToken, std::string> ALIGN_ASM = {
 {ConstituentToken::TYPE_SHORT, "align 2"},  {ConstituentToken::TYPE_POINTER, "align 8"},
 {ConstituentToken::TYPE_UINT, "align 4"},   {ConstituentToken::TYPE_ULONG, "align 8"},
 {ConstituentToken::TYPE_USHORT, "align 2"}, {ConstituentToken::TYPE_UCHAR, "align 1"},
+{ConstituentToken::TYPE_MAIN, "align 4"}
 };
 
 const std::unordered_map<std::string, std::string> STRING_TYPE_ALIGN = {

@@ -232,7 +232,7 @@ bool TEST_COMPILE()
     std::deque<Token> dq = lex.getTokens();
     auto parse = Parser(dq, rat);
     auto ast = parse.dispatch();
-    // parse.debugASTPrinter(*ast);
+    //parse.debugASTPrinter(*ast);
 
     auto assembly = Compiler(std::move(ast), out_filename);
   }

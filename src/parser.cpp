@@ -23,6 +23,7 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)
 : tokens_(tokens), source_file_(source_file)
 {
   symbol_table_.enterScope();
+  function_dictionary_.insert({"print", ConstituentToken::TYPE_VOID});
 }
 
 std::shared_ptr<Node::AST> Parser::dispatch()
@@ -222,10 +223,13 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
   require(dictionary_.find(return_type) != dictionary_.end(), "error: unrecognized type");
   ConstituentToken return_type_token = dictionary_.at(return_type);
   function_decl.return_type = return_type_token;
+
+  function_dictionary_.insert({identifier, return_type_token});
+
   local_return_type_.push(return_type_token);
   function_decl.body = dispatch();
   symbol_table_.exitScope();
-  auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
+  auto function = std::make_shared<Node::FunctionDecl>(function_decl);
   symbol_table_.addFunction(identifier, function);
   return function;
 }
@@ -259,16 +263,18 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
   if (function_decl.token.value == "main") {
     function_decl.return_type = ConstituentToken::TYPE_MAIN;
     local_return_type_.push(ConstituentToken::TYPE_MAIN);
+    function_dictionary_.insert({identifier, ConstituentToken::TYPE_MAIN});
   }
   else {
     function_decl.return_type = ConstituentToken::TYPE_VOID;
     local_return_type_.push(ConstituentToken::TYPE_VOID);
+    function_dictionary_.insert({identifier, ConstituentToken::TYPE_VOID});
   }
 
   function_decl.body = dispatch();
 
   symbol_table_.exitScope();
-  auto function = std::make_shared<Node::FunctionDecl>(std::move(function_decl));
+  auto function = std::make_shared<Node::FunctionDecl>(function_decl);
   symbol_table_.addFunction(identifier, function);
   return function;
 }
@@ -308,7 +314,14 @@ std::shared_ptr<Node::GenericExpr> Parser::functionCall()
   }
   call.token = pop();
   call.parameters = callParameters();
-  call.function = symbol_table_.lookupFunction(call.token.value);
+
+  if (function_dictionary_.find(call.token.value) == function_dictionary_.end()) {
+    std::cerr << "received: '" << call.token.value << '\'' << std::endl;
+    throw std::invalid_argument("function dictionary does not recognize function call");
+  }
+
+  call.type = function_dictionary_.at(call.token.value);
+  // call.function = symbol_table_.lookupFunction(call.token.value);
   Node::GenericExpr expr;
   expr.expr = std::make_shared<EXPRESSION_VARIANT>(std::move(call));
   return std::make_shared<Node::GenericExpr>(std::move(expr));

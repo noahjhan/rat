@@ -7,6 +7,7 @@
 /// @todo optimize expressions
 /// @todo support floating point operations and support for unsigned operations
 /// @todo support printing multiple types
+/// @todo support recursion
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : ast_(ast), filename_(filename)
@@ -189,8 +190,7 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
     appendable_buffer_ << "call i32 @printf(ptr @.str." << num_string_constants_ << ")\n";
     return std::nullopt;
   }
-
-  if (call->function->return_type == ConstituentToken::TYPE_VOID) {
+  if (call->type == ConstituentToken::TYPE_VOID) {
     std::vector<std::shared_ptr<Expression>> vect;
     for (const auto &expr : call->parameters) {
       vect.push_back(expression(expr));
@@ -213,7 +213,7 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
   }
   std::string register_num = "%" + std::to_string(num_registers_++);
   appendable_buffer_ << '\t' << register_num << " = call "
-                     << TYPE_ASM.at(call->function->return_type) << " @"
+                     << TYPE_ASM.at(call->type) << " @"
                      << call->token.value << '(';
   std::string call_parameters;
   for (const auto &expr_struct : vect) {
@@ -226,7 +226,7 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
   appendable_buffer_ << call_parameters << ")\n";
 
   return std::make_shared<Expression>(
-  Expression(std::nullopt, TYPE_ASM.at(call->function->return_type), register_num));
+  Expression(std::nullopt, TYPE_ASM.at(call->type), register_num));
 }
 
 void Compiler::returnStatement(
@@ -500,7 +500,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     auto optional = functionCall(
     std::make_shared<Node::FunctionCall>(std::get<Node::FunctionCall>(*call->expr)));
     if (!optional) {
-      return std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
+      return std::make_shared<Expression>(Expression(std::nullopt, "err", "optional"));
     }
     return optional.value();
   }
