@@ -1,4 +1,9 @@
-fn main(timmy: int, tommy: int): int {
-    let x: int = 15
-    ret x / 2
+fn foo(x: int): int {
+    ret x
+}
+
+fn_ main() {
+    let y: int = 20
+    let a: int = foo(y)
+    rev
 }

@@ -141,7 +141,7 @@ void Analyzer::exprTypeChecker(const std::shared_ptr<Node::GenericExpr> &expr,
     if (!variant.function) {
       throw std::invalid_argument("null function");
     }
-    setTypeOrThrow(ptr, variant.function->return_type);
+    setTypeOrThrow(ptr, variant.function->type);
     return;
   }
   else {

@@ -33,11 +33,12 @@ class Compiler
   void dispatch(const std::shared_ptr<Node::AST> &tree);
 
   void functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &decl);
-  std::string declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &parameters);
+  std::pair<std::string, std::vector<std::string>> declarationParameters(const std::vector<std::pair<std::string, ConstituentToken>> &parameters);
   void functionBody(const std::shared_ptr<Node::AST> &body);
-  void functionCall(const std::shared_ptr<Node::FunctionCall> &call);
+  std::optional<std::shared_ptr<Expression>> functionCall(const std::shared_ptr<Node::FunctionCall> &call);
   void returnStatement(const ::std::shared_ptr<Node::ReturnStatement> &return_statement);
   void allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl);
+  std::string allocateParameters(const Expression &expr);
   std::shared_ptr<Expression> expression(const std::shared_ptr<Node::GenericExpr> &expr);
 
   std::string stringGlobal(const std::string &str);

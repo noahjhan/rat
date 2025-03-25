@@ -7,6 +7,7 @@
 /// @todo optimize expressions
 /// @todo do not allocate for literals
 /// @todo support floating point operations and support for unsigned operations
+/// @todo each function param needs an allocation
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : ast_(ast), filename_(filename)
@@ -62,9 +63,15 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
 
   switch (decl->type) {
     case ConstituentToken::FUNCTION_DECLARATION_F: {
-      file_buffer_ << "define " << asm_define << declarationParameters(decl->parameters)
-                   << " {" << '\n'; // put params here
+      auto params = declarationParameters(decl->parameters);
+      file_buffer_ << "define " << asm_define << params.first << " {"
+                   << '\n'; // put params here
       auto statement = decl->body;
+
+      for (const auto &allocation : params.second) {
+        file_buffer_ << allocation;
+      }
+
       while (statement) {
         if (std::holds_alternative<Node::VariableDecl>(*statement->curr)) {
           allocateVariables(std::make_shared<Node::VariableDecl>(
@@ -75,9 +82,15 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
       functionBody(decl->body);
     } break;
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
-      file_buffer_ << "define " << asm_define << declarationParameters(decl->parameters)
-                   << " {" << '\n'; // put params here
+      auto params = declarationParameters(decl->parameters);
+      file_buffer_ << "define " << asm_define << params.first << " {"
+                   << '\n'; // put params here
       auto statement = decl->body;
+
+      for (const auto &allocation : params.second) {
+        file_buffer_ << allocation;
+      }
+
       while (statement) {
         if (std::holds_alternative<Node::VariableDecl>(*statement->curr)) {
           allocateVariables(std::make_shared<Node::VariableDecl>(
@@ -102,18 +115,22 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
 }
 
 /// @todo support for any return type (pass as param to this function)
-std::string Compiler::declarationParameters(
+std::pair<std::string, std::vector<std::string>> Compiler::declarationParameters(
 const std::vector<std::pair<std::string, ConstituentToken>> &parameters)
 {
+  std::vector<std::string> vect;
+
   if (parameters.empty()) {
     num_registers_ = 1;
-    return "()";
+    return std::make_pair("()", vect);
   }
-
+  std::vector<Expression> exprs;
   std::string str = "(";
   for (const auto &[id, tok] : parameters) {
     std::string register_num = "%" + std::to_string(num_registers_++);
     str += TYPE_ASM.at(tok) + " noundef " + register_num + ", ";
+    scoped_registers_.insert({register_num, TYPE_ASM.at(tok)});
+    exprs.push_back(Expression(id, TYPE_ASM.at(tok), register_num));
   }
   if (str.size() > 2) {
     str.pop_back();
@@ -122,8 +139,19 @@ const std::vector<std::pair<std::string, ConstituentToken>> &parameters)
   if (num_registers_ == 0) {
     num_registers_ = 1;
   }
+  else {
+    num_registers_++;
+  }
+
+  for (const auto &expr : exprs) {
+    vect.push_back(allocateParameters(expr));
+    appendable_buffer_ << '\t' << "store " << expr.type << ' ' << expr.register_number
+                       << ", ptr " << (num_registers_ - 1) << ", "
+                       << STRING_TYPE_ALIGN.at(expr.type) << '\n';
+  }
+
   str += ")";
-  return str;
+  return std::make_pair(str, vect);
 }
 
 void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
@@ -149,17 +177,52 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
   }
 }
 
-void Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
+std::optional<std::shared_ptr<Expression>>
+Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
 {
   if (!call) {
-    return;
-  }
-  if (call->token.value == "print") {
-    appendable_buffer_ << "\tcall i32 @printf(ptr @.str." << num_string_constants_
-                       << ")\n";
+    throw std::invalid_argument("null function call");
   }
 
-  expression(call->parameters[0]);
+  if (call->token.value == "print") {
+    appendable_buffer_ << "call i32 @printf(ptr @.str." << num_string_constants_ << ")\n";
+    return std::nullopt;
+  }
+
+  if (call->function->return_type == ConstituentToken::TYPE_VOID) {
+    std::cout << int(call->function->return_type) << std::endl;
+    std::vector<std::shared_ptr<Expression>> vect;
+    for (const auto &expr : call->parameters) {
+      vect.push_back(expression(expr));
+    }
+    appendable_buffer_ << "\tcall void @" << call->token.value << '(';
+    std::string call_parameters;
+    for (const auto &expr_struct : vect) {
+      call_parameters +=
+      expr_struct->type + " noundef " + expr_struct->register_number + ",";
+    }
+    call_parameters.pop_back();
+    appendable_buffer_ << call_parameters << ")\n";
+    return std::nullopt;
+  }
+  std::vector<std::shared_ptr<Expression>> vect;
+  for (const auto &expr : call->parameters) {
+    vect.push_back(expression(expr));
+  }
+  std::string register_num = "%" + std::to_string(num_registers_++);
+  appendable_buffer_ << '\t' << register_num << " = call "
+                     << TYPE_ASM.at(call->function->return_type) << " @"
+                     << call->token.value << '(';
+  std::string call_parameters;
+  for (const auto &expr_struct : vect) {
+    call_parameters +=
+    expr_struct->type + " noundef " + expr_struct->register_number + ",";
+  }
+  call_parameters.pop_back();
+  appendable_buffer_ << call_parameters << ")\n";
+
+  return std::make_shared<Expression>(
+  Expression(std::nullopt, TYPE_ASM.at(call->function->return_type), register_num));
 }
 
 void Compiler::returnStatement(
@@ -218,6 +281,18 @@ void Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl
 
   file_buffer_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment
                << '\n';
+}
+
+std::string Compiler::allocateParameters(const Expression &expr)
+{
+  std::string type_asm = expr.type;
+  std::string register_number = "%" + std::to_string(num_registers_++);
+  std::string alignment = STRING_TYPE_ALIGN.at(expr.type);
+
+  identifiers_.insert({expr.identifier.value(), {register_number, "ptr"}});
+  scoped_registers_.insert({register_number, type_asm});
+  return std::string('\t' + register_number + " = alloca " + type_asm + ", " + alignment +
+                     '\n');
 }
 
 std::shared_ptr<Expression>
@@ -418,8 +493,12 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     return std::make_shared<Expression>(expr_struct);
   }
   else if (std::holds_alternative<Node::FunctionCall>(*call->expr)) {
-    functionCall(
+    auto optional = functionCall(
     std::make_shared<Node::FunctionCall>(std::get<Node::FunctionCall>(*call->expr)));
+    if (!optional) {
+      std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
+    }
+    return optional.value();
   }
   else {
     throw std::invalid_argument("unrecognized expression variant");

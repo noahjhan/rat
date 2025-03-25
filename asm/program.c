@@ -1,7 +1,18 @@
 #include <stdio.h>
 
+int foo(int x, int f) {
+    printf("here\n");
+    return x;
+}
+
+void bar() {
+
+}
+
 int main () {
-    int x = 2;
-    int y = x && 5;
-    return (x + 5) % (5 * 5) * x;
+    int y = 10;
+    int z = 2;
+    bar();
+    foo(y, z);
+    return 0;
 }
