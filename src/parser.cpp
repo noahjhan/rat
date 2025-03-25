@@ -70,7 +70,8 @@ std::shared_ptr<Node::AST> Parser::dispatch()
   };
 
   if (peek().type == GenericToken::IDENTIFIER) {
-    if (symbol_table_.findFunction(peek().value)) {
+    if (symbol_table_.findFunction(peek().value) ||
+        function_dictionary_.find(peek().value) != function_dictionary_.end()) {
       return createASTNode([this] { return functionCall(); }, "null function call");
     }
     else {

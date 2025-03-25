@@ -1,14 +1,12 @@
 #include <stdio.h>
 
-int foo(int x) {
-    return x;
-}
-
-void voidy() {
-
+void printer() {
+    printf("help me\n");
+    printer();
+    return;
 }
 
 int main () {
-    printf("%d", 10);
+    printer();
     return 0;
 }

@@ -187,7 +187,13 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
   }
 
   if (call->token.value == "print") {
-    appendable_buffer_ << "call i32 @printf(ptr @.str." << num_string_constants_ << ")\n";
+    auto call_parameters = call->parameters;
+    if (call_parameters.size() != 1) {
+      throw std::invalid_argument("expected string literal in print statement");
+    }
+    auto expr = expression(call_parameters.at(0));
+    appendable_buffer_ << "\tcall i32 @printf(ptr "
+                       << search_string_global_.at(expr->identifier.value()) << ")\n";
     return std::nullopt;
   }
   if (call->type == ConstituentToken::TYPE_VOID) {
@@ -212,9 +218,8 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
     vect.push_back(expression(expr));
   }
   std::string register_num = "%" + std::to_string(num_registers_++);
-  appendable_buffer_ << '\t' << register_num << " = call "
-                     << TYPE_ASM.at(call->type) << " @"
-                     << call->token.value << '(';
+  appendable_buffer_ << '\t' << register_num << " = call " << TYPE_ASM.at(call->type)
+                     << " @" << call->token.value << '(';
   std::string call_parameters;
   for (const auto &expr_struct : vect) {
     call_parameters +=
@@ -475,7 +480,9 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
   }
   else if (std::holds_alternative<Node::StringLiteral>(*call->expr)) {
     auto node = std::get<Node::StringLiteral>(*call->expr);
-    Expression expr_struc(std::nullopt, curr_expr_type, stringGlobal(node.token.value));
+    Expression expr_struct(node.token.value, curr_expr_type,
+                           stringGlobal(node.token.value));
+    return std::make_shared<Expression>(expr_struct);
   }
   else if (std::holds_alternative<Node::Identifier>(*call->expr)) {
     auto identifier = std::get<Node::Identifier>(*call->expr);
@@ -515,6 +522,8 @@ std::string Compiler::stringGlobal(const std::string &str)
 {
   std::string formatted(str.begin() + 1, str.end() - 1);
   std::string identifier = "@.str." + std::to_string(num_string_constants_++);
+
+  search_string_global_.insert({str, identifier});
 
   globals_buffer_ << identifier << " = private unnamed_addr constant ["
                   << formatted.size() + 2 << " x i8] c\"" << formatted

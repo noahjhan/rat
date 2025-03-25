@@ -60,6 +60,7 @@ class Compiler
   std::unordered_map<std::string, std::string> scoped_registers_; // %reg_num -> "type"
   std::unordered_map<std::string, std::pair<std::string, std::string>> identifiers_; // identifier -> "%regnum, type"
   std::unordered_map<std::string, std::string> function_table_; // identifier -> "return_type @identifier"
+  std::unordered_map<std::string, std::string> search_string_global_;
   unsigned num_string_constants_ = 1;
   /// @todo unsigned num_numeric_globals_;
   unsigned num_registers_ = 0;
