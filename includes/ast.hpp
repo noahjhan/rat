@@ -58,19 +58,19 @@ struct UnaryExpr
 
 struct NumericLiteral
 {
-  Token token;
+  Token token; // value + line + col
   ConstituentToken type;
 };
 
 struct StringLiteral
 {
-  Token token;
+  Token token; // value + line + col
   ConstituentToken type;
 };
 
 struct Identifier
 {
-  Token token;
+  Token token; // identifier + line + col
   ConstituentToken type;
 };
 

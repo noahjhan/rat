@@ -2,7 +2,7 @@
 
 /// @todo create type setters for all AST variants
 /// @todo interpret result of conditionals as boolean
-/// bools are stored as chars but represented until asm as bool
+/// @todo type check booleans -> bools are stored as chars but represented until asm as bool
 
 Analyzer::Analyzer(const std::shared_ptr<Node::AST> &ast) : ast_(ast)
 {

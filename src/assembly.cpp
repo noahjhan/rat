@@ -61,8 +61,19 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
   function_table_.insert({decl->token.value, asm_define});
 
   switch (decl->type) {
-    case ConstituentToken::FUNCTION_DECLARATION_F:
-      break;
+    case ConstituentToken::FUNCTION_DECLARATION_F: {
+      file_buffer_ << "define " << asm_define << declarationParameters(decl->parameters)
+                   << " {" << '\n'; // put params here
+      auto statement = decl->body;
+      while (statement) {
+        if (std::holds_alternative<Node::VariableDecl>(*statement->curr)) {
+          allocateVariables(std::make_shared<Node::VariableDecl>(
+          std::get<Node::VariableDecl>(*statement->curr)));
+        }
+        statement = (statement->next);
+      }
+      functionBody(decl->body);
+    } break;
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
       file_buffer_ << "define " << asm_define << declarationParameters(decl->parameters)
                    << " {" << '\n'; // put params here
@@ -159,9 +170,6 @@ const ::std::shared_ptr<Node::ReturnStatement> &return_statement)
     throw std::invalid_argument("null return statement");
   }
 
-  /// @todo figure out the associated register with the finalized return expression
-  std::string identifier = "x";
-
   ConstituentToken return_type_token = return_statement->type;
   std::string return_type_asm = TYPE_ASM.at(return_type_token);
 
@@ -170,8 +178,9 @@ const ::std::shared_ptr<Node::ReturnStatement> &return_statement)
     appendable_buffer_ << '\t' << "ret " << return_type_asm << " 0" << '\n';
   }
   else if (return_statement->token.value == "ret") {
+    auto expr = expression(return_statement->expr);
     appendable_buffer_ << '\t' << "ret " << return_type_asm << ' '
-                       << identifiers_.at(identifier).first << '\n';
+                       << expr->register_number << '\n';
   }
   else if (return_statement->token.value == "rev") {
     // return_type_asm can be hardcoded -> better it throws
