@@ -1,4 +1,4 @@
-fn main(): int {
+fn main(timmy: int, tommy: int): int {
     let x: int = 15
     ret x / 2
 }

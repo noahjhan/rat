@@ -114,7 +114,6 @@ const std::vector<std::pair<std::string, ConstituentToken>> &parameters)
   for (const auto &[id, tok] : parameters) {
     std::string register_num = "%" + std::to_string(num_registers_++);
     str += TYPE_ASM.at(tok) + " noundef " + register_num + ", ";
-    num_registers_++;
   }
   if (str.size() > 2) {
     str.pop_back();
