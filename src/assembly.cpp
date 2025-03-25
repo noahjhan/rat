@@ -5,9 +5,8 @@
 /// @todo create a stack implementation of the current symbol table
 /// @todo evaluate expressions
 /// @todo optimize expressions
-/// @todo do not allocate for literals
 /// @todo support floating point operations and support for unsigned operations
-/// @todo each function param needs an allocation
+/// @todo support printing multiple types
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : ast_(ast), filename_(filename)
@@ -38,6 +37,8 @@ void Compiler::dispatch(const std::shared_ptr<Node::AST> &tree)
   }
 
   if (std::holds_alternative<Node::FunctionDecl>(*tree->curr)) {
+    scoped_registers_.clear();
+    identifiers_.clear();
     functionDeclaration(
     std::make_shared<Node::FunctionDecl>(std::get<Node::FunctionDecl>(*tree->curr)));
   }
@@ -146,7 +147,7 @@ const std::vector<std::pair<std::string, ConstituentToken>> &parameters)
   for (const auto &expr : exprs) {
     vect.push_back(allocateParameters(expr));
     appendable_buffer_ << '\t' << "store " << expr.type << ' ' << expr.register_number
-                       << ", ptr " << (num_registers_ - 1) << ", "
+                       << ", ptr %" << (num_registers_ - 1) << ", "
                        << STRING_TYPE_ALIGN.at(expr.type) << '\n';
   }
 
@@ -190,7 +191,6 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
   }
 
   if (call->function->return_type == ConstituentToken::TYPE_VOID) {
-    std::cout << int(call->function->return_type) << std::endl;
     std::vector<std::shared_ptr<Expression>> vect;
     for (const auto &expr : call->parameters) {
       vect.push_back(expression(expr));
@@ -201,7 +201,9 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
       call_parameters +=
       expr_struct->type + " noundef " + expr_struct->register_number + ",";
     }
-    call_parameters.pop_back();
+    if (!call_parameters.empty()) {
+      call_parameters.pop_back();
+    }
     appendable_buffer_ << call_parameters << ")\n";
     return std::nullopt;
   }
@@ -218,7 +220,9 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
     call_parameters +=
     expr_struct->type + " noundef " + expr_struct->register_number + ",";
   }
-  call_parameters.pop_back();
+  if (!call_parameters.empty()) {
+    call_parameters.pop_back();
+  }
   appendable_buffer_ << call_parameters << ")\n";
 
   return std::make_shared<Expression>(
@@ -496,7 +500,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     auto optional = functionCall(
     std::make_shared<Node::FunctionCall>(std::get<Node::FunctionCall>(*call->expr)));
     if (!optional) {
-      std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
+      return std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
     }
     return optional.value();
   }

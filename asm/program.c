@@ -1,18 +1,14 @@
 #include <stdio.h>
 
-int foo(int x, int f) {
-    printf("here\n");
+int foo(int x) {
     return x;
 }
 
-void bar() {
+void voidy() {
 
 }
 
 int main () {
-    int y = 10;
-    int z = 2;
-    bar();
-    foo(y, z);
+    printf("%d", 10);
     return 0;
 }

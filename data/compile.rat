@@ -1,9 +1,14 @@
-fn foo(x: int): int {
-    ret x
+fn foo(x: int, y: int): int {
+    ret x + y
+}
+
+fn_ voidy() {
+    rev
 }
 
 fn_ main() {
+    let x: int = 10
     let y: int = 20
-    let a: int = foo(y)
+    let z: int = foo(x, y)
     rev
 }
