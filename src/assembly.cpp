@@ -207,8 +207,14 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
       throw std::invalid_argument("expected string literal in print statement");
     }
     auto expr = expression(call_parameters.at(0));
-    if (search_string_global_.find(expr->identifier.value()) !=
-        search_string_global_.end()) {
+    if (!expr->identifier.has_value()) {
+      std::string format_string = stringGlobal("\"%d\"");
+      appendable_buffer_ << "\t%" << num_registers_++
+                         << " = call i32 (ptr, ...) @printf(ptr " << format_string << ", "
+                         << expr->type << ' ' << expr->register_number << ")\n";
+    }
+    else if (search_string_global_.find(expr->identifier.value()) !=
+             search_string_global_.end()) {
       appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
                          << search_string_global_.at(expr->identifier.value()) << ")\n";
     }

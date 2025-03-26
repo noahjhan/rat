@@ -1,16 +1,21 @@
 fn foo(x: int): int {
+    print(x) 
+
     if (x % 2 == 0) {
         print("even")
     } else {
         print("odd")
     }
 
-    print(x) 
+    if (x == 0) {
+        ret 0
+    }
 
-    ret x
+    ret foo(x - 1)
 }
 
 fn_ main() {
+
     let a: int = 32
     let b: int = foo(a)
     rev
