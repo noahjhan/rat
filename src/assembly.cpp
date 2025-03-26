@@ -212,10 +212,12 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
       appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
                          << search_string_global_.at(expr->identifier.value()) << ")\n";
     }
-    // else if (identifiers_.find(expr->identifier.value()) != identifiers_.end()) {
-    //   appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
-    //                      << identifiers_.at(expr->identifier.value()).first << ")\n";
-    // }
+    else if (expr->identifier) {
+      std::string format_string = stringGlobal("\"%d\"");
+      appendable_buffer_ << "\t%" << num_registers_++
+                         << " = call i32 (ptr, ...) @printf(ptr " << format_string << ", "
+                         << expr->type << ' ' << expr->register_number << ")\n";
+    }
     return std::nullopt;
   }
   if (call->type == ConstituentToken::TYPE_VOID) {

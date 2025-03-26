@@ -3,13 +3,15 @@ fn foo(x: int): int {
         print("even")
     } else {
         print("odd")
-    } 
-    
+    }
+
+    print(x) 
+
     ret x
 }
 
 fn_ main() {
-    let a: int = 323
+    let a: int = 32
     let b: int = foo(a)
     rev
 }
