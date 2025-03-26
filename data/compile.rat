@@ -1,15 +1,15 @@
 fn foo(x: int): int {
-    print("here")
+    if (x % 2 == 0) {
+        print("even")
+    } else {
+        print("odd")
+    } 
     
-    if (x == 0) {
-        ret x
-    }
-    
-    ret foo(x - 1)
+    ret x
 }
 
 fn_ main() {
-    let a: int = 10
+    let a: int = 323
     let b: int = foo(a)
     rev
 }

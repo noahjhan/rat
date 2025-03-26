@@ -178,7 +178,7 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
 
     for (const auto &str : branches) {
       if (str == "\tbranch_to_last_register\n") {
-        appendable_buffer_ << "\tbr label %" << (num_registers_ - 1) << "\n\n";
+        appendable_buffer_ << "\tbr label %" << (num_registers_) << "\n\n";
       }
       else {
         appendable_buffer_ << str;
@@ -207,8 +207,15 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
       throw std::invalid_argument("expected string literal in print statement");
     }
     auto expr = expression(call_parameters.at(0));
-    appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
-                       << search_string_global_.at(expr->identifier.value()) << ")\n";
+    if (search_string_global_.find(expr->identifier.value()) !=
+        search_string_global_.end()) {
+      appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
+                         << search_string_global_.at(expr->identifier.value()) << ")\n";
+    }
+    // else if (identifiers_.find(expr->identifier.value()) != identifiers_.end()) {
+    //   appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
+    //                      << identifiers_.at(expr->identifier.value()).first << ")\n";
+    // }
     return std::nullopt;
   }
   if (call->type == ConstituentToken::TYPE_VOID) {
@@ -611,7 +618,7 @@ Compiler::conditionalStatement(const std::shared_ptr<Node::ConditionalStatement>
     if (cond->next->expr) {
       new_branches = conditionalStatement(cond->next);
     }
-    else {
+    else if (cond->next->body) {
       functionBody(cond->next->body);
       new_branches.push_back(appendable_buffer_.str());
       appendable_buffer_.str("");
