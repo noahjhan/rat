@@ -1,12 +1,15 @@
 #include <stdio.h>
 
-void printer() {
-    printf("help me\n");
-    printer();
-    return;
-}
+int main() {
+    int a = 2;
 
-int main () {
-    printer();
+    if (a == 2) {
+        printf("is a\n");
+    } else if (a == 3) {
+        printf("not is a\n");
+    } else {
+        printf("neither\n");
+    }
+
     return 0;
 }

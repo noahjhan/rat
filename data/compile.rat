@@ -1,9 +1,15 @@
-fn_ printer() {
-    print("hello")
-    rev
+fn foo(x: int): int {
+    print("here")
+    
+    if (x == 0) {
+        ret x
+    }
+    
+    ret foo(x - 1)
 }
 
 fn_ main() {
-    let a: int = 345 / 45 % 345 << 648
+    let a: int = 10
+    let b: int = foo(a)
     rev
 }

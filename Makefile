@@ -14,4 +14,5 @@ compile:
 	@$(MAKE) -C ./build
 	@./build/rat
 	@clang data/compile.ll -o build/compile
+	@./build/compile
 

@@ -27,8 +27,8 @@ void Compiler::initializeLocal()
 
   globals_buffer_ << '\n' << "; ModuleID = '" << filename_ << "'\n";
   globals_buffer_ << "target triple = \"arm64-apple-macosx15.0.0\""
-                  << "\n\n";                         // for local system
-  globals_buffer_ << "declare i32 @printf(ptr)\n\n"; // enable logging
+                  << "\n\n";                              // for local system
+  globals_buffer_ << "declare i32 @printf(ptr, ...)\n\n"; // enable logging
 }
 
 void Compiler::dispatch(const std::shared_ptr<Node::AST> &tree)
@@ -85,10 +85,8 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     } break;
     case ConstituentToken::FUNCTION_DECLARATION_F_VOID: {
       auto params = declarationParameters(decl->parameters);
-      file_buffer_ << "define " << asm_define << params.first << " {"
-                   << '\n'; // put params here
+      file_buffer_ << "define " << asm_define << params.first << " {" << '\n';
       auto statement = decl->body;
-
       for (const auto &allocation : params.second) {
         file_buffer_ << allocation;
       }
@@ -109,6 +107,7 @@ void Compiler::functionDeclaration(const std::shared_ptr<Node::FunctionDecl> &de
     default:
       throw std::invalid_argument("expected function type");
   }
+
   file_buffer_ << appendable_buffer_.str();
   appendable_buffer_.str("");
   appendable_buffer_.clear();
@@ -173,6 +172,22 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
     variableDeclaration(
     std::make_shared<Node::VariableDecl>(std::get<Node::VariableDecl>(*body->curr)));
   }
+  else if (std::holds_alternative<Node::ConditionalStatement>(*body->curr)) {
+    auto branches = conditionalStatement(std::make_shared<Node::ConditionalStatement>(
+    std::get<Node::ConditionalStatement>(*body->curr)));
+
+    for (const auto &str : branches) {
+      if (str == "\tbranch_to_last_register\n") {
+        appendable_buffer_ << "\tbr label %" << (num_registers_ - 1) << "\n\n";
+      }
+      else {
+        appendable_buffer_ << str;
+      }
+    }
+
+    appendable_buffer_ << "\tbr label %" << (num_registers_) << "\n\n"
+                       << num_registers_++ << ":\n";
+  }
 
   if (body->next) {
     functionBody(body->next);
@@ -192,7 +207,7 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
       throw std::invalid_argument("expected string literal in print statement");
     }
     auto expr = expression(call_parameters.at(0));
-    appendable_buffer_ << "\tcall i32 @printf(ptr "
+    appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
                        << search_string_global_.at(expr->identifier.value()) << ")\n";
     return std::nullopt;
   }
@@ -559,6 +574,70 @@ void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &de
                      << alignment << '\n';
   // }
 }
+
+std::vector<std::string>
+Compiler::conditionalStatement(const std::shared_ptr<Node::ConditionalStatement> &cond)
+{
+  std::stringstream temp_buffer;
+  temp_buffer << appendable_buffer_.str();
+  appendable_buffer_.str("");
+  appendable_buffer_.clear();
+
+  auto expr_struct = expression(cond->expr);
+
+  std::vector<std::string> branches;
+  branches.push_back(temp_buffer.str());
+  branches.push_back(appendable_buffer_.str());
+
+  appendable_buffer_.str("");
+  appendable_buffer_.clear();
+
+  // if (expr_struct->type != "i1") {
+  //   std::cout << expr_struct->type << std::endl;
+  //   throw std::invalid_argument("expected boolean");
+  // }
+  std::stringstream label_and_body;
+  std::string left_label = "%" + std::to_string(num_registers_++);
+
+  appendable_buffer_ << std::string(left_label.begin() + 1, left_label.end()) << ":\n";
+  functionBody(cond->body);
+  label_and_body << appendable_buffer_.str();
+  std::string right_label = "%" + std::to_string(num_registers_++);
+
+  appendable_buffer_.str("");
+  appendable_buffer_.clear();
+  std::vector<std::string> new_branches;
+  if (cond->next) {
+    if (cond->next->expr) {
+      new_branches = conditionalStatement(cond->next);
+    }
+    else {
+      functionBody(cond->next->body);
+      new_branches.push_back(appendable_buffer_.str());
+      appendable_buffer_.str("");
+      appendable_buffer_.clear();
+    }
+  }
+
+  branches.push_back("\tbr i1 " + expr_struct->register_number + ", label " + left_label
+
+                     + ", label " + right_label + "\n\n");
+
+  branches.push_back(label_and_body.str());
+  std::string line;
+  std::string last_line;
+  while (std::getline(label_and_body, line)) {
+    last_line = line;
+  }
+  if (last_line.substr(0, 4) != "\tret" && last_line.substr(0, 4) != "\trev") {
+    branches.push_back("\tbranch_to_last_register\n");
+  }
+  branches.push_back(std::string(right_label.begin() + 1, right_label.end()) + ":\n");
+
+  branches.insert(branches.end(), new_branches.begin(), new_branches.end());
+  return branches;
+}
+
 inline void Compiler::open()
 {
   fs_.close();

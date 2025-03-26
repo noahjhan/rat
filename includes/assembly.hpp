@@ -44,6 +44,7 @@ class Compiler
   std::string stringGlobal(const std::string &str);
 
   void variableDeclaration(const std::shared_ptr<Node::VariableDecl> &decl);
+  std::vector<std::string> conditionalStatement(const std::shared_ptr<Node::ConditionalStatement> &cond);
 
   inline void open();
   inline void close();

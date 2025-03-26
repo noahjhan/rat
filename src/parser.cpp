@@ -229,7 +229,9 @@ std::shared_ptr<Node::FunctionDecl> Parser::functionDeclaration()
 
   local_return_type_.push(return_type_token);
   function_decl.body = dispatch();
+  
   symbol_table_.exitScope();
+  local_return_type_.pop();
   auto function = std::make_shared<Node::FunctionDecl>(function_decl);
   symbol_table_.addFunction(identifier, function);
   return function;
@@ -273,8 +275,10 @@ std::shared_ptr<Node::FunctionDecl> Parser::voidFunctionDeclaration()
   }
 
   function_decl.body = dispatch();
-
   symbol_table_.exitScope();
+
+  local_return_type_.pop();
+
   auto function = std::make_shared<Node::FunctionDecl>(function_decl);
   symbol_table_.addFunction(identifier, function);
   return function;
@@ -336,7 +340,6 @@ std::shared_ptr<Node::ReturnStatement> Parser::returnStatment()
     rev.token = peek();
     pop();
     rev.type = local_return_type_.top();
-    local_return_type_.pop();
 
     if (peek().value != ";") {
       std::cerr << "received '" << peek().value << '\'' << std::endl;
@@ -352,7 +355,6 @@ std::shared_ptr<Node::ReturnStatement> Parser::returnStatment()
     ret.token = peek();
     pop();
     ret.type = local_return_type_.top();
-    local_return_type_.pop();
     ret.expr = recurseExpr();
     return std::make_shared<Node::ReturnStatement>(std::move(ret));
   }
