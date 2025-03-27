@@ -331,7 +331,7 @@ std::string Compiler::allocateParameters(const Expression &expr)
   std::string register_number = "%" + std::to_string(num_registers_++);
   std::string alignment = STRING_TYPE_ALIGN.at(expr.type);
 
-  identifiers_.insert({expr.identifier.value(), {register_number, "ptr"}});
+  identifiers_.insert({expr.identifier.value(), {register_number, type_asm}});
   scoped_registers_.insert({register_number, type_asm});
   return std::string('\t' + register_number + " = alloca " + type_asm + ", " + alignment +
                      '\n');
@@ -513,7 +513,14 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     // "
     //                    << literal.token.value << '\n';
     curr_expr_type = TYPE_ASM.at(literal.type);
-    Expression expr_struct(std::nullopt, curr_expr_type.value(), literal.token.value);
+    std::string formatted;
+    for (const auto &digit : literal.token.value) {
+      if (std::isdigit(digit) || digit == '.') {
+        formatted += digit;
+      }
+    }
+
+    Expression expr_struct(std::nullopt, curr_expr_type.value(), formatted);
     // scoped_registers_.insert({register_num, type_asm});
     return std::make_shared<Expression>(expr_struct);
   }
@@ -525,13 +532,12 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
   }
   else if (std::holds_alternative<Node::Identifier>(*call->expr)) {
     auto identifier = std::get<Node::Identifier>(*call->expr);
-    Expression id_ptr(identifier.token.value, "ptr",
+    Expression id_ptr(identifier.token.value,
+                      identifiers_.at(identifier.token.value).second,
                       identifiers_.at(identifier.token.value).first);
 
     // %4 = load i32, ptr %2, align
     // curr_expr_type = idejjntifiers_.at(identifier.token.value).second;
-
-    std::cout << identifiers_.at(identifier.token.value).second;
 
     /// @todo remove this hardcode
     curr_expr_type = identifiers_.at(identifier.token.value).second;
@@ -541,8 +547,8 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type.value());
     std::string register_num = "%" + std::to_string(num_registers_++);
     appendable_buffer_ << '\t' << register_num << " = load " << type_asm << ", "
-                       << id_ptr.type << ' ' << id_ptr.register_number << ", "
-                       << alignment << '\n';
+                       << "ptr" << ' ' << id_ptr.register_number << ", " << alignment
+                       << '\n';
 
     scoped_registers_.insert({register_num, type_asm});
     Expression expr_struct(identifier.token.value, type_asm, register_num);
