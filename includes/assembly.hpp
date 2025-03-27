@@ -65,7 +65,7 @@ class Compiler
   unsigned num_string_constants_ = 1;
   /// @todo unsigned num_numeric_globals_;
   unsigned num_registers_ = 0;
-  std::string curr_expr_type = "i32";
+  std::optional<std::string> curr_expr_type;
 
   std::stringstream file_buffer_;
   std::stringstream appendable_buffer_;

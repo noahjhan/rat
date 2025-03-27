@@ -4,6 +4,7 @@
 /// @todo interpret result of conditionals as boolean
 /// @todo type check booleans -> bools are stored as chars but represented until asm as bool
 /// @todo type check return type 
+/// @todo check param count and type
 
 Analyzer::Analyzer(const std::shared_ptr<Node::AST> &ast) : ast_(ast)
 {

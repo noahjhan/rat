@@ -24,6 +24,7 @@ Parser::Parser(std::deque<Token> &tokens, RatSource &source_file)
 {
   symbol_table_.enterScope();
   function_dictionary_.insert({"print", ConstituentToken::TYPE_VOID});
+  function_dictionary_.insert({"println", ConstituentToken::TYPE_VOID});
 }
 
 std::shared_ptr<Node::AST> Parser::dispatch()

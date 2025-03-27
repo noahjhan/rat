@@ -15,6 +15,9 @@ Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &fil
   if (!ast_) {
     throw std::invalid_argument("null ast");
   }
+
+  curr_expr_type = std::nullopt;
+
   // trunc();
   initializeLocal();
   dispatch(ast_);
@@ -315,7 +318,7 @@ void Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl
   std::string alignment = ALIGN_ASM.at(decl->type);
   std::string register_num = "%" + std::to_string(num_registers_++);
 
-  identifiers_.insert({decl->token.value, {register_num, "ptr"}});
+  identifiers_.insert({decl->token.value, {register_num, type_asm}});
   scoped_registers_.insert({register_num, type_asm});
 
   file_buffer_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment
@@ -349,87 +352,91 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     auto lhs = expression(expr.lhs);
     auto rhs = expression(expr.rhs);
 
-    std::string type_asm = curr_expr_type;
-    std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type);
+    if (!curr_expr_type) {
+      throw std::invalid_argument("expression type not recognized");
+    }
+
+    std::string type_asm = curr_expr_type.value();
+    std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type.value());
     std::string register_num = "%" + std::to_string(num_registers_++);
 
     switch (expr.op) {
       case ConstituentToken::ARITHMETIC_ADD: {
         // <result> = add <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = add " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = add " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_SUB: {
         // <result> = sub <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = sub " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = sub " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_MUL: {
         // <result> = mul <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = mul " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = mul " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_DIV: {
         // <result> = sdiv <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = sdiv " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = sdiv " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_MOD: {
         // <result> = srem <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = srem " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = srem " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_EQ: {
         // <result> = icmp eq <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp eq " << curr_expr_type
-                           << ' ' << lhs->register_number << ", " << rhs->register_number
+        appendable_buffer_ << '\t' << register_num << " = icmp eq " << type_asm << ' '
+                           << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_LT: {
         // <result> = icmp slt <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp slt " << curr_expr_type
-                           << ' ' << lhs->register_number << ", " << rhs->register_number
+        appendable_buffer_ << '\t' << register_num << " = icmp slt " << type_asm << ' '
+                           << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_GT: {
         // <result> = icmp sgt <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp sgt " << curr_expr_type
-                           << ' ' << lhs->register_number << ", " << rhs->register_number
+        appendable_buffer_ << '\t' << register_num << " = icmp sgt " << type_asm << ' '
+                           << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_LTE: {
         // <result> = icmp sle <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp sle " << curr_expr_type
-                           << ' ' << lhs->register_number << ", " << rhs->register_number
+        appendable_buffer_ << '\t' << register_num << " = icmp sle " << type_asm << ' '
+                           << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_GTE: {
         // <result> = icmp sge <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp sge " << curr_expr_type
-                           << ' ' << lhs->register_number << ", " << rhs->register_number
+        appendable_buffer_ << '\t' << register_num << " = icmp sge " << type_asm << ' '
+                           << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
@@ -445,42 +452,42 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
       }
       case ConstituentToken::BITWISE_AND: {
         // <result> = and <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = and " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = and " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::BITWISE_OR: {
         // <result> = or <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = or " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = or " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::BITWISE_XOR: {
         // <result> = xor <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = xor " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = xor " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::BITWISE_SL: {
         // <result> = shl <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = shl " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = shl " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::BITWISE_SR: {
         // <result> = ashr <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = ashr " << curr_expr_type << ' '
+        appendable_buffer_ << '\t' << register_num << " = ashr " << type_asm << ' '
                            << lhs->register_number << ", " << rhs->register_number
                            << '\n';
-        Expression expr_struct(std::nullopt, curr_expr_type, register_num);
+        Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       default:
@@ -497,39 +504,47 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     // std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type);
     // std::string register_num = "%" + std::to_string(num_registers_++);
     // // %1 = add i32 0, 42
-    // // appendable_buffer_ << "\tstore " << type_asm << ' ' << literal.token.value << ",
+    // // appendable_buffer_ << "\tstore " << type_asm << ' ' << literal.token.value <<
+    // ",
     // // ptr "
     // //                    << register_num << ", " << alignment << '\n';
 
-    // appendable_buffer_ << '\t' << register_num << " = add " << curr_expr_type << " 0, "
+    // appendable_buffer_ << '\t' << register_num << " = add " << curr_expr_type << " 0,
+    // "
     //                    << literal.token.value << '\n';
-
-    Expression expr_struct(std::nullopt, curr_expr_type, literal.token.value);
+    curr_expr_type = TYPE_ASM.at(literal.type);
+    Expression expr_struct(std::nullopt, curr_expr_type.value(), literal.token.value);
     // scoped_registers_.insert({register_num, type_asm});
     return std::make_shared<Expression>(expr_struct);
   }
   else if (std::holds_alternative<Node::StringLiteral>(*call->expr)) {
     auto node = std::get<Node::StringLiteral>(*call->expr);
-    Expression expr_struct(node.token.value, curr_expr_type,
+    Expression expr_struct(node.token.value, curr_expr_type.value(),
                            stringGlobal(node.token.value));
     return std::make_shared<Expression>(expr_struct);
   }
   else if (std::holds_alternative<Node::Identifier>(*call->expr)) {
     auto identifier = std::get<Node::Identifier>(*call->expr);
-    Expression id_ptr(identifier.token.value,
-                      identifiers_.at(identifier.token.value).second,
+    Expression id_ptr(identifier.token.value, "ptr",
                       identifiers_.at(identifier.token.value).first);
 
-    // %4 = load i32, ptr %2, align 4
-    std::string type_asm = curr_expr_type;
-    std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type);
+    // %4 = load i32, ptr %2, align
+    // curr_expr_type = idejjntifiers_.at(identifier.token.value).second;
+
+    std::cout << identifiers_.at(identifier.token.value).second;
+
+    /// @todo remove this hardcode
+    curr_expr_type = identifiers_.at(identifier.token.value).second;
+    // so currently this is always going to be a pointer
+
+    std::string type_asm = curr_expr_type.value();
+    std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type.value());
     std::string register_num = "%" + std::to_string(num_registers_++);
     appendable_buffer_ << '\t' << register_num << " = load " << type_asm << ", "
                        << id_ptr.type << ' ' << id_ptr.register_number << ", "
                        << alignment << '\n';
 
     scoped_registers_.insert({register_num, type_asm});
-
     Expression expr_struct(identifier.token.value, type_asm, register_num);
     return std::make_shared<Expression>(expr_struct);
   }
@@ -572,9 +587,11 @@ void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &de
   std::string alignment = ALIGN_ASM.at(decl->type);
   std::string register_num = identifiers_.at(decl->token.value).first;
 
-  /// @todo in semantic optimize expressions of just numeric values to store only literals
+  /// @todo in semantic optimize expressions of just numeric values to store only
+  /// literals
 
-  // if (decl->expr && std::holds_alternative<Node::NumericLiteral>(*decl->expr->expr)) {
+  // if (decl->expr && std::holds_alternative<Node::NumericLiteral>(*decl->expr->expr))
+  // {
   //   auto literal = std::get<Node::NumericLiteral>(*decl->expr->expr);
   //   appendable_buffer_ << '\t' << "store " << curr_expr_type << ' ' <<
   //   literal.token.value
