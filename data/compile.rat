@@ -1,5 +1,5 @@
+
+
 fn_ main() {
-    let huge: long = 0l
-    print (huge - 1l)
     rev
 }

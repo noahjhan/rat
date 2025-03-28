@@ -6,7 +6,7 @@
 /// @todo evaluate expressions
 /// @todo optimize expressions
 /// @todo support floating point operations and support for unsigned operations
-/// @todo support printing multiple types
+/// @todo support printing multiple types, including unsigned types
 /// @todo support recursion
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
@@ -203,7 +203,6 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
   if (!call) {
     throw std::invalid_argument("null function call");
   }
-
   if (call->token.value == "print") {
     auto call_parameters = call->parameters;
     if (call_parameters.size() != 1) {
@@ -499,19 +498,6 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
   }
   else if (std::holds_alternative<Node::NumericLiteral>(*call->expr)) {
     auto literal = std::get<Node::NumericLiteral>(*call->expr);
-
-    // std::string type_asm = curr_expr_type;
-    // std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type);
-    // std::string register_num = "%" + std::to_string(num_registers_++);
-    // // %1 = add i32 0, 42
-    // // appendable_buffer_ << "\tstore " << type_asm << ' ' << literal.token.value <<
-    // ",
-    // // ptr "
-    // //                    << register_num << ", " << alignment << '\n';
-
-    // appendable_buffer_ << '\t' << register_num << " = add " << curr_expr_type << " 0,
-    // "
-    //                    << literal.token.value << '\n';
     curr_expr_type = TYPE_ASM.at(literal.type);
     std::string formatted;
     for (const auto &digit : literal.token.value) {
@@ -521,7 +507,6 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     }
 
     Expression expr_struct(std::nullopt, curr_expr_type.value(), formatted);
-    // scoped_registers_.insert({register_num, type_asm});
     return std::make_shared<Expression>(expr_struct);
   }
   else if (std::holds_alternative<Node::StringLiteral>(*call->expr)) {
@@ -540,10 +525,11 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     // curr_expr_type = idejjntifiers_.at(identifier.token.value).second;
 
     /// @todo remove this hardcode
+
     curr_expr_type = identifiers_.at(identifier.token.value).second;
     // so currently this is always going to be a pointer
-
     std::string type_asm = curr_expr_type.value();
+
     std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type.value());
     std::string register_num = "%" + std::to_string(num_registers_++);
     appendable_buffer_ << '\t' << register_num << " = load " << type_asm << ", "
@@ -577,8 +563,8 @@ std::string Compiler::stringGlobal(const std::string &str)
   search_string_global_.insert({str, identifier});
 
   globals_buffer_ << identifier << " = private unnamed_addr constant ["
-                  << formatted.size() + 2 << " x i8] c\"" << formatted
-                  << "\\0A\\00\", align 1\n";
+                  << formatted.size() + 1 << " x i8] c\"" << formatted
+                  << "\\00\", align 1\n";
 
   return identifier;
 }
@@ -591,22 +577,13 @@ void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &de
 
   std::string type_asm = TYPE_ASM.at(decl->type);
   std::string alignment = ALIGN_ASM.at(decl->type);
+
   std::string register_num = identifiers_.at(decl->token.value).first;
 
   /// @todo in semantic optimize expressions of just numeric values to store only
   /// literals
 
-  // if (decl->expr && std::holds_alternative<Node::NumericLiteral>(*decl->expr->expr))
-  // {
-  //   auto literal = std::get<Node::NumericLiteral>(*decl->expr->expr);
-  //   appendable_buffer_ << '\t' << "store " << curr_expr_type << ' ' <<
-  //   literal.token.value
-  //                      << ", ptr " << register_num << ", " << alignment << '\n';
-  // }
-  // else {
-
   Expression expr_struct = *expression(decl->expr);
-  // store i32 %temp, ptr %x, align 4
   appendable_buffer_ << '\t' << "store " << expr_struct.type << ' '
                      << expr_struct.register_number << ", ptr " << register_num << ", "
                      << alignment << '\n';
