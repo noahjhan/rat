@@ -814,12 +814,31 @@ Compiler::type_cast(const std::shared_ptr<Expression> &expr, const std::string &
   }
   else if (base == "double" && cast == "float") {
     appendable_buffer_ << register_num << " = fptrunc double " << expr->register_number
-                       << "to float\n";
+                       << " to float\n";
     auto expr_struct = Expression(std::nullopt, "float", register_num);
     return std::make_shared<Expression>(expr_struct);
   }
-  else if (base == "") {
+  else if (((base == "float") || (base == "double")) &&
+           ((cast == "i1") || (cast == "i8") || (cast == "i16") || (cast == "i32") ||
+            (cast == "i64"))) {
+    appendable_buffer_ << register_num << " = fptosi " << base << ' '
+                       << expr->register_number << " to " << cast << '\n';
+
+    auto expr_struct = Expression(std::nullopt, cast, register_num);
+    return std::make_shared<Expression>(expr_struct);
   }
+  else if (((cast == "float") || (cast == "double")) &&
+           ((base == "i1") || (base == "i8") || (base == "i16") || (base == "i32") ||
+            (base == "i64"))) {
+    appendable_buffer_ << register_num << " = sitofp " << base << ' '
+                       << expr->register_number << " to " << cast << '\n';
+    auto expr_struct = Expression(std::nullopt, cast, register_num);
+    return std::make_shared<Expression>(expr_struct);
+  }
+
+  std::cerr << "base: '" << base << "' cast: '" << cast << '\'' << std::endl;
+  throw std::invalid_argument("error: non-convertible type");
+  return nullptr;
 }
 
 inline void Compiler::open()
