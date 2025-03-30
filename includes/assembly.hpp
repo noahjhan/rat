@@ -42,10 +42,10 @@ class Compiler
   std::shared_ptr<Expression> expression(const std::shared_ptr<Node::GenericExpr> &expr);
 
   std::string stringGlobal(const std::string &str);
-
   void variableDeclaration(const std::shared_ptr<Node::VariableDecl> &decl);
   std::vector<std::string> conditionalStatement(const std::shared_ptr<Node::ConditionalStatement> &cond);
-
+  inline std::shared_ptr<Expression> type_cast(const std::shared_ptr<Expression> &base, const std::string &cast);
+  
   inline void open();
   inline void close();
   inline void append();

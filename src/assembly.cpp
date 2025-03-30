@@ -8,6 +8,7 @@
 /// @todo support floating point operations and support for unsigned operations
 /// @todo support printing multiple types, including unsigned types
 /// @todo support recursion
+/// @todo support casting
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : ast_(ast), filename_(filename)
@@ -206,9 +207,32 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
     if (call_parameters.size() != 1) {
       throw std::invalid_argument("expected string literal in print statement");
     }
+
     auto expr = expression(call_parameters.at(0));
+    std::string format_specifier;
+    if (expr->type == "i32") {
+      format_specifier = "%d";
+    }
+    else if (expr->type == "i64") {
+      format_specifier = "%li";
+    }
+    else if (expr->type == "i8") {
+      format_specifier = "%c";
+    }
+    else if (expr->type == "i16") {
+      format_specifier = "%hd";
+    }
+    else if (expr->type == "float") {
+      format_specifier = "%f";
+      expr = type_cast(expr, "double");
+    }
+    else if (expr->type == "double") {
+      format_specifier = "%lf";
+    }
+    std::string global = "\"" + format_specifier + "\"";
+
     if (!expr->identifier.has_value()) {
-      std::string format_string = stringGlobal("\"%d\"");
+      std::string format_string = stringGlobal(global);
       appendable_buffer_ << "\t%" << num_registers_++
                          << " = call i32 (ptr, ...) @printf(ptr " << format_string << ", "
                          << expr->type << ' ' << expr->register_number << ")\n";
@@ -219,7 +243,7 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
                          << search_string_global_.at(expr->identifier.value()) << ")\n";
     }
     else if (expr->identifier) {
-      std::string format_string = stringGlobal("\"%d\"");
+      std::string format_string = stringGlobal(global);
       appendable_buffer_ << "\t%" << num_registers_++
                          << " = call i32 (ptr, ...) @printf(ptr " << format_string << ", "
                          << expr->type << ' ' << expr->register_number << ")\n";
@@ -766,6 +790,36 @@ Compiler::conditionalStatement(const std::shared_ptr<Node::ConditionalStatement>
 
   branches.insert(branches.end(), new_branches.begin(), new_branches.end());
   return branches;
+}
+
+inline std::shared_ptr<Expression>
+Compiler::type_cast(const std::shared_ptr<Expression> &expr, const std::string &cast)
+{
+  if (!expr) {
+    throw std::invalid_argument("null type cast expression");
+  }
+
+  const std::string base = expr->type;
+  if (base == expr->type) {
+    return expr;
+  }
+
+  std::string register_num = "%" + std::to_string(num_registers_++);
+
+  if (base == "float" && cast == "double") {
+    appendable_buffer_ << register_num << " = fpext float " << expr->register_number
+                       << " to double\n";
+    auto expr_struct = Expression(std::nullopt, "double", register_num);
+    return std::make_shared<Expression>(expr_struct);
+  }
+  else if (base == "double" && cast == "float") {
+    appendable_buffer_ << register_num << " = fptrunc double " << expr->register_number
+                       << "to float\n";
+    auto expr_struct = Expression(std::nullopt, "float", register_num);
+    return std::make_shared<Expression>(expr_struct);
+  }
+  else if (base == "") {
+  }
 }
 
 inline void Compiler::open()
