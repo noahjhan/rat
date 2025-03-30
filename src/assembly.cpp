@@ -15,7 +15,6 @@ Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &fil
   if (!ast_) {
     throw std::invalid_argument("null ast");
   }
-
   curr_expr_type = std::nullopt;
 
   // trunc();
@@ -187,7 +186,6 @@ void Compiler::functionBody(const std::shared_ptr<Node::AST> &body)
         appendable_buffer_ << str;
       }
     }
-
     appendable_buffer_ << "\tbr label %" << (num_registers_) << "\n\n"
                        << num_registers_++ << ":\n";
   }
@@ -362,80 +360,150 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
     switch (expr.op) {
       case ConstituentToken::ARITHMETIC_ADD: {
         // <result> = add <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = add " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fadd";
+        }
+        else {
+          op = "add";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_SUB: {
         // <result> = sub <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = sub " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fsub";
+        }
+        else {
+          op = "sub";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_MUL: {
         // <result> = mul <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = mul " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fmul";
+        }
+        else {
+          op = "mul";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_DIV: {
         // <result> = sdiv <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = sdiv " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fdiv";
+        }
+        else {
+          op = "sdiv";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::ARITHMETIC_MOD: {
         // <result> = srem <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = srem " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "frem";
+        }
+        else {
+          op = "srem";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, type_asm, register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_EQ: {
         // <result> = icmp eq <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp eq " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fcmp oeq";
+        }
+        else {
+          op = "icmp eq";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_LT: {
         // <result> = icmp slt <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp slt " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fcmp olt";
+        }
+        else {
+          op = "icmp slt";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_GT: {
         // <result> = icmp sgt <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp sgt " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fcmp ogt";
+        }
+        else {
+          op = "imcp sgt";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_LTE: {
         // <result> = icmp sle <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp sle " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fcmp ole";
+        }
+        else {
+          op = "icmp sle";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
       }
       case ConstituentToken::COMPARISON_GTE: {
         // <result> = icmp sge <ty> <op1>, <op2>
-        appendable_buffer_ << '\t' << register_num << " = icmp sge " << type_asm << ' '
-                           << lhs->register_number << ", " << rhs->register_number
+        std::string op;
+        if (type_asm == "float" || type_asm == "double") {
+          op = "fcmp oge";
+        }
+        else {
+          op = "icmp sge";
+        }
+        appendable_buffer_ << '\t' << register_num << " = " << op << ' ' << type_asm
+                           << ' ' << lhs->register_number << ", " << rhs->register_number
                            << '\n';
         Expression expr_struct(std::nullopt, "i1", register_num);
         return std::make_shared<Expression>(expr_struct);
@@ -511,6 +579,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
   }
   else if (std::holds_alternative<Node::StringLiteral>(*call->expr)) {
     auto node = std::get<Node::StringLiteral>(*call->expr);
+    curr_expr_type = "ptr"; // verify
     Expression expr_struct(node.token.value, curr_expr_type.value(),
                            stringGlobal(node.token.value));
     return std::make_shared<Expression>(expr_struct);
@@ -554,17 +623,63 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
 
   return std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
 }
-
 std::string Compiler::stringGlobal(const std::string &str)
 {
-  std::string formatted(str.begin() + 1, str.end() - 1);
+  std::string formatted;
+  for (size_t i = 1; i < str.size() - 1; ++i) {
+    if (str[i] == '\\') {
+      if (i + 1 < str.size() - 1) {
+        switch (str[i + 1]) {
+          case 'n':
+            formatted += '\n';
+            break;
+          case 't':
+            formatted += '\t';
+            break;
+          case '\\':
+            formatted += '\\';
+            break;
+          case '"':
+            formatted += '\"';
+            break;
+          default:
+            formatted += str[i + 1];
+            break;
+        }
+        ++i; // Skip the escaped character
+      }
+    }
+    else {
+      formatted += str[i];
+    }
+  }
+
   std::string identifier = "@.str." + std::to_string(num_string_constants_++);
 
   search_string_global_.insert({str, identifier});
 
   globals_buffer_ << identifier << " = private unnamed_addr constant ["
-                  << formatted.size() + 1 << " x i8] c\"" << formatted
-                  << "\\00\", align 1\n";
+                  << formatted.size() + 1 << " x i8] c\"";
+
+  for (char c : formatted) {
+    if (c == '\n') {
+      globals_buffer_ << "\\0A";
+    }
+    else if (c == '\t') {
+      globals_buffer_ << "\\09";
+    }
+    else if (c == '\\') {
+      globals_buffer_ << "\\5C";
+    }
+    else if (c == '\"') {
+      globals_buffer_ << "\\22";
+    }
+    else {
+      globals_buffer_ << c;
+    }
+  }
+
+  globals_buffer_ << "\\00\", align 1\n";
 
   return identifier;
 }

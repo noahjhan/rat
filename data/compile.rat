@@ -1,5 +1,5 @@
-
-
 fn_ main() {
+    let size: float = 40.0f
+    let new_size: float = size - 10.0f
     rev
 }
