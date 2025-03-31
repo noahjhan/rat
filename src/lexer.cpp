@@ -224,7 +224,8 @@ bool Lexer::advanceToken()
 
     // check if keyword
     if (keywords_.find(partial) != keywords_.end() &&
-        (source_file_.peekChar() == ' ' || partial == "rev")) {
+        (source_file_.peekChar() == ' ' || partial == "rev") &&
+        !(isalnum(source_file_.peekChar()) || source_file_.peekChar() == '_')) {
       char peek = source_file_.peekChar();
       partial.push_back(peek);
       if (keywords_.find(partial) == keywords_.end()) {
@@ -237,7 +238,8 @@ bool Lexer::advanceToken()
       return true;
     }
 
-    if (types_.find(partial) != types_.end()) {
+    if (types_.find(partial) != types_.end() &&
+        !(isalnum(source_file_.peekChar()) || source_file_.peekChar() == '_')) {
       dequePush(GenericToken::TYPE, partial, line_num, col_num);
       return true;
     }

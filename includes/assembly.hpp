@@ -1,6 +1,7 @@
 #ifndef ASSEMBLY_HPP
 #define ASSEMBLY_HPP
 
+#include <bit>
 #include <fstream>
 #include <iostream>
 #include <memory>

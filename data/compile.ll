@@ -4,17 +4,12 @@ target triple = "arm64-apple-macosx15.0.0"
 
 declare i32 @printf(ptr, ...)
 
-@.str.1 = private unnamed_addr constant [3 x i8] c"%f\00", align 1
 
 define i32 @main() {
-	%1 = alloca float, align 4
+	%1 = alloca double, align 8
 	%2 = alloca float, align 4
-	store float 40.0, ptr %1, align 4
-	%3 = load float, ptr %1, align 4
-	%4 = fsub float %3, 10.0
-	store float %4, ptr %2, align 4
-	%5 = load float, ptr %2, align 4
-%6 = fpext float %5 to double	%7 = call i32 (ptr, ...) @printf(ptr @.str.1, double %6)
+	store double 3.400000e+00, double* %1, align 8
+	store float 3.4000000953674316e+00, float* %2, align 4
 	ret i32 0
 }
 

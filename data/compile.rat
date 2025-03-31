@@ -1,6 +1,5 @@
 fn_ main() {
-    let size: float = 40.0f
-    let new_size: float = size - 10.0f
-    print(new_size)
+    let dublib: double = 3.4d
+    let revolting: float = 3.4f
     rev
 }

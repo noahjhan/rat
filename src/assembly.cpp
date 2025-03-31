@@ -9,6 +9,7 @@
 /// @todo support printing multiple types, including unsigned types
 /// @todo support recursion
 /// @todo support casting
+/// @todo support storing floats properly
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : ast_(ast), filename_(filename)
@@ -315,19 +316,6 @@ const ::std::shared_ptr<Node::ReturnStatement> &return_statement)
     appendable_buffer_ << '\t' << "ret " << return_type_asm << '\n';
   }
 }
-
-/*
-std::variant< Node::GenericExpr,
-              Node::BinaryExpr,
-              Node::UnaryExpr,
-              Node::NumericLiteral,
-              Node::StringLiteral,
-              Node::Identifier,
-              Node::FunctionCall>
-*/
-
-// I think expressions recurisvely call which return a string representation of the
-// pointer to the returned operation
 
 void Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl)
 {
@@ -722,11 +710,42 @@ void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &de
   /// @todo in semantic optimize expressions of just numeric values to store only
   /// literals
 
-  Expression expr_struct = *expression(decl->expr);
-  appendable_buffer_ << '\t' << "store " << expr_struct.type << ' '
-                     << expr_struct.register_number << ", ptr " << register_num << ", "
-                     << alignment << '\n';
-  // }
+  auto expr = expression(decl->expr);
+
+  if (!expr) {
+    throw std::invalid_argument("null expression structure");
+  }
+
+  if (expr->type != type_asm) {
+    expr = type_cast(expr, type_asm);
+  }
+
+  std::string stored_in = "ptr";
+  std::string value_or_reg = expr->register_number;
+
+  if (type_asm == "float") {
+    stored_in = "float*";
+    if (expr->register_number.front() != '%' && expr->register_number.front() != '@') {
+      // hardcoded precision allows this to work
+      std::stringstream ss;
+      ss << std::scientific << std::setprecision(16) << std::stof(expr->register_number);
+      value_or_reg = ss.str();
+    }
+  }
+  else if (type_asm == "double") {
+    stored_in = "double*";
+    if (expr->register_number.front() != '%' && expr->register_number.front() != '@') {
+      std::stringstream ss;
+      ss << std::scientific << std::stod(expr->register_number);
+      value_or_reg = ss.str();
+    }
+  }
+  else {
+    stored_in = "ptr";
+  }
+
+  appendable_buffer_ << '\t' << "store " << type_asm << ' ' << value_or_reg << ", "
+                     << stored_in << ' ' << register_num << ", " << alignment << '\n';
 }
 
 std::vector<std::string>
@@ -800,28 +819,28 @@ Compiler::type_cast(const std::shared_ptr<Expression> &expr, const std::string &
   }
 
   const std::string base = expr->type;
-  if (base == expr->type) {
+  if (cast == expr->type) {
     return expr;
   }
 
   std::string register_num = "%" + std::to_string(num_registers_++);
 
   if (base == "float" && cast == "double") {
-    appendable_buffer_ << register_num << " = fpext float " << expr->register_number
-                       << " to double\n";
+    appendable_buffer_ << '\t' << register_num << " = fpext float "
+                       << expr->register_number << " to double\n";
     auto expr_struct = Expression(std::nullopt, "double", register_num);
     return std::make_shared<Expression>(expr_struct);
   }
   else if (base == "double" && cast == "float") {
-    appendable_buffer_ << register_num << " = fptrunc double " << expr->register_number
-                       << " to float\n";
+    appendable_buffer_ << '\t' << register_num << " = fptrunc double "
+                       << expr->register_number << " to float\n";
     auto expr_struct = Expression(std::nullopt, "float", register_num);
     return std::make_shared<Expression>(expr_struct);
   }
   else if (((base == "float") || (base == "double")) &&
            ((cast == "i1") || (cast == "i8") || (cast == "i16") || (cast == "i32") ||
             (cast == "i64"))) {
-    appendable_buffer_ << register_num << " = fptosi " << base << ' '
+    appendable_buffer_ << '\t' << register_num << " = fptosi " << base << ' '
                        << expr->register_number << " to " << cast << '\n';
 
     auto expr_struct = Expression(std::nullopt, cast, register_num);
@@ -830,7 +849,7 @@ Compiler::type_cast(const std::shared_ptr<Expression> &expr, const std::string &
   else if (((cast == "float") || (cast == "double")) &&
            ((base == "i1") || (base == "i8") || (base == "i16") || (base == "i32") ||
             (base == "i64"))) {
-    appendable_buffer_ << register_num << " = sitofp " << base << ' '
+    appendable_buffer_ << '\t' << register_num << " = sitofp " << base << ' '
                        << expr->register_number << " to " << cast << '\n';
     auto expr_struct = Expression(std::nullopt, cast, register_num);
     return std::make_shared<Expression>(expr_struct);
@@ -838,7 +857,6 @@ Compiler::type_cast(const std::shared_ptr<Expression> &expr, const std::string &
 
   std::cerr << "base: '" << base << "' cast: '" << cast << '\'' << std::endl;
   throw std::invalid_argument("error: non-convertible type");
-  return nullptr;
 }
 
 inline void Compiler::open()
