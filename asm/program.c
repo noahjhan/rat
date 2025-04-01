@@ -1,7 +1,6 @@
-#include <stdio.h>
-
 int main() {
-    float x = 3.4;
-    double z = 3.4;
+    float x = 10.6;
+    double y = 98.9l;
+    
     return 0;
 }

@@ -6,6 +6,12 @@
 
 #include "token.hpp"
 
+enum class Storage
+{
+    FLOAT,
+    INT
+};
+
 const std::unordered_map<std::string, ConstituentToken> DICT = {
 {"int", ConstituentToken::TYPE_INT},
 {"float", ConstituentToken::TYPE_FLOAT},
@@ -141,7 +147,7 @@ const std::unordered_map<ConstituentToken, std::string> TYPE_ASM = {
 {ConstituentToken::TYPE_CHAR, "i8"},       {ConstituentToken::TYPE_LONG, "i64"},
 {ConstituentToken::TYPE_SHORT, "i16"},     {ConstituentToken::TYPE_POINTER, "ptr"},
 {ConstituentToken::TYPE_UINT, "i32"},      {ConstituentToken::TYPE_ULONG, "i64"},
-{ConstituentToken::TYPE_USHORT, "u16"},    {ConstituentToken::TYPE_UCHAR, "i8"},
+{ConstituentToken::TYPE_USHORT, "i16"},    {ConstituentToken::TYPE_UCHAR, "i8"},
 {ConstituentToken::TYPE_VOID, "void"},     {ConstituentToken::TYPE_STRING, "ptr"},
 {ConstituentToken::TYPE_MAIN, "i32"}};
 
@@ -157,7 +163,12 @@ const std::unordered_map<ConstituentToken, std::string> ALIGN_ASM = {
 
 const std::unordered_map<std::string, std::string> STRING_TYPE_ALIGN = {
 {"i32", "align 4"}, {"float", "align 4"}, {"double", "align 8"}, {"i8", "align 1"},
-{"i64", "align 8"}, {"i16", "align 2"},   {"ptr", "align 8"},    {"i32", "align 4"},
-{"i64", "align 8"}, {"i16", "align 2"},   {"i8", "align 1"},
+{"i64", "align 8"}, {"i16", "align 2"},   {"ptr", "align 8"}};
+
+const std::unordered_map<std::string, std::pair<Storage, int>> SIZE_PRECEDENCE = {
+{"i32", {Storage::INT, 3}},     {"i64", {Storage::INT, 4}},
+{"i16", {Storage::INT, 2}},     {"i8", {Storage::INT, 1}},
+{"float", {Storage::FLOAT, 1}}, {"double", {Storage::FLOAT, 2}},
 };
+
 #endif // DICTIONARY_HPP
