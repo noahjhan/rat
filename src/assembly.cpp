@@ -225,7 +225,7 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
         }
         else if (expr->type == "float") {
             format_specifier = "%f";
-            expr = type_cast(expr, "double");
+            expr = typeCast(expr, "double");
         }
         else if (expr->type == "double") {
             format_specifier = "%lf";
@@ -254,6 +254,25 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
         }
         return std::nullopt;
     }
+    else if (call->token.value == "typeCastInt") {
+        return std::nullopt;
+    }
+    else if (call->token.value == "typeCastChar") {
+        return std::nullopt;
+    }
+    else if (call->token.value == "typeCastShort") {
+        return std::nullopt;
+    }
+    else if (call->token.value == "typeCastLong") {
+        return std::nullopt;
+    }
+    else if (call->token.value == "typeCastFloat") {
+        return std::nullopt;
+    }
+    else if (call->token.value == "typeCastDouble") {
+        return std::nullopt;
+    }
+
     if (call->type == ConstituentToken::TYPE_VOID) {
         std::vector<std::shared_ptr<Expression>> vect;
         for (const auto &expr : call->parameters) {
@@ -721,7 +740,7 @@ void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &de
     }
 
     if (expr->type != type_asm) {
-        expr = type_cast(expr, type_asm);
+        expr = typeCast(expr, type_asm);
     }
 
     std::string stored_in = "ptr";
@@ -819,7 +838,7 @@ Compiler::conditionalStatement(const std::shared_ptr<Node::ConditionalStatement>
 }
 
 inline std::shared_ptr<Expression>
-Compiler::type_cast(const std::shared_ptr<Expression> &expr, const std::string &cast)
+Compiler::typeCast(const std::shared_ptr<Expression> &expr, const std::string &cast)
 {
     if (!expr) {
         throw std::invalid_argument("null type cast expression");
@@ -869,11 +888,12 @@ Compiler::type_cast(const std::shared_ptr<Expression> &expr, const std::string &
              base_precedence > cast_precedence) {
         cast_instruction(base, cast, "trunc");
     }
+    else {
+        std::cerr << "base: '" << base << "' cast: '" << cast << '\'' << std::endl;
+        throw std::invalid_argument("error: non-convertible type");
+    }
     auto expr_struct = Expression(std::nullopt, cast, register_num);
     return std::make_shared<Expression>(expr_struct);
-
-    std::cerr << "base: '" << base << "' cast: '" << cast << '\'' << std::endl;
-    throw std::invalid_argument("error: non-convertible type");
 }
 
 inline void Compiler::open()

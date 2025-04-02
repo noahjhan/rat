@@ -30,7 +30,7 @@ bool TEST_LEXER()
     auto lex = Lexer(rat);
     while (lex.advanceToken()) {
     }
-    // lex.debugPrinter(true /* use true here for verbose printing */);
+    lex.debugPrinter(true /* use true here for verbose printing */);
     std::deque<Token> dq = lex.getTokens();
   }
   catch (const std::exception &e) {

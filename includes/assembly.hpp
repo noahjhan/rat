@@ -52,8 +52,8 @@ class Compiler
     void variableDeclaration(const std::shared_ptr<Node::VariableDecl> &decl);
     std::vector<std::string>
     conditionalStatement(const std::shared_ptr<Node::ConditionalStatement> &cond);
-    inline std::shared_ptr<Expression> type_cast(const std::shared_ptr<Expression> &base,
-                                                 const std::string &cast);
+    inline std::shared_ptr<Expression> typeCast(const std::shared_ptr<Expression> &base,
+                                                const std::string &cast);
 
     inline void open();
     inline void close();

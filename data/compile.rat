@@ -7,5 +7,6 @@ fn printer(size: int): int {
 
 fn_ main() {
     print(9.5)
+    printer(10)
     rev
 }
