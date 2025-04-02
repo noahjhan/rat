@@ -255,22 +255,52 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
         return std::nullopt;
     }
     else if (call->token.value == "typeCastInt") {
-        return std::nullopt;
+        auto call_parameters = call->parameters;
+        if (call_parameters.size() != 1) {
+            throw std::invalid_argument("expected object in type cast call");
+        }
+        auto expr = expression(call_parameters.at(0));
+        return typeCast(expr, "i32");
     }
     else if (call->token.value == "typeCastChar") {
-        return std::nullopt;
+        auto call_parameters = call->parameters;
+        if (call_parameters.size() != 1) {
+            throw std::invalid_argument("expected object in type cast call");
+        }
+        auto expr = expression(call_parameters.at(0));
+        return typeCast(expr, "i8");
     }
     else if (call->token.value == "typeCastShort") {
-        return std::nullopt;
+        auto call_parameters = call->parameters;
+        if (call_parameters.size() != 1) {
+            throw std::invalid_argument("expected object in type cast call");
+        }
+        auto expr = expression(call_parameters.at(0));
+        return typeCast(expr, "i16");
     }
     else if (call->token.value == "typeCastLong") {
-        return std::nullopt;
+        auto call_parameters = call->parameters;
+        if (call_parameters.size() != 1) {
+            throw std::invalid_argument("expected object in type cast call");
+        }
+        auto expr = expression(call_parameters.at(0));
+        return typeCast(expr, "i64");
     }
     else if (call->token.value == "typeCastFloat") {
-        return std::nullopt;
+        auto call_parameters = call->parameters;
+        if (call_parameters.size() != 1) {
+            throw std::invalid_argument("expected object in type cast call");
+        }
+        auto expr = expression(call_parameters.at(0));
+        return typeCast(expr, "float");
     }
     else if (call->token.value == "typeCastDouble") {
-        return std::nullopt;
+        auto call_parameters = call->parameters;
+        if (call_parameters.size() != 1) {
+            throw std::invalid_argument("expected object in type cast call");
+        }
+        auto expr = expression(call_parameters.at(0));
+        return typeCast(expr, "double");
     }
 
     if (call->type == ConstituentToken::TYPE_VOID) {
@@ -870,7 +900,7 @@ Compiler::typeCast(const std::shared_ptr<Expression> &expr, const std::string &c
         base_precedence < cast_precedence) {
         cast_instruction(base, cast, "fpext");
     }
-    else if (base_storage == Storage::INT && cast_storage == Storage::FLOAT &&
+    else if (base_storage == Storage::FLOAT && cast_storage == Storage::FLOAT &&
              base_precedence > cast_precedence) {
         cast_instruction(base, cast, "fptrunc");
     }

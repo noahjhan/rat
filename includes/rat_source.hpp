@@ -9,26 +9,26 @@
 #include <unistd.h>
 #include <unordered_map>
 
-#define RESET_LINE              \
-  do {                          \
-    prev_line_num_ = line_num_; \
-    line_num_ = 1;              \
-  } while (0)
-#define RESET_COL             \
-  do {                        \
-    prev_col_num_ = col_num_; \
-    col_num_ = 1;             \
-  } while (0)
-#define NEXT_LINE               \
-  do {                          \
-    prev_line_num_ = line_num_; \
-    ++line_num_;                \
-  } while (0)
-#define NEXT_COL              \
-  do {                        \
-    prev_col_num_ = col_num_; \
-    ++col_num_;               \
-  } while (0)
+#define RESET_LINE                  \
+    do {                            \
+        prev_line_num_ = line_num_; \
+        line_num_ = 1;              \
+    } while (0)
+#define RESET_COL                 \
+    do {                          \
+        prev_col_num_ = col_num_; \
+        col_num_ = 1;             \
+    } while (0)
+#define NEXT_LINE                   \
+    do {                            \
+        prev_line_num_ = line_num_; \
+        ++line_num_;                \
+    } while (0)
+#define NEXT_COL                  \
+    do {                          \
+        prev_col_num_ = col_num_; \
+        ++col_num_;               \
+    } while (0)
 #define PREV_LINE (line_num_ = prev_line_num_)
 #define PREV_COL (col_num_ = prev_col_num_)
 

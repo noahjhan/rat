@@ -1,12 +1,6 @@
-fn printer(size: int): int {
-    if (size == 0) {
-        ret 0
-    }
-    ret printer(size - 1)
-}
-
 fn_ main() {
-    print(9.5)
-    printer(10)
+    let k: int = 15
+    let y: float = typeCastFloat(k)
+    print(y)
     rev
 }

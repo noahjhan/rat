@@ -6,14 +6,14 @@
 #include <variant>
 #include <vector>
 
-#define EXPRESSION_VARIANT                                                  \
-  std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,        \
-               Node::NumericLiteral, Node::StringLiteral, Node::Identifier, \
-               Node::FunctionCall>
+#define EXPRESSION_VARIANT                                                    \
+    std::variant<Node::GenericExpr, Node::BinaryExpr, Node::UnaryExpr,        \
+                 Node::NumericLiteral, Node::StringLiteral, Node::Identifier, \
+                 Node::FunctionCall>
 
-#define AST_VARIANT                                                                \
-  std::variant<Node::FunctionDecl, Node::VariableDecl, Node::ConditionalStatement, \
-               Node::ReturnStatement, Node::GenericExpr>
+#define AST_VARIANT                                                                  \
+    std::variant<Node::FunctionDecl, Node::VariableDecl, Node::ConditionalStatement, \
+                 Node::ReturnStatement, Node::GenericExpr>
 
 // clang-format off
 namespace Node
