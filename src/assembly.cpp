@@ -10,6 +10,7 @@
 /// @todo support recursion
 /// @todo support casting
 /// @todo support storing floats properly
+/// @optimize identical string literals
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : ast_(ast), filename_(filename)
@@ -203,7 +204,7 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
     if (!call) {
         throw std::invalid_argument("null function call");
     }
-    if (call->token.value == "print") {
+    if (call->token.value == "print" || call->token.value == "println") {
         auto call_parameters = call->parameters;
         if (call_parameters.size() != 1) {
             throw std::invalid_argument("expected string literal in print statement");
@@ -230,6 +231,11 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
         else if (expr->type == "double") {
             format_specifier = "%lf";
         }
+
+        if (call->token.value == "println") {
+            format_specifier.append("\\n");
+        }
+
         std::string global = "\"" + format_specifier + "\"";
 
         if (!expr->identifier.has_value()) {
@@ -241,9 +247,14 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
         }
         else if (search_string_global_.find(expr->identifier.value()) !=
                  search_string_global_.end()) {
+            std::string search_term = expr->identifier.value();
+            if (call->token.value == "println") {
+                search_term.pop_back();
+                search_term.append("\n\"");
+            }
+            std::string format_string = stringGlobal(search_term);
             appendable_buffer_ << "\t%" << num_registers_++ << " = call i32 @printf(ptr "
-                               << search_string_global_.at(expr->identifier.value())
-                               << ")\n";
+                               << format_string << ")\n";
         }
         else if (expr->identifier) {
             std::string format_string = stringGlobal(global);
@@ -688,6 +699,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
 
     return std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
 }
+
 std::string Compiler::stringGlobal(const std::string &str)
 {
     std::string formatted;
@@ -718,7 +730,9 @@ std::string Compiler::stringGlobal(const std::string &str)
             formatted += str[i];
         }
     }
-
+    if (search_string_global_.find(str) != search_string_global_.end()) {
+        return search_string_global_.at(str);
+    }
     std::string identifier = "@.str." + std::to_string(num_string_constants_++);
 
     search_string_global_.insert({str, identifier});

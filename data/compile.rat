@@ -1,6 +1,3 @@
 fn_ main() {
-    let k: int = 15
-    let y: float = typeCastFloat(k)
-    print(y)
     rev
 }
