@@ -1,6 +1,6 @@
 # Rat Programming Language
 
-![Logo](https://cdn.discordapp.com/attachments/786456071878606879/1350353863592378438/rato.png?ex=67d66e89&is=67d51d09&hm=0772633909c9b9d53cf95ada063bcda717894e0ac42d71bfa4817b6e6557a3c0&)
+![Logo](https://drive.google.com/file/d/1jwxTDwpeA-kuMMf8XcHIrQ9uX0K0vFPl/view?usp=share_link)
 
 ## Introduction
 
