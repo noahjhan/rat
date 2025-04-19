@@ -11,6 +11,8 @@
 /// @todo support casting
 /// @todo support storing floats properly
 /// @optimize identical string literals
+/// @todo remove pointer wrapper for expression struct
+/// @todo support casting for unsigned numbers
 
 Compiler::Compiler(const std::shared_ptr<Node::AST> &ast, const std::string &filename)
 : ast_(ast), filename_(filename)
@@ -45,6 +47,7 @@ void Compiler::dispatch(const std::shared_ptr<Node::AST> &tree)
     if (std::holds_alternative<Node::FunctionDecl>(*tree->curr)) {
         scoped_registers_.clear();
         identifiers_.clear();
+        unsigned_registers_.clear();
         functionDeclaration(
         std::make_shared<Node::FunctionDecl>(std::get<Node::FunctionDecl>(*tree->curr)));
     }
@@ -135,8 +138,13 @@ const std::vector<std::pair<std::string, ConstituentToken>> &parameters)
     for (const auto &[id, tok] : parameters) {
         std::string register_num = "%" + std::to_string(num_registers_++);
         str += TYPE_ASM.at(tok) + " noundef " + register_num + ", ";
+
+        insertIfUnsigned(tok, register_num);
+
+        std::optional<Storage> storage = makeStorage(tok);
+
         scoped_registers_.insert({register_num, TYPE_ASM.at(tok)});
-        exprs.push_back(Expression(id, TYPE_ASM.at(tok), register_num));
+        exprs.push_back(Expression(id, TYPE_ASM.at(tok), register_num, storage));
     }
     if (str.size() > 2) {
         str.pop_back();
@@ -213,16 +221,16 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
         auto expr = expression(call_parameters.at(0));
         std::string format_specifier;
         if (expr->type == "i32") {
-            format_specifier = "%d";
+            format_specifier = (expr->storage == Storage::UNSIGNED) ? "%u" : "%d";
         }
         else if (expr->type == "i64") {
-            format_specifier = "%li";
+            format_specifier = (expr->storage == Storage::UNSIGNED) ? "%lu" : "%li";
         }
         else if (expr->type == "i8") {
-            format_specifier = "%c";
+            format_specifier = (expr->storage == Storage::UNSIGNED) ? "%hhu" : "%c";
         }
         else if (expr->type == "i16") {
-            format_specifier = "%hd";
+            format_specifier = (expr->storage == Storage::UNSIGNED) ? "%hu" : "%hd";
         }
         else if (expr->type == "float") {
             format_specifier = "%f";
@@ -265,53 +273,17 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
         }
         return std::nullopt;
     }
-    else if (call->token.value == "typeCastInt") {
-        auto call_parameters = call->parameters;
-        if (call_parameters.size() != 1) {
+
+    std::unordered_map<std::string, std::string> typeCastMap = {
+    {"typeCastInt", "i32"},  {"typeCastChar", "i8"},     {"typeCastShort", "i16"},
+    {"typeCastLong", "i64"}, {"typeCastFloat", "float"}, {"typeCastDouble", "double"}};
+
+    if (typeCastMap.find(call->token.value) != typeCastMap.end()) {
+        if (call->parameters.size() != 1) {
             throw std::invalid_argument("expected object in type cast call");
         }
-        auto expr = expression(call_parameters.at(0));
-        return typeCast(expr, "i32");
-    }
-    else if (call->token.value == "typeCastChar") {
-        auto call_parameters = call->parameters;
-        if (call_parameters.size() != 1) {
-            throw std::invalid_argument("expected object in type cast call");
-        }
-        auto expr = expression(call_parameters.at(0));
-        return typeCast(expr, "i8");
-    }
-    else if (call->token.value == "typeCastShort") {
-        auto call_parameters = call->parameters;
-        if (call_parameters.size() != 1) {
-            throw std::invalid_argument("expected object in type cast call");
-        }
-        auto expr = expression(call_parameters.at(0));
-        return typeCast(expr, "i16");
-    }
-    else if (call->token.value == "typeCastLong") {
-        auto call_parameters = call->parameters;
-        if (call_parameters.size() != 1) {
-            throw std::invalid_argument("expected object in type cast call");
-        }
-        auto expr = expression(call_parameters.at(0));
-        return typeCast(expr, "i64");
-    }
-    else if (call->token.value == "typeCastFloat") {
-        auto call_parameters = call->parameters;
-        if (call_parameters.size() != 1) {
-            throw std::invalid_argument("expected object in type cast call");
-        }
-        auto expr = expression(call_parameters.at(0));
-        return typeCast(expr, "float");
-    }
-    else if (call->token.value == "typeCastDouble") {
-        auto call_parameters = call->parameters;
-        if (call_parameters.size() != 1) {
-            throw std::invalid_argument("expected object in type cast call");
-        }
-        auto expr = expression(call_parameters.at(0));
-        return typeCast(expr, "double");
+        auto expr = expression(call->parameters.at(0));
+        return typeCast(expr, typeCastMap[call->token.value]);
     }
 
     if (call->type == ConstituentToken::TYPE_VOID) {
@@ -348,8 +320,9 @@ Compiler::functionCall(const std::shared_ptr<Node::FunctionCall> &call)
     }
     appendable_buffer_ << call_parameters << ")\n";
 
+    std::optional<Storage> storage = makeStorage(call->type);
     return std::make_shared<Expression>(
-    Expression(std::nullopt, TYPE_ASM.at(call->type), register_num));
+    Expression(std::nullopt, TYPE_ASM.at(call->type), register_num, storage));
 }
 
 void Compiler::returnStatement(
@@ -392,6 +365,7 @@ void Compiler::allocateVariables(const std::shared_ptr<Node::VariableDecl> &decl
 
     identifiers_.insert({decl->token.value, {register_num, type_asm}});
     scoped_registers_.insert({register_num, type_asm});
+    insertIfUnsigned(decl->type, register_num);
 
     file_buffer_ << '\t' << register_num << " = alloca " << type_asm << ", " << alignment
                  << '\n';
@@ -428,9 +402,15 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
             throw std::invalid_argument("expression type not recognized");
         }
 
-        std::string type_asm = curr_expr_type.value();
-        std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type.value());
+        if (lhs->storage != rhs->storage) {
+            throw std::invalid_argument(
+            "cannot perform operator on objects of different type");
+        }
+
+        std::string type_asm = TYPE_ASM.at(curr_expr_type.value());
+        std::string alignment = STRING_TYPE_ALIGN.at(type_asm);
         std::string register_num = "%" + std::to_string(num_registers_++);
+        std::optional<Storage> preop_storage = lhs->storage;
 
         switch (expr.op) {
             case ConstituentToken::ARITHMETIC_ADD: {
@@ -445,9 +425,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+            } break;
             case ConstituentToken::ARITHMETIC_SUB: {
                 // <result> = sub <ty> <op1>, <op2>
                 std::string op;
@@ -460,9 +438,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+            } break;
             case ConstituentToken::ARITHMETIC_MUL: {
                 // <result> = mul <ty> <op1>, <op2>
                 std::string op;
@@ -475,14 +451,15 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+            } break;
             case ConstituentToken::ARITHMETIC_DIV: {
                 // <result> = sdiv <ty> <op1>, <op2>
                 std::string op;
                 if (type_asm == "float" || type_asm == "double") {
                     op = "fdiv";
+                }
+                else if (preop_storage == Storage::UNSIGNED) {
+                    op = "udiv";
                 }
                 else {
                     op = "sdiv";
@@ -490,14 +467,15 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+            } break;
             case ConstituentToken::ARITHMETIC_MOD: {
                 // <result> = srem <ty> <op1>, <op2>
                 std::string op;
                 if (type_asm == "float" || type_asm == "double") {
                     op = "frem";
+                }
+                else if (preop_storage == Storage::UNSIGNED) {
+                    op = "urem";
                 }
                 else {
                     op = "srem";
@@ -505,9 +483,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+            } break;
             case ConstituentToken::COMPARISON_EQ: {
                 // <result> = icmp eq <ty> <op1>, <op2>
                 std::string op;
@@ -520,9 +496,8 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, "i1", register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::COMPARISON_LT: {
                 // <result> = icmp slt <ty> <op1>, <op2>
                 std::string op;
@@ -535,9 +510,8 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, "i1", register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::COMPARISON_GT: {
                 // <result> = icmp sgt <ty> <op1>, <op2>
                 std::string op;
@@ -550,9 +524,8 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, "i1", register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::COMPARISON_LTE: {
                 // <result> = icmp sle <ty> <op1>, <op2>
                 std::string op;
@@ -565,9 +538,8 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, "i1", register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::COMPARISON_GTE: {
                 // <result> = icmp sge <ty> <op1>, <op2>
                 std::string op;
@@ -580,68 +552,65 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
                 appendable_buffer_ << '\t' << register_num << " = " << op << ' '
                                    << type_asm << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, "i1", register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::LOGICAL_AND: {
                 throw std::invalid_argument("logical AND not implemented");
-            }
+            } break;
             case ConstituentToken::LOGICAL_OR: {
                 throw std::invalid_argument("logical OR not implemented");
-            }
+            } break;
             case ConstituentToken::LOGICAL_NOT: {
                 throw std::invalid_argument("logical NOT not implemented");
-            }
+            } break;
             case ConstituentToken::BITWISE_AND: {
                 // <result> = and <ty> <op1>, <op2>
                 appendable_buffer_ << '\t' << register_num << " = and " << type_asm << ' '
                                    << lhs->register_number << ", " << rhs->register_number
                                    << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::BITWISE_OR: {
                 // <result> = or <ty> <op1>, <op2>
                 appendable_buffer_ << '\t' << register_num << " = or " << type_asm << ' '
                                    << lhs->register_number << ", " << rhs->register_number
                                    << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::BITWISE_XOR: {
                 // <result> = xor <ty> <op1>, <op2>
                 appendable_buffer_ << '\t' << register_num << " = xor " << type_asm << ' '
                                    << lhs->register_number << ", " << rhs->register_number
                                    << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::BITWISE_SL: {
                 // <result> = shl <ty> <op1>, <op2>
                 appendable_buffer_ << '\t' << register_num << " = shl " << type_asm << ' '
                                    << lhs->register_number << ", " << rhs->register_number
                                    << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             case ConstituentToken::BITWISE_SR: {
                 // <result> = ashr <ty> <op1>, <op2>
                 appendable_buffer_ << '\t' << register_num << " = ashr " << type_asm
                                    << ' ' << lhs->register_number << ", "
                                    << rhs->register_number << '\n';
-                Expression expr_struct(std::nullopt, type_asm, register_num);
-                return std::make_shared<Expression>(expr_struct);
-            }
+                curr_expr_type = ConstituentToken::TYPE_BOOL;
+            } break;
             default:
                 throw std::invalid_argument("unrecognized operator");
         }
-        throw std::invalid_argument("unrecognized operator");
+        std::optional<Storage> storage = makeStorage(curr_expr_type);
+        Expression expr_struct(std::nullopt, type_asm, register_num, storage);
+        return std::make_shared<Expression>(expr_struct);
     }
     else if (std::holds_alternative<Node::UnaryExpr>(*call->expr)) {
     }
     else if (std::holds_alternative<Node::NumericLiteral>(*call->expr)) {
         auto literal = std::get<Node::NumericLiteral>(*call->expr);
-        curr_expr_type = TYPE_ASM.at(literal.type);
+        curr_expr_type = literal.type;
+
         std::string formatted;
         for (const auto &digit : literal.token.value) {
             if (std::isdigit(digit) || digit == '.') {
@@ -649,39 +618,47 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
             }
         }
 
-        Expression expr_struct(std::nullopt, curr_expr_type.value(), formatted);
+        std::optional<Storage> storage = makeStorage(literal.type);
+        Expression expr_struct(std::nullopt, TYPE_ASM.at(curr_expr_type.value()),
+                               formatted, storage);
         return std::make_shared<Expression>(expr_struct);
     }
     else if (std::holds_alternative<Node::StringLiteral>(*call->expr)) {
         auto node = std::get<Node::StringLiteral>(*call->expr);
-        curr_expr_type = "ptr"; // verify
-        Expression expr_struct(node.token.value, curr_expr_type.value(),
-                               stringGlobal(node.token.value));
+        curr_expr_type = ConstituentToken::TYPE_STRING; // verify
+        Expression expr_struct(node.token.value, TYPE_ASM.at(curr_expr_type.value()),
+                               stringGlobal(node.token.value), std::nullopt);
         return std::make_shared<Expression>(expr_struct);
     }
     else if (std::holds_alternative<Node::Identifier>(*call->expr)) {
         auto identifier = std::get<Node::Identifier>(*call->expr);
+        std::optional<Storage> storage = makeStorage(identifier.type);
         Expression id_ptr(identifier.token.value,
                           identifiers_.at(identifier.token.value).second,
-                          identifiers_.at(identifier.token.value).first);
+                          identifiers_.at(identifier.token.value).first, storage);
 
         // %4 = load i32, ptr %2, align
-        // curr_expr_type = idejjntifiers_.at(identifier.token.value).second;
+        std::string type_asm = identifiers_.at(identifier.token.value).second;
 
-        /// @todo remove this hardcode
+        if (storage.value() != Storage::UNSIGNED) {
+            curr_expr_type =
+            REVERSE_TYPE_ASM.at(identifiers_.at(identifier.token.value).second).first;
+        }
+        else {
+            curr_expr_type =
+            REVERSE_TYPE_ASM.at(identifiers_.at(identifier.token.value).second).second;
+        }
 
-        curr_expr_type = identifiers_.at(identifier.token.value).second;
-        // so currently this is always going to be a pointer
-        std::string type_asm = curr_expr_type.value();
-
-        std::string alignment = STRING_TYPE_ALIGN.at(curr_expr_type.value());
+        std::string alignment = STRING_TYPE_ALIGN.at(type_asm);
         std::string register_num = "%" + std::to_string(num_registers_++);
         appendable_buffer_ << '\t' << register_num << " = load " << type_asm << ", "
                            << "ptr" << ' ' << id_ptr.register_number << ", " << alignment
                            << '\n';
 
         scoped_registers_.insert({register_num, type_asm});
-        Expression expr_struct(identifier.token.value, type_asm, register_num);
+
+        storage = makeStorage(curr_expr_type);
+        Expression expr_struct(identifier.token.value, type_asm, register_num, storage);
         return std::make_shared<Expression>(expr_struct);
     }
     else if (std::holds_alternative<Node::FunctionCall>(*call->expr)) {
@@ -689,7 +666,7 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
         std::make_shared<Node::FunctionCall>(std::get<Node::FunctionCall>(*call->expr)));
         if (!optional) {
             return std::make_shared<Expression>(
-            Expression(std::nullopt, "err", "optional"));
+            Expression(std::nullopt, "err", "optional", std::nullopt));
         }
         return optional.value();
     }
@@ -697,7 +674,8 @@ Compiler::expression(const std::shared_ptr<Node::GenericExpr> &call)
         throw std::invalid_argument("unrecognized expression variant");
     }
 
-    return std::make_shared<Expression>(Expression(std::nullopt, "ERROR", "TODO"));
+    return std::make_shared<Expression>(
+    Expression(std::nullopt, "ERROR", "TODO", std::nullopt));
 }
 
 std::string Compiler::stringGlobal(const std::string &str)
@@ -785,6 +763,7 @@ void Compiler::variableDeclaration(const std::shared_ptr<Node::VariableDecl> &de
 
     if (expr->type != type_asm) {
         expr = typeCast(expr, type_asm);
+        curr_expr_type = decl->type;
     }
 
     std::string stored_in = "ptr";
@@ -881,6 +860,41 @@ Compiler::conditionalStatement(const std::shared_ptr<Node::ConditionalStatement>
     return branches;
 }
 
+inline void Compiler::insertIfUnsigned(const ConstituentToken &token,
+                                       const std::string &reg)
+{
+    if (token == ConstituentToken::TYPE_UINT || token == ConstituentToken::TYPE_UCHAR ||
+        token == ConstituentToken::TYPE_ULONG || token == ConstituentToken::TYPE_USHORT) {
+        unsigned_registers_.insert(reg);
+    }
+}
+
+inline bool Compiler::isUnsigned(const ConstituentToken &token)
+{
+    return (
+    token == ConstituentToken::TYPE_UINT || token == ConstituentToken::TYPE_UCHAR ||
+    token == ConstituentToken::TYPE_ULONG || token == ConstituentToken::TYPE_USHORT);
+}
+
+inline std::optional<Storage>
+Compiler::makeStorage(const std::optional<ConstituentToken> &token)
+{
+    if (!token.has_value()) {
+        throw std::invalid_argument("token must have value to cast to storage class");
+    }
+
+    if (isUnsigned(token.value())) {
+        return Storage::UNSIGNED;
+    }
+
+    try {
+        return SIZE_PRECEDENCE.at(TYPE_ASM.at(token.value())).first;
+    }
+    catch (const std::out_of_range &e) {
+        return std::nullopt;
+    }
+}
+
 inline std::shared_ptr<Expression>
 Compiler::typeCast(const std::shared_ptr<Expression> &expr, const std::string &cast)
 {
@@ -889,6 +903,7 @@ Compiler::typeCast(const std::shared_ptr<Expression> &expr, const std::string &c
     }
 
     const std::string base = expr->type;
+
     if (cast == expr->type) {
         return expr;
     }
@@ -936,7 +951,7 @@ Compiler::typeCast(const std::shared_ptr<Expression> &expr, const std::string &c
         std::cerr << "base: '" << base << "' cast: '" << cast << '\'' << std::endl;
         throw std::invalid_argument("error: non-convertible type");
     }
-    auto expr_struct = Expression(std::nullopt, cast, register_num);
+    auto expr_struct = Expression(std::nullopt, cast, register_num, cast_storage);
     return std::make_shared<Expression>(expr_struct);
 }
 

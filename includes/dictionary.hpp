@@ -9,7 +9,8 @@
 enum class Storage
 {
     FLOAT,
-    INT
+    INT,
+    UNSIGNED
 };
 
 const std::unordered_map<std::string, ConstituentToken> DICT = {
@@ -143,13 +144,24 @@ const std::unordered_map<ConstituentToken, std::string> REVERSE_DICT = {
 
 const std::unordered_map<ConstituentToken, std::string> TYPE_ASM = {
 {ConstituentToken::TYPE_INT, "i32"},       {ConstituentToken::TYPE_FLOAT, "float"},
-{ConstituentToken::TYPE_DOUBLE, "double"}, {ConstituentToken::TYPE_BOOL, "i8"},
+{ConstituentToken::TYPE_DOUBLE, "double"}, {ConstituentToken::TYPE_BOOL, "i1"},
 {ConstituentToken::TYPE_CHAR, "i8"},       {ConstituentToken::TYPE_LONG, "i64"},
 {ConstituentToken::TYPE_SHORT, "i16"},     {ConstituentToken::TYPE_POINTER, "ptr"},
 {ConstituentToken::TYPE_UINT, "i32"},      {ConstituentToken::TYPE_ULONG, "i64"},
 {ConstituentToken::TYPE_USHORT, "i16"},    {ConstituentToken::TYPE_UCHAR, "i8"},
 {ConstituentToken::TYPE_VOID, "void"},     {ConstituentToken::TYPE_STRING, "ptr"},
 {ConstituentToken::TYPE_MAIN, "i32"}};
+
+const std::unordered_map<std::string, std::pair<ConstituentToken, ConstituentToken>>
+REVERSE_TYPE_ASM = {
+{"i32", {ConstituentToken::TYPE_INT, ConstituentToken::TYPE_UINT}},
+{"i8", {ConstituentToken::TYPE_CHAR, ConstituentToken::TYPE_UCHAR}},
+{"i16", {ConstituentToken::TYPE_SHORT, ConstituentToken::TYPE_USHORT}},
+{"i64", {ConstituentToken::TYPE_LONG, ConstituentToken::TYPE_ULONG}},
+{"i1", {ConstituentToken::TYPE_BOOL, ConstituentToken::TYPE_BOOL}},
+{"ptr", {ConstituentToken::TYPE_STRING, ConstituentToken::TYPE_STRING}},
+{"float", {ConstituentToken::TYPE_FLOAT, ConstituentToken::TYPE_FLOAT}},
+{"double", {ConstituentToken::TYPE_DOUBLE, ConstituentToken::TYPE_DOUBLE}}};
 
 // check aligns for void ?
 const std::unordered_map<ConstituentToken, std::string> ALIGN_ASM = {

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <set>
 #include <sstream>
 #include <unordered_set>
 #include <utility>
@@ -21,9 +22,12 @@ struct Expression
     std::optional<std::string> identifier;
     std::string type;
     std::string register_number;
+    std::optional<Storage> storage;
 
-    Expression(std::optional<std::string> id, std::string ty, std::string reg)
-    : identifier(std::move(id)), type(std::move(ty)), register_number(std::move(reg))
+    Expression(std::optional<std::string> id, std::string ty, std::string reg,
+               std::optional<Storage> sg)
+    : identifier(std::move(id)), type(std::move(ty)), register_number(std::move(reg)),
+      storage(std::move(sg))
     {
     }
 };
@@ -52,6 +56,12 @@ class Compiler
     void variableDeclaration(const std::shared_ptr<Node::VariableDecl> &decl);
     std::vector<std::string>
     conditionalStatement(const std::shared_ptr<Node::ConditionalStatement> &cond);
+
+    inline void insertIfUnsigned(const ConstituentToken &token, const std::string &reg);
+    inline bool isUnsigned(const ConstituentToken &token);
+    inline std::optional<Storage>
+    makeStorage(const std::optional<ConstituentToken> &token);
+
     inline std::shared_ptr<Expression> typeCast(const std::shared_ptr<Expression> &base,
                                                 const std::string &cast);
 
@@ -72,11 +82,15 @@ class Compiler
     identifiers_; // identifier -> "%regnum, type"
     std::unordered_map<std::string, std::string>
     function_table_; // identifier -> "return_type @identifier"
+    //
     std::unordered_map<std::string, std::string> search_string_global_;
     unsigned num_string_constants_ = 1;
+
+    std::set<std::string> unsigned_registers_;
+
     /// @todo unsigned num_numeric_globals_;
     unsigned num_registers_ = 0;
-    std::optional<std::string> curr_expr_type;
+    std::optional<ConstituentToken> curr_expr_type;
 
     std::stringstream file_buffer_;
     std::stringstream appendable_buffer_;

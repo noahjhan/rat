@@ -1,3 +1,7 @@
 fn_ main() {
+    println("start")
+    let x: int = 10u
+    let y: uint = x
+    println("done")
     rev
 }
