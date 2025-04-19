@@ -1,6 +1,6 @@
 # Rat Programming Language
 
-![Logo](https://drive.google.com/file/d/1jwxTDwpeA-kuMMf8XcHIrQ9uX0K0vFPl/view?usp=share_link)
+![Logo](https://imgur.com/a/PzXqQQL)
 
 ## Introduction
 
